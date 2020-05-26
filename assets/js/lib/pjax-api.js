@@ -373,11 +373,9 @@ require = function () {
                         ].every(k => this.store.has(k)))
                         throw new Error(`Spica: Cache: Keys of stats and entries is not matched.`);
                 }
-                put(key, value, log = true) {
+                put(key, value) {
                     !this.nullish && value === global_1.undefined ? this.nullish = true : global_1.undefined;
                     const hit = this.store.has(key);
-                    if (!log && hit)
-                        return this.store.set(key, value), true;
                     if (hit && this.access(key))
                         return this.store.set(key, value), true;
                     const {LRU, LFU} = this.stats;
@@ -397,14 +395,12 @@ require = function () {
                     }
                     return false;
                 }
-                set(key, value, log) {
-                    this.put(key, value, log);
+                set(key, value) {
+                    this.put(key, value);
                     return value;
                 }
-                get(key, log = true) {
+                get(key) {
                     const val = this.store.get(key);
-                    if (!log)
-                        return val;
                     const hit = val !== global_1.undefined || this.nullish && this.store.has(key);
                     return hit && this.access(key) ? val : global_1.undefined;
                 }
@@ -813,8 +809,8 @@ require = function () {
                         void all(coroutines).then(results => results.length === 0 ? void this[coroutine_1.Coroutine.terminate](new global_1.Error(`Spica: Copropagator: No result.`)) : void this[coroutine_1.Coroutine.exit](reducer(results)), reason => void this[coroutine_1.Coroutine.terminate](reason));
                         return clock_1.never;
                     }, {
-                        ...opts,
-                        delay: false
+                        delay: false,
+                        ...opts
                     });
                 }
             }
@@ -845,7 +841,7 @@ require = function () {
     13: [
         function (_dereq_, module, exports) {
             'use strict';
-            var _a;
+            var _a, _b;
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.isCoroutine = exports.Coroutine = void 0;
             const global_1 = _dereq_('./global');
@@ -863,161 +859,157 @@ require = function () {
             const terminate = Symbol.for('spica/Coroutine.terminate');
             const port = Symbol.for('spica/Coroutine.port');
             const internal = Symbol.for('spica/coroutine::internal');
-            let Coroutine = (() => {
-                var _b;
-                class Coroutine extends promise_1.AtomicPromise {
-                    constructor(gen, opts = {}) {
-                        super(resolve => res = resolve);
-                        this[_b] = new Port(this);
-                        var res;
-                        this[internal] = new Internal(opts);
-                        let count = 0;
-                        this[Coroutine.init] = async () => {
-                            const core = this[internal];
-                            if (!core.alive)
-                                return;
-                            if (count !== 0)
-                                return;
-                            let reply = noop_1.noop;
-                            try {
-                                const iter = gen.call(this);
-                                while (core.alive) {
-                                    const [[msg, rpy]] = ++count === 1 ? [[
-                                            global_1.undefined,
-                                            noop_1.noop
-                                        ]] : await global_1.Promise.all([
-                                        core.settings.size < 0 ? [
-                                            global_1.undefined,
-                                            noop_1.noop
-                                        ] : core.sendBuffer.take(),
-                                        global_1.Promise.all([
-                                            core.settings.resume(),
-                                            core.settings.interval > 0 ? clock_1.wait(core.settings.interval) : global_1.undefined
-                                        ])
-                                    ]);
-                                    reply = rpy;
-                                    if (!core.alive)
-                                        break;
-                                    const result = await iter.next(msg);
-                                    if (!result.done) {
-                                        reply({ ...result });
-                                        await core.recvBuffer.put({ ...result });
-                                        continue;
-                                    } else {
-                                        core.alive = false;
-                                        reply({ ...result });
-                                        core.recvBuffer.put({ ...result });
-                                        core.result.bind(result);
-                                        return;
-                                    }
-                                }
-                                reply(promise_1.AtomicPromise.reject(new global_1.Error(`Spica: Coroutine: Canceled.`)));
-                            } catch (reason) {
-                                reply(promise_1.AtomicPromise.reject(reason));
-                                this[Coroutine.terminate](reason);
-                            }
-                        };
+            class Coroutine extends promise_1.AtomicPromise {
+                constructor(gen, opts = {}) {
+                    super(resolve => res = resolve);
+                    this[_a] = new Port(this);
+                    var res;
+                    this[internal] = new Internal(opts);
+                    let count = 0;
+                    this[Coroutine.init] = async () => {
                         const core = this[internal];
-                        res(core.result.then(({value}) => value));
-                        if (core.settings.trigger !== global_1.undefined) {
-                            for (const prop of global_1.Array().concat(core.settings.trigger)) {
-                                if (prop in this && this.hasOwnProperty(prop))
-                                    continue;
-                                if (prop in this) {
-                                    alias_1.ObjectDefineProperty(this, prop, {
-                                        set(value) {
-                                            delete this[prop];
-                                            this[prop] = value;
-                                            this[init]();
-                                        },
-                                        get() {
-                                            delete this[prop];
-                                            this[init]();
-                                            return this[prop];
-                                        },
-                                        enumerable: true,
-                                        configurable: true
-                                    });
-                                } else {
-                                    const desc = alias_1.ObjectGetOwnPropertyDescriptor(this, prop) || {
-                                        value: this[prop],
-                                        enumerable: true,
-                                        configurable: true,
-                                        writable: true
-                                    };
-                                    alias_1.ObjectDefineProperty(this, prop, {
-                                        set(value) {
-                                            alias_1.ObjectDefineProperty(this, prop, {
-                                                ...desc,
-                                                value
-                                            });
-                                            this[init]();
-                                        },
-                                        get() {
-                                            return this[prop];
-                                        },
-                                        enumerable: true,
-                                        configurable: true
-                                    });
-                                }
-                            }
-                        }
-                        if (this[internal].settings.run) {
-                            this[internal].settings.delay ? clock_1.tick(this[Coroutine.init]) : this[Coroutine.init]();
-                        }
-                    }
-                    get [alive]() {
-                        return this[internal].alive;
-                    }
-                    [exit](result) {
-                        if (!this[internal].alive)
+                        if (!core.alive)
                             return;
-                        promise_1.AtomicPromise.resolve(result).then(result => {
-                            const core = this[internal];
-                            if (!core.alive)
-                                return;
-                            core.alive = false;
-                            core.recvBuffer.put({
-                                value: global_1.undefined,
-                                done: true
-                            });
-                            core.result.bind({ value: result });
-                        }, reason => {
-                            const core = this[internal];
-                            if (!core.alive)
-                                return;
-                            core.alive = false;
-                            core.recvBuffer.put({
-                                value: global_1.undefined,
-                                done: true
-                            });
-                            core.result.bind(promise_1.AtomicPromise.reject(reason));
-                        });
-                    }
-                    [terminate](reason) {
-                        return this[exit](promise_1.AtomicPromise.reject(reason));
-                    }
-                    async *[Symbol.asyncIterator]() {
-                        const core = this[internal];
-                        const port = this[Coroutine.port];
-                        while (core.alive) {
-                            const result = await port.recv();
-                            if (result.done)
-                                return result.value;
-                            yield result.value;
+                        if (count !== 0)
+                            return;
+                        let reply = noop_1.noop;
+                        try {
+                            const iter = gen.call(this);
+                            while (core.alive) {
+                                const [[msg, rpy]] = ++count === 1 ? [[
+                                        global_1.undefined,
+                                        noop_1.noop
+                                    ]] : await global_1.Promise.all([
+                                    core.settings.size < 0 ? [
+                                        global_1.undefined,
+                                        noop_1.noop
+                                    ] : core.sendBuffer.take(),
+                                    global_1.Promise.all([
+                                        core.settings.resume(),
+                                        core.settings.interval > 0 ? clock_1.wait(core.settings.interval) : global_1.undefined
+                                    ])
+                                ]);
+                                reply = rpy;
+                                if (!core.alive)
+                                    break;
+                                const result = await iter.next(msg);
+                                if (!result.done) {
+                                    reply({ ...result });
+                                    await core.recvBuffer.put({ ...result });
+                                    continue;
+                                } else {
+                                    core.alive = false;
+                                    reply({ ...result });
+                                    core.recvBuffer.put({ ...result });
+                                    core.result.bind(result);
+                                    return;
+                                }
+                            }
+                            reply(promise_1.AtomicPromise.reject(new global_1.Error(`Spica: Coroutine: Canceled.`)));
+                        } catch (reason) {
+                            reply(promise_1.AtomicPromise.reject(reason));
+                            this[Coroutine.terminate](reason);
                         }
-                        return this;
+                    };
+                    const core = this[internal];
+                    res(core.result.then(({value}) => value));
+                    if (core.settings.trigger !== global_1.undefined) {
+                        for (const prop of global_1.Array().concat(core.settings.trigger)) {
+                            if (prop in this && this.hasOwnProperty(prop))
+                                continue;
+                            if (prop in this) {
+                                alias_1.ObjectDefineProperty(this, prop, {
+                                    set(value) {
+                                        delete this[prop];
+                                        this[prop] = value;
+                                        this[init]();
+                                    },
+                                    get() {
+                                        delete this[prop];
+                                        this[init]();
+                                        return this[prop];
+                                    },
+                                    enumerable: true,
+                                    configurable: true
+                                });
+                            } else {
+                                const desc = alias_1.ObjectGetOwnPropertyDescriptor(this, prop) || {
+                                    value: this[prop],
+                                    enumerable: true,
+                                    configurable: true,
+                                    writable: true
+                                };
+                                alias_1.ObjectDefineProperty(this, prop, {
+                                    set(value) {
+                                        alias_1.ObjectDefineProperty(this, prop, {
+                                            ...desc,
+                                            value
+                                        });
+                                        this[init]();
+                                    },
+                                    get() {
+                                        return this[prop];
+                                    },
+                                    enumerable: true,
+                                    configurable: true
+                                });
+                            }
+                        }
+                    }
+                    if (this[internal].settings.run) {
+                        this[internal].settings.delay ? clock_1.tick(this[Coroutine.init]) : this[Coroutine.init]();
                     }
                 }
-                _b = port;
-                Coroutine.alive = alive;
-                Coroutine.init = init;
-                Coroutine.exit = exit;
-                Coroutine.terminate = terminate;
-                Coroutine.port = port;
-                return Coroutine;
-            })();
+                get [alive]() {
+                    return this[internal].alive;
+                }
+                [exit](result) {
+                    if (!this[internal].alive)
+                        return;
+                    promise_1.AtomicPromise.resolve(result).then(result => {
+                        const core = this[internal];
+                        if (!core.alive)
+                            return;
+                        core.alive = false;
+                        core.recvBuffer.put({
+                            value: global_1.undefined,
+                            done: true
+                        });
+                        core.result.bind({ value: result });
+                    }, reason => {
+                        const core = this[internal];
+                        if (!core.alive)
+                            return;
+                        core.alive = false;
+                        core.recvBuffer.put({
+                            value: global_1.undefined,
+                            done: true
+                        });
+                        core.result.bind(promise_1.AtomicPromise.reject(reason));
+                    });
+                }
+                [terminate](reason) {
+                    return this[exit](promise_1.AtomicPromise.reject(reason));
+                }
+                async *[Symbol.asyncIterator]() {
+                    const core = this[internal];
+                    const port = this[Coroutine.port];
+                    while (core.alive) {
+                        const result = await port.recv();
+                        if (result.done)
+                            return result.value;
+                        yield result.value;
+                    }
+                    return this;
+                }
+            }
             exports.Coroutine = Coroutine;
+            _a = port;
+            Coroutine.alive = alive;
+            Coroutine.init = init;
+            Coroutine.exit = exit;
+            Coroutine.terminate = terminate;
+            Coroutine.port = port;
             class Internal {
                 constructor(opts) {
                     this.opts = opts;
@@ -1120,20 +1112,20 @@ require = function () {
             exports.isCoroutine = isCoroutine;
             class BroadcastChannel {
                 constructor() {
-                    this[_a] = new BroadcastChannel.Internal();
+                    this[_b] = new BroadcastChannel.Internal();
                 }
                 get alive() {
                     return this[internal].alive;
                 }
                 close(finalizer) {
-                    var _b;
+                    var _c;
                     if (!this.alive)
                         return;
                     const core = this[internal];
                     const {consumers} = core;
                     core.alive = false;
                     for (let i = 0; consumers[i]; ++i) {
-                        (_b = consumers[i]) === null || _b === void 0 ? void 0 : _b.bind(BroadcastChannel.fail());
+                        (_c = consumers[i]) === null || _c === void 0 ? void 0 : _c.bind(BroadcastChannel.fail());
                     }
                     consumers.splice(0, consumers.length);
                     if (finalizer) {
@@ -1156,7 +1148,7 @@ require = function () {
                     return consumers[consumers.push(new future_1.AtomicFuture()) - 1].then();
                 }
             }
-            _a = internal;
+            _b = internal;
             (function (BroadcastChannel) {
                 BroadcastChannel.success = promise_1.AtomicPromise.resolve();
                 BroadcastChannel.fail = () => promise_1.AtomicPromise.reject(new global_1.Error('Spica: Channel: Closed.'));
@@ -3572,11 +3564,11 @@ require = function () {
                                 const {status} = value[internal];
                                 switch (status.state) {
                                 case 2:
-                                    results[i] = status.result;
+                                    results[i] = status.value;
                                     ++count;
                                     continue;
                                 case 3:
-                                    reject(status.result);
+                                    reject(status.reason);
                                     i = values.length;
                                     continue;
                                 }
@@ -3605,9 +3597,9 @@ require = function () {
                                 const {status} = value[internal];
                                 switch (status.state) {
                                 case 2:
-                                    return resolve(status.result);
+                                    return resolve(status.value);
                                 case 3:
-                                    return reject(status.result);
+                                    return reject(status.reason);
                                 }
                             }
                         }
@@ -3624,6 +3616,59 @@ require = function () {
                             if (done)
                                 return;
                         }
+                    });
+                }
+                static allSettled(vs) {
+                    return new AtomicPromise(resolve => {
+                        const values = alias_1.isArray(vs) ? vs : [...vs];
+                        const results = global_1.Array(values.length);
+                        let count = 0;
+                        for (let i = 0; i < values.length; ++i) {
+                            const value = values[i];
+                            if (!isPromiseLike(value)) {
+                                results[i] = {
+                                    status: 'fulfilled',
+                                    value: value
+                                };
+                                ++count;
+                                continue;
+                            }
+                            if (isAtomicPromiseLike(value)) {
+                                const {status} = value[internal];
+                                switch (status.state) {
+                                case 2:
+                                    results[i] = {
+                                        status: 'fulfilled',
+                                        value: status.value
+                                    };
+                                    ++count;
+                                    continue;
+                                case 3:
+                                    results[i] = {
+                                        status: 'rejected',
+                                        reason: status.reason
+                                    };
+                                    ++count;
+                                    continue;
+                                }
+                            }
+                            value.then(value => {
+                                results[i] = {
+                                    status: 'fulfilled',
+                                    value: value
+                                };
+                                ++count;
+                                count === values.length && resolve(results);
+                            }, reason => {
+                                results[i] = {
+                                    status: 'rejected',
+                                    reason
+                                };
+                                ++count;
+                                count === values.length && resolve(results);
+                            });
+                        }
+                        count === values.length && resolve(results);
                     });
                 }
                 static resolve(value) {
@@ -3661,24 +3706,24 @@ require = function () {
                     if (!isPromiseLike(value)) {
                         this.status = {
                             state: 2,
-                            result: value
+                            value: value
                         };
                         return this.resume();
                     }
                     this.status = {
                         state: 1,
-                        result: value
+                        promise: value
                     };
                     return void value.then(value => {
                         this.status = {
                             state: 2,
-                            result: value
+                            value: value
                         };
                         this.resume();
                     }, reason => {
                         this.status = {
                             state: 3,
-                            result: reason
+                            reason: reason
                         };
                         this.resume();
                     });
@@ -3688,7 +3733,7 @@ require = function () {
                         return;
                     this.status = {
                         state: 3,
-                        result: reason
+                        reason: reason
                     };
                     return this.resume();
                 }
@@ -3699,7 +3744,7 @@ require = function () {
                         if (fulfillReactions.length > 0)
                             break;
                         try {
-                            return onfulfilled ? resolve(onfulfilled(status.result)) : resolve(status.result);
+                            return onfulfilled ? resolve(onfulfilled(status.value)) : resolve(status.value);
                         } catch (reason) {
                             return reject(reason);
                         }
@@ -3707,12 +3752,11 @@ require = function () {
                         if (rejectReactions.length > 0)
                             break;
                         try {
-                            return onrejected ? resolve(onrejected(status.result)) : reject(status.result);
+                            return onrejected ? resolve(onrejected(status.reason)) : reject(status.reason);
                         } catch (reason) {
                             return reject(reason);
                         }
-                    }
-                    if (status.state !== 3) {
+                    default:
                         fulfillReactions.push(value => {
                             try {
                                 onfulfilled ? resolve(onfulfilled(value)) : resolve(value);
@@ -3720,8 +3764,6 @@ require = function () {
                                 reject(reason);
                             }
                         });
-                    }
-                    if (status.state !== 2) {
                         rejectReactions.push(reason => {
                             try {
                                 onrejected ? resolve(onrejected(reason)) : reject(reason);
@@ -3729,8 +3771,8 @@ require = function () {
                                 reject(reason);
                             }
                         });
+                        return this.resume();
                     }
-                    this.resume();
                 }
                 resume() {
                     if (!this.reactable)
@@ -3747,7 +3789,7 @@ require = function () {
                         if (fulfillReactions.length === 0)
                             return;
                         this.isHandled = true;
-                        this.react(fulfillReactions, status.result);
+                        this.react(fulfillReactions, status.value);
                         return;
                     case 3:
                         if (this.isHandled && fulfillReactions.length > 0) {
@@ -3756,19 +3798,19 @@ require = function () {
                         if (rejectReactions.length === 0)
                             return;
                         this.isHandled = true;
-                        this.react(rejectReactions, status.result);
+                        this.react(rejectReactions, status.reason);
                         return;
                     }
                 }
-                react(reactions, result) {
+                react(reactions, param) {
                     this.reactable = false;
                     if (reactions.length < 5) {
                         while (reactions.length > 0) {
-                            reactions.shift()(result);
+                            reactions.shift()(param);
                         }
                     } else {
                         for (let i = 0; i < reactions.length; ++i) {
-                            reactions[i](result);
+                            reactions[i](param);
                         }
                         array_1.splice(reactions, 0);
                     }
@@ -3847,6 +3889,7 @@ require = function () {
     86: [
         function (_dereq_, module, exports) {
             'use strict';
+            var _a;
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.Supervisor = void 0;
             const global_1 = _dereq_('./global');
@@ -3860,304 +3903,300 @@ require = function () {
             const clock_1 = _dereq_('./clock');
             const sqid_1 = _dereq_('./sqid');
             const exception_1 = _dereq_('./exception');
-            let Supervisor = (() => {
-                var _a;
-                class Supervisor extends coroutine_1.Coroutine {
-                    constructor(opts = {}) {
-                        super(async function* () {
-                            return this.state;
-                        }, { delay: false });
-                        this.state = new future_1.AtomicFuture();
-                        this.id = sqid_1.sqid();
-                        this.settings = {
-                            name: '',
-                            size: global_1.Infinity,
-                            timeout: global_1.Infinity,
-                            destructor: _ => void 0,
-                            scheduler: clock_1.tick,
-                            resource: 10
-                        };
-                        this.events_ = {
-                            init: new observation_1.Observation(),
-                            loss: new observation_1.Observation(),
-                            exit: new observation_1.Observation()
-                        };
-                        this.events = this.events_;
-                        this.workers = new global_1.Map();
-                        this.alive = true;
-                        this.available = true;
-                        this[_a] = {
-                            ask: () => {
-                                throw new global_1.Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: Cannot use coroutine port.`);
-                            },
-                            recv: () => {
-                                throw new global_1.Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: Cannot use coroutine port.`);
-                            },
-                            send: () => {
-                                throw new global_1.Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: Cannot use coroutine port.`);
-                            },
-                            connect: () => {
-                                throw new global_1.Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: Cannot use coroutine port.`);
-                            }
-                        };
-                        this.scheduled = false;
-                        this.messages = [];
-                        void assign_1.extend(this.settings, opts);
-                        this.name = this.settings.name;
-                        if (this.constructor === Supervisor)
-                            throw new global_1.Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: Cannot instantiate abstract classes.`);
-                        void this.constructor.instances.add(this);
-                    }
-                    static get instances() {
-                        return this.hasOwnProperty('instances_') ? this.instances_ : this.instances_ = new global_1.Set();
-                    }
-                    static get count() {
-                        return this.instances.size;
-                    }
-                    static get procs() {
-                        return [...this.instances].reduce((acc, sv) => acc + sv.workers.size, 0);
-                    }
-                    static clear(reason) {
-                        while (this.instances.size > 0) {
-                            for (const sv of this.instances) {
-                                void sv.terminate(reason);
-                            }
+            class Supervisor extends coroutine_1.Coroutine {
+                constructor(opts = {}) {
+                    super(async function* () {
+                        return this.state;
+                    }, { delay: false });
+                    this.state = new future_1.AtomicFuture();
+                    this.id = sqid_1.sqid();
+                    this.settings = {
+                        name: '',
+                        size: global_1.Infinity,
+                        timeout: global_1.Infinity,
+                        destructor: _ => void 0,
+                        scheduler: clock_1.tick,
+                        resource: 10
+                    };
+                    this.events_ = {
+                        init: new observation_1.Observation(),
+                        loss: new observation_1.Observation(),
+                        exit: new observation_1.Observation()
+                    };
+                    this.events = this.events_;
+                    this.workers = new global_1.Map();
+                    this.alive = true;
+                    this.available = true;
+                    this[_a] = {
+                        ask: () => {
+                            throw new global_1.Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: Cannot use coroutine port.`);
+                        },
+                        recv: () => {
+                            throw new global_1.Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: Cannot use coroutine port.`);
+                        },
+                        send: () => {
+                            throw new global_1.Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: Cannot use coroutine port.`);
+                        },
+                        connect: () => {
+                            throw new global_1.Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: Cannot use coroutine port.`);
+                        }
+                    };
+                    this.scheduled = false;
+                    this.messages = [];
+                    void assign_1.extend(this.settings, opts);
+                    this.name = this.settings.name;
+                    if (this.constructor === Supervisor)
+                        throw new global_1.Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: Cannot instantiate abstract classes.`);
+                    void this.constructor.instances.add(this);
+                }
+                static get instances() {
+                    return this.hasOwnProperty('instances_') ? this.instances_ : this.instances_ = new global_1.Set();
+                }
+                static get count() {
+                    return this.instances.size;
+                }
+                static get procs() {
+                    return [...this.instances].reduce((acc, sv) => acc + sv.workers.size, 0);
+                }
+                static clear(reason) {
+                    while (this.instances.size > 0) {
+                        for (const sv of this.instances) {
+                            void sv.terminate(reason);
                         }
                     }
-                    destructor(reason) {
-                        this.available = false;
-                        void this.clear(reason);
-                        void alias_1.ObjectFreeze(this.workers);
-                        while (this.messages.length > 0) {
-                            const [names, param] = this.messages.shift();
-                            const name = typeof names === 'string' ? names : names[Symbol.iterator]().next().value;
-                            void this.events_.loss.emit([name], [
-                                name,
-                                param
-                            ]);
-                        }
-                        this.alive = false;
-                        void this.constructor.instances.delete(this);
-                        void alias_1.ObjectFreeze(this);
-                        void this.settings.destructor(reason);
-                        void this.state.bind(reason === void 0 ? void 0 : promise_1.AtomicPromise.reject(reason));
+                }
+                destructor(reason) {
+                    this.available = false;
+                    void this.clear(reason);
+                    void alias_1.ObjectFreeze(this.workers);
+                    while (this.messages.length > 0) {
+                        const [names, param] = this.messages.shift();
+                        const name = typeof names === 'string' ? names : names[Symbol.iterator]().next().value;
+                        void this.events_.loss.emit([name], [
+                            name,
+                            param
+                        ]);
                     }
-                    throwErrorIfNotAvailable() {
-                        if (!this.available)
-                            throw new global_1.Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: A supervisor is already terminated.`);
+                    this.alive = false;
+                    void this.constructor.instances.delete(this);
+                    void alias_1.ObjectFreeze(this);
+                    void this.settings.destructor(reason);
+                    void this.state.bind(reason === void 0 ? void 0 : promise_1.AtomicPromise.reject(reason));
+                }
+                throwErrorIfNotAvailable() {
+                    if (!this.available)
+                        throw new global_1.Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: A supervisor is already terminated.`);
+                }
+                register(name, process, state) {
+                    state = state;
+                    void this.throwErrorIfNotAvailable();
+                    if (coroutine_1.isCoroutine(process)) {
+                        const port = process[process.constructor.port];
+                        const proc = {
+                            init: state => state,
+                            main: (param, state, kill) => port.ask(param).then(({
+                                value: reply,
+                                done
+                            }) => done && void kill() || [
+                                reply,
+                                state
+                            ]),
+                            exit: reason => void process[process.constructor.terminate](reason)
+                        };
+                        void this.constructor.standalone.add(proc);
+                        const kill = this.register(name, proc, state);
+                        void process.catch(kill);
+                        return kill;
                     }
-                    register(name, process, state) {
-                        state = state;
-                        void this.throwErrorIfNotAvailable();
-                        if (coroutine_1.isCoroutine(process)) {
-                            const port = process[process.constructor.port];
-                            const proc = {
-                                init: state => state,
-                                main: (param, state, kill) => port.ask(param).then(({
-                                    value: reply,
-                                    done
-                                }) => done && void kill() || [
-                                    reply,
-                                    state
-                                ]),
-                                exit: reason => void process[process.constructor.terminate](reason)
-                            };
-                            void this.constructor.standalone.add(proc);
-                            const kill = this.register(name, proc, state);
-                            void process.catch(kill);
-                            return kill;
-                        }
-                        if (isAsyncGeneratorFunction(process)) {
+                    if (isAsyncGeneratorFunction(process)) {
+                        let iter;
+                        return this.register(name, {
+                            init: (state, kill) => (iter = process(state, kill), void iter.next().catch(kill), state),
+                            main: (param, state, kill) => promise_1.AtomicPromise.resolve(iter.next(param)).then(({
+                                value: reply,
+                                done
+                            }) => done && void kill() || [
+                                reply,
+                                state
+                            ]),
+                            exit: () => void 0
+                        }, state);
+                    }
+                    if (typeof process === 'function') {
+                        if (isGeneratorFunction(process)) {
                             let iter;
                             return this.register(name, {
-                                init: (state, kill) => (iter = process(state, kill), void iter.next().catch(kill), state),
-                                main: (param, state, kill) => promise_1.AtomicPromise.resolve(iter.next(param)).then(({
-                                    value: reply,
-                                    done
-                                }) => done && void kill() || [
-                                    reply,
-                                    state
-                                ]),
+                                init: (state, kill) => (iter = process(state, kill), void iter.next(), state),
+                                main: (param, state, kill) => {
+                                    const {
+                                        value: reply,
+                                        done
+                                    } = iter.next(param);
+                                    done && kill();
+                                    return [
+                                        reply,
+                                        state
+                                    ];
+                                },
                                 exit: () => void 0
                             }, state);
                         }
-                        if (typeof process === 'function') {
-                            if (isGeneratorFunction(process)) {
-                                let iter;
-                                return this.register(name, {
-                                    init: (state, kill) => (iter = process(state, kill), void iter.next(), state),
-                                    main: (param, state, kill) => {
-                                        const {
-                                            value: reply,
-                                            done
-                                        } = iter.next(param);
-                                        done && kill();
-                                        return [
-                                            reply,
-                                            state
-                                        ];
-                                    },
-                                    exit: () => void 0
-                                }, state);
-                            }
-                            return this.register(name, {
-                                init: state => state,
-                                main: process,
-                                exit: () => void 0
-                            }, state);
-                        }
-                        if (this.workers.has(name))
-                            throw new global_1.Error(`Spica: Supervisor: <${ this.id }/${ this.name }/${ name }>: Cannot register a process multiply with the same name.`);
-                        void this.schedule();
-                        const worker = new Worker(name, process, state, this, () => void this.schedule(), this.constructor.standalone.has(process), this.events_, () => this.workers.get(name) === worker && void this.workers.delete(name));
-                        void this.workers.set(name, worker);
-                        return worker.terminate;
-                        function isAsyncGeneratorFunction(process) {
-                            return process[Symbol.toStringTag] === 'AsyncGeneratorFunction';
-                        }
-                        function isGeneratorFunction(process) {
-                            return process[Symbol.toStringTag] === 'GeneratorFunction';
+                        return this.register(name, {
+                            init: state => state,
+                            main: process,
+                            exit: () => void 0
+                        }, state);
+                    }
+                    if (this.workers.has(name))
+                        throw new global_1.Error(`Spica: Supervisor: <${ this.id }/${ this.name }/${ name }>: Cannot register a process multiply with the same name.`);
+                    void this.schedule();
+                    const worker = new Worker(name, process, state, this, () => void this.schedule(), this.constructor.standalone.has(process), this.events_, () => this.workers.get(name) === worker && void this.workers.delete(name));
+                    void this.workers.set(name, worker);
+                    return worker.terminate;
+                    function isAsyncGeneratorFunction(process) {
+                        return process[Symbol.toStringTag] === 'AsyncGeneratorFunction';
+                    }
+                    function isGeneratorFunction(process) {
+                        return process[Symbol.toStringTag] === 'GeneratorFunction';
+                    }
+                }
+                call(name, param, callback = this.settings.timeout, timeout = this.settings.timeout) {
+                    if (typeof callback !== 'function')
+                        return new promise_1.AtomicPromise((resolve, reject) => void this.call(name, param, (result, err) => err ? reject(err) : resolve(result), callback));
+                    void this.messages.push([
+                        typeof name === 'string' ? name : new NamePool(this.workers, name),
+                        param,
+                        callback,
+                        Date.now() + timeout
+                    ]);
+                    while (this.messages.length > (this.available ? this.settings.size : 0)) {
+                        const [names, param, callback] = this.messages.shift();
+                        const name = typeof names === 'string' ? names : names[Symbol.iterator]().next().value;
+                        void this.events_.loss.emit([name], [
+                            name,
+                            param
+                        ]);
+                        try {
+                            void callback(void 0, new global_1.Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: A message overflowed.`));
+                        } catch (reason) {
+                            void exception_1.causeAsyncException(reason);
                         }
                     }
-                    call(name, param, callback = this.settings.timeout, timeout = this.settings.timeout) {
-                        if (typeof callback !== 'function')
-                            return new promise_1.AtomicPromise((resolve, reject) => void this.call(name, param, (result, err) => err ? reject(err) : resolve(result), callback));
-                        void this.messages.push([
-                            typeof name === 'string' ? name : new NamePool(this.workers, name),
-                            param,
-                            callback,
-                            Date.now() + timeout
-                        ]);
-                        while (this.messages.length > (this.available ? this.settings.size : 0)) {
-                            const [names, param, callback] = this.messages.shift();
-                            const name = typeof names === 'string' ? names : names[Symbol.iterator]().next().value;
+                    void this.throwErrorIfNotAvailable();
+                    void this.schedule();
+                    if (timeout > 0 && timeout !== global_1.Infinity) {
+                        void global_1.setTimeout(() => void this.schedule(), timeout + 3);
+                    }
+                }
+                cast(name, param, timeout = this.settings.timeout) {
+                    var _b;
+                    void this.throwErrorIfNotAvailable();
+                    let result;
+                    for (name of typeof name === 'string' ? [name] : new NamePool(this.workers, name)) {
+                        if (result = (_b = this.workers.get(name)) === null || _b === void 0 ? void 0 : _b.call([
+                                param,
+                                Date.now() + timeout
+                            ]))
+                            break;
+                    }
+                    name = name;
+                    if (result)
+                        return true;
+                    void this.events_.loss.emit([name], [
+                        name,
+                        param
+                    ]);
+                    return false;
+                }
+                refs(name) {
+                    return name === void 0 ? [...this.workers.values()].map(convert) : this.workers.has(name) ? [convert(this.workers.get(name))] : [];
+                    function convert(worker) {
+                        return [
+                            worker.name,
+                            worker.process,
+                            worker.state,
+                            worker.terminate
+                        ];
+                    }
+                }
+                kill(name, reason) {
+                    if (!this.available)
+                        return false;
+                    return this.workers.has(name) ? this.workers.get(name).terminate(reason) : false;
+                }
+                clear(reason) {
+                    while (this.workers.size > 0) {
+                        for (const worker of this.workers.values()) {
+                            void worker.terminate(reason);
+                        }
+                    }
+                }
+                terminate(reason) {
+                    if (!this.available)
+                        return false;
+                    void this.destructor(reason);
+                    void this[coroutine_1.Coroutine.exit](void 0);
+                    return true;
+                }
+                [coroutine_1.Coroutine.terminate](reason) {
+                    void this.terminate(reason);
+                }
+                schedule() {
+                    if (!this.available || this.scheduled || this.messages.length === 0)
+                        return;
+                    const p = new future_1.AtomicFuture(false);
+                    void p.finally(() => {
+                        this.scheduled = false;
+                        void this.deliver();
+                    });
+                    void clock_1.tick(() => {
+                        void this.settings.scheduler.call(void 0, p.bind);
+                        this.settings.scheduler === requestAnimationFrame && void global_1.setTimeout(p.bind, 1000);
+                    });
+                    this.scheduled = true;
+                }
+                deliver() {
+                    var _b;
+                    if (!this.available)
+                        return;
+                    const since = Date.now();
+                    for (let i = 0, len = this.messages.length; this.available && i < len; ++i) {
+                        if (this.settings.resource - (Date.now() - since) <= 0)
+                            return void this.schedule();
+                        const [names, param, callback, expiry] = this.messages[i];
+                        let result;
+                        let name;
+                        for (name of typeof names === 'string' ? [names] : names) {
+                            if (result = (_b = this.workers.get(name)) === null || _b === void 0 ? void 0 : _b.call([
+                                    param,
+                                    expiry
+                                ]))
+                                break;
+                        }
+                        if (result === void 0 && Date.now() < expiry)
+                            continue;
+                        void array_1.splice(this.messages, i, 1);
+                        void --i;
+                        void --len;
+                        if (result === void 0) {
                             void this.events_.loss.emit([name], [
                                 name,
                                 param
                             ]);
                             try {
-                                void callback(void 0, new global_1.Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: A message overflowed.`));
+                                void callback(void 0, new global_1.Error(`Spica: Supervisor: A process has failed.`));
                             } catch (reason) {
                                 void exception_1.causeAsyncException(reason);
                             }
-                        }
-                        void this.throwErrorIfNotAvailable();
-                        void this.schedule();
-                        if (timeout > 0 && timeout !== global_1.Infinity) {
-                            void global_1.setTimeout(() => void this.schedule(), timeout + 3);
-                        }
-                    }
-                    cast(name, param, timeout = this.settings.timeout) {
-                        var _b;
-                        void this.throwErrorIfNotAvailable();
-                        let result;
-                        for (name of typeof name === 'string' ? [name] : new NamePool(this.workers, name)) {
-                            if (result = (_b = this.workers.get(name)) === null || _b === void 0 ? void 0 : _b.call([
-                                    param,
-                                    Date.now() + timeout
-                                ]))
-                                break;
-                        }
-                        name = name;
-                        if (result)
-                            return true;
-                        void this.events_.loss.emit([name], [
-                            name,
-                            param
-                        ]);
-                        return false;
-                    }
-                    refs(name) {
-                        return name === void 0 ? [...this.workers.values()].map(convert) : this.workers.has(name) ? [convert(this.workers.get(name))] : [];
-                        function convert(worker) {
-                            return [
-                                worker.name,
-                                worker.process,
-                                worker.state,
-                                worker.terminate
-                            ];
-                        }
-                    }
-                    kill(name, reason) {
-                        if (!this.available)
-                            return false;
-                        return this.workers.has(name) ? this.workers.get(name).terminate(reason) : false;
-                    }
-                    clear(reason) {
-                        while (this.workers.size > 0) {
-                            for (const worker of this.workers.values()) {
-                                void worker.terminate(reason);
-                            }
-                        }
-                    }
-                    terminate(reason) {
-                        if (!this.available)
-                            return false;
-                        void this.destructor(reason);
-                        void this[coroutine_1.Coroutine.exit](void 0);
-                        return true;
-                    }
-                    [coroutine_1.Coroutine.terminate](reason) {
-                        void this.terminate(reason);
-                    }
-                    schedule() {
-                        if (!this.available || this.scheduled || this.messages.length === 0)
-                            return;
-                        const p = new future_1.AtomicFuture(false);
-                        void p.finally(() => {
-                            this.scheduled = false;
-                            void this.deliver();
-                        });
-                        void clock_1.tick(() => {
-                            void this.settings.scheduler.call(void 0, p.bind);
-                            this.settings.scheduler === requestAnimationFrame && void global_1.setTimeout(p.bind, 1000);
-                        });
-                        this.scheduled = true;
-                    }
-                    deliver() {
-                        var _b;
-                        if (!this.available)
-                            return;
-                        const since = Date.now();
-                        for (let i = 0, len = this.messages.length; this.available && i < len; ++i) {
-                            if (this.settings.resource - (Date.now() - since) <= 0)
-                                return void this.schedule();
-                            const [names, param, callback, expiry] = this.messages[i];
-                            let result;
-                            let name;
-                            for (name of typeof names === 'string' ? [names] : names) {
-                                if (result = (_b = this.workers.get(name)) === null || _b === void 0 ? void 0 : _b.call([
-                                        param,
-                                        expiry
-                                    ]))
-                                    break;
-                            }
-                            if (result === void 0 && Date.now() < expiry)
-                                continue;
-                            void array_1.splice(this.messages, i, 1);
-                            void --i;
-                            void --len;
-                            if (result === void 0) {
-                                void this.events_.loss.emit([name], [
-                                    name,
-                                    param
-                                ]);
-                                try {
-                                    void callback(void 0, new global_1.Error(`Spica: Supervisor: A process has failed.`));
-                                } catch (reason) {
-                                    void exception_1.causeAsyncException(reason);
-                                }
-                            } else {
-                                void result.then(reply => void callback(reply), () => void callback(void 0, new global_1.Error(`Spica: Supervisor: A process has failed.`)));
-                            }
+                        } else {
+                            void result.then(reply => void callback(reply), () => void callback(void 0, new global_1.Error(`Spica: Supervisor: A process has failed.`)));
                         }
                     }
                 }
-                _a = coroutine_1.Coroutine.port;
-                Supervisor.standalone = new global_1.WeakSet();
-                return Supervisor;
-            })();
+            }
             exports.Supervisor = Supervisor;
+            _a = coroutine_1.Coroutine.port;
+            Supervisor.standalone = new global_1.WeakSet();
             class NamePool {
                 constructor(workers, selector = ns => ns) {
                     this.workers = workers;
@@ -4486,16 +4525,13 @@ require = function () {
             function normalize(url, base) {
                 return new ReadonlyURL(url, base).href;
             }
-            let ReadonlyURL = (() => {
-                class ReadonlyURL {
-                    constructor(url, base) {
-                        return ReadonlyURL.new(url, base);
-                    }
+            class ReadonlyURL {
+                constructor(url, base) {
+                    return ReadonlyURL.new(url, base);
                 }
-                ReadonlyURL.new = flip_1.flip(curry_1.uncurry(memoize_1.memoize(base => memoize_1.memoize(url => alias_1.ObjectFreeze(new global_1.global.URL(formatURLForEdge(url, base), base)), new cache_1.Cache(100)), new cache_1.Cache(100))));
-                return ReadonlyURL;
-            })();
+            }
             exports.ReadonlyURL = ReadonlyURL;
+            ReadonlyURL.new = flip_1.flip(curry_1.uncurry(memoize_1.memoize(base => memoize_1.memoize(url => alias_1.ObjectFreeze(new global_1.global.URL(formatURLForEdge(url, base), base)), new cache_1.Cache(100)), new cache_1.Cache(100))));
             function formatURLForEdge(url, base) {
                 return url.trim() || base;
             }
@@ -4539,7 +4575,7 @@ require = function () {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             _dereq_('spica/global');
-            var builder_1 = _dereq_('./src/dom/builder');
+            var builder_1 = _dereq_('./src/builder');
             Object.defineProperty(exports, 'Shadow', {
                 enumerable: true,
                 get: function () {
@@ -4564,7 +4600,7 @@ require = function () {
                     return builder_1.API;
                 }
             });
-            var proxy_1 = _dereq_('./src/dom/proxy');
+            var proxy_1 = _dereq_('./src/proxy');
             Object.defineProperty(exports, 'proxy', {
                 enumerable: true,
                 get: function () {
@@ -4660,8 +4696,8 @@ require = function () {
             });
         },
         {
-            './src/dom/builder': 94,
-            './src/dom/proxy': 96,
+            './src/builder': 94,
+            './src/proxy': 96,
             './src/util/dom': 97,
             './src/util/listener': 98,
             './src/util/query': 99,
@@ -4676,7 +4712,7 @@ require = function () {
             const global_1 = _dereq_('spica/global');
             const alias_1 = _dereq_('spica/alias');
             const proxy_1 = _dereq_('./proxy');
-            const dom_1 = _dereq_('../util/dom');
+            const dom_1 = _dereq_('./util/dom');
             function API(baseFactory, formatter = el => el) {
                 return new Proxy(() => global_1.undefined, handle(baseFactory, formatter));
             }
@@ -4728,8 +4764,8 @@ require = function () {
             }
         },
         {
-            '../util/dom': 97,
             './proxy': 96,
+            './util/dom': 97,
             'spica/alias': 4,
             'spica/global': 19
         }
@@ -4757,7 +4793,7 @@ require = function () {
             const global_1 = _dereq_('spica/global');
             const alias_1 = _dereq_('spica/alias');
             const identity_1 = _dereq_('./identity');
-            const dom_1 = _dereq_('../util/dom');
+            const dom_1 = _dereq_('./util/dom');
             const array_1 = _dereq_('spica/array');
             const proxies = new global_1.WeakMap();
             function proxy(el) {
@@ -5039,8 +5075,8 @@ require = function () {
             }
         },
         {
-            '../util/dom': 97,
             './identity': 95,
+            './util/dom': 97,
             'spica/alias': 4,
             'spica/array': 5,
             'spica/global': 19
@@ -5080,11 +5116,10 @@ require = function () {
             exports.text = text;
             function element(context, ns) {
                 const cache = memoize_1.memoize(elem, (_, ns, tag) => `${ ns }:${ tag }`);
-                return element;
-                function element(tag, attrs, children) {
+                return (tag, attrs, children) => {
                     const el = tag.includes('-') ? elem(context, ns, tag) : cache(context, ns, tag).cloneNode(true);
                     return isChildren(attrs) ? defineChildren(el, attrs) : defineChildren(defineAttrs(el, attrs), children);
-                }
+                };
             }
             exports.element = element;
             function elem(context, ns, tag) {
@@ -5384,35 +5419,40 @@ require = function () {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.savePosition = exports.loadPosition = exports.saveTitle = exports.loadTitle = void 0;
-            const assign_1 = _dereq_('spica/assign');
             void saveTitle();
             void savePosition();
             function loadTitle() {
-                return window.history.state && window.history.state.title || document.title;
+                var _a;
+                return ((_a = window.history.state) === null || _a === void 0 ? void 0 : _a.title) || document.title;
             }
             exports.loadTitle = loadTitle;
             function saveTitle() {
-                void window.history.replaceState(assign_1.extend(window.history.state || {}, { title: document.title }), document.title);
+                void window.history.replaceState({
+                    ...window.history.state,
+                    title: document.title
+                }, document.title);
             }
             exports.saveTitle = saveTitle;
             function loadPosition() {
-                return window.history.state && window.history.state.position || {
+                var _a;
+                return ((_a = window.history.state) === null || _a === void 0 ? void 0 : _a.position) || {
                     top: window.pageYOffset,
                     left: window.pageXOffset
                 };
             }
             exports.loadPosition = loadPosition;
             function savePosition() {
-                void window.history.replaceState(assign_1.extend(window.history.state || {}, {
+                void window.history.replaceState({
+                    ...window.history.state,
                     position: {
                         top: window.pageYOffset,
                         left: window.pageXOffset
                     }
-                }), document.title);
+                }, document.title);
             }
             exports.savePosition = savePosition;
         },
-        { 'spica/assign': 6 }
+        {}
     ],
     104: [
         function (_dereq_, module, exports) {
@@ -6618,31 +6658,28 @@ require = function () {
             const store_1 = _dereq_('../../application/store');
             const supervisor_1 = _dereq_('spica/supervisor');
             const copropagator_1 = _dereq_('spica/copropagator');
-            let GUI = (() => {
-                class GUI extends api_1.API {
-                    constructor(option, io = {
-                        document: window.document,
-                        router: router_1.route
-                    }) {
-                        super();
-                        this.option = option;
-                        this.io = io;
-                        this.view = new View(this.option, this.io);
-                        void GUI.resources.clear();
-                        void GUI.resources.register('view', this.view);
-                    }
-                    assign(url) {
-                        return api_1.API.assign(url, this.option, this.io);
-                    }
-                    replace(url) {
-                        return api_1.API.replace(url, this.option, this.io);
-                    }
+            class GUI extends api_1.API {
+                constructor(option, io = {
+                    document: window.document,
+                    router: router_1.route
+                }) {
+                    super();
+                    this.option = option;
+                    this.io = io;
+                    this.view = new View(this.option, this.io);
+                    void GUI.resources.clear();
+                    void GUI.resources.register('view', this.view);
                 }
-                GUI.resources = new class extends supervisor_1.Supervisor {
-                }();
-                return GUI;
-            })();
+                assign(url) {
+                    return api_1.API.assign(url, this.option, this.io);
+                }
+                replace(url) {
+                    return api_1.API.replace(url, this.option, this.io);
+                }
+            }
             exports.GUI = GUI;
+            GUI.resources = new class extends supervisor_1.Supervisor {
+            }();
             class View extends copropagator_1.Copropagator {
                 constructor(option, io) {
                     const config = new router_1.Config(option);
