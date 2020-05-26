@@ -32,7 +32,7 @@ export function xhr(
   return new AtomicPromise<Either<Error, FetchResponse>>(resolve => {
     if (key && memory.has(key)) return resolve(Right(memory.get(key)!(displayURL, requestURL)));
     const xhr = new XMLHttpRequest();
-    void xhr.open(method, requestURL.path, true);
+    void xhr.open(method, requestURL.reference, true);
     for (const [name, value] of headers) {
       void xhr.setRequestHeader(name, value);
     }

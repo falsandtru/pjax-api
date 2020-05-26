@@ -24,6 +24,6 @@ export class FetchResponse {
     name => this.xhr.getResponseHeader(name);
   public readonly document: Document =
     this.xhr.responseType === 'document'
-      ? this.xhr.responseXML!.cloneNode(true) as Document
+      ? this.xhr.responseXML as Document
       : parse(this.xhr.responseText).extract();
 }
