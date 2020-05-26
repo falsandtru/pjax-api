@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.31.2
+
+- Update dependencies.
+
 ## 3.31.1
 
 - Don't mutate a cross-origin object `history.state`.
