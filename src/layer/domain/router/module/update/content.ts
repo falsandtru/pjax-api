@@ -2,7 +2,7 @@ import { escape } from './script';
 import { AtomicPromise } from 'spica/promise';
 import { Maybe, Just, Nothing} from 'spica/maybe';
 import { push } from 'spica/array';
-import { once, apply } from 'typed-dom';
+import { once } from 'typed-dom';
 
 type DocumentRecord = { src: Document; dst: Document; };
 type AreaRecord = { src: HTMLElement[]; dst: HTMLElement[]; };
@@ -31,12 +31,12 @@ export function content(
       }))
       .map(area => (
         void replace(area),
-        [...apply(area.src, 'img, iframe, frame')]
+        [...area.src.querySelectorAll('img, iframe, frame')]
           .map(wait)))
       .reduce(push, []);
 
     function replace(area: { src: HTMLElement, dst: HTMLElement; }): void {
-      const unescape = [...apply(area.src, 'script')]
+      const unescape = [...area.src.querySelectorAll('script')]
         .map(escape)
         .reduce((f, g) => () => (
           void f(),
@@ -67,8 +67,8 @@ export function separate(
         areas.reduce((m, area) =>
           m.bind(acc => {
             const record = {
-              src: [...apply<HTMLElement>(documents.src, area)],
-              dst: [...apply<HTMLElement>(documents.dst, area)],
+              src: [...documents.src.querySelectorAll<HTMLElement>(area)],
+              dst: [...documents.dst.querySelectorAll<HTMLElement>(area)],
             };
             return record.src.length > 0
                 && record.src.length === record.dst.length

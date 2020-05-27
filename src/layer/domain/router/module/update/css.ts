@@ -1,5 +1,4 @@
 import { sync, pair } from './sync';
-import { apply } from 'typed-dom';
 
 export function css(
   documents: {
@@ -24,7 +23,7 @@ export function css(
 
   function list(source: HTMLElement): HTMLElement[] {
     assert(selector);
-    return [...apply<HTMLElement>(source, selector)]
+    return [...source.querySelectorAll<HTMLElement>(selector)]
       .filter(el => !ignore || !el.matches(ignore));
   }
 }

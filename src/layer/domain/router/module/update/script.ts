@@ -6,7 +6,7 @@ import { URL, StandardURL, standardize } from 'spica/url';
 import { push } from 'spica/array';
 import { tuple } from 'spica/tuple';
 import { wait } from 'spica/clock';
-import { html, apply } from 'typed-dom';
+import { html } from 'typed-dom';
 
 type Result = Either<Error, readonly [HTMLScriptElement[], Promise<Either<Error, HTMLScriptElement[]>>]>;
 type FetchData = readonly [HTMLScriptElement, string];
@@ -29,7 +29,7 @@ export function script(
     evaluate,
   }
 ): AtomicPromise<Result> {
-  const scripts = [...apply(documents.src, 'script')]
+  const scripts = [...documents.src.querySelectorAll('script')]
     .filter(el => !el.type || /(?:application|text)\/(?:java|ecma)script|module/i.test(el.type))
     .filter(el => !el.matches(selector.ignore.trim() || '_'))
     .filter(el =>

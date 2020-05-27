@@ -1,6 +1,6 @@
 import { sync, pair } from './sync';
 import { parse } from '../../../../../lib/html';
-import { html, apply } from 'typed-dom';
+import { html } from 'typed-dom';
 
 describe('Unit: layer/domain/router/module/update/sync', () => {
   describe('sync', () => {
@@ -11,8 +11,8 @@ describe('Unit: layer/domain/router/module/update/sync', () => {
         dst: parse(html('head', [
         ]).outerHTML).extract(),
       };
-      sync(pair([...apply(documents.src, 'meta')], [...apply(documents.dst, 'meta')], (a, b) => a.id === b.id), documents.dst.head!);
-      assert.deepStrictEqual([...apply(documents.dst, 'meta')].map(el => el.id), [
+      sync(pair([...documents.src.querySelectorAll('meta')], [...documents.dst.querySelectorAll('meta')], (a, b) => a.id === b.id), documents.dst.head!);
+      assert.deepStrictEqual([...documents.dst.querySelectorAll('meta')].map(el => el.id), [
       ]);
     });
 
@@ -26,8 +26,8 @@ describe('Unit: layer/domain/router/module/update/sync', () => {
         dst: parse(html('head', [
         ]).outerHTML).extract(),
       };
-      sync(pair([...apply(documents.src, 'meta')], [...apply(documents.dst, 'meta')], (a, b) => a.id === b.id), documents.dst.head!);
-      assert.deepStrictEqual([...apply(documents.dst, 'meta')].map(el => el.id), [
+      sync(pair([...documents.src.querySelectorAll('meta')], [...documents.dst.querySelectorAll('meta')], (a, b) => a.id === b.id), documents.dst.head!);
+      assert.deepStrictEqual([...documents.dst.querySelectorAll('meta')].map(el => el.id), [
         'a',
         'b',
         'c'
@@ -44,8 +44,8 @@ describe('Unit: layer/domain/router/module/update/sync', () => {
           html('meta', { id: 'c' }),
         ]).outerHTML).extract(),
       };
-      sync(pair([...apply(documents.src, 'meta')], [...apply(documents.dst, 'meta')], (a, b) => a.id === b.id), documents.dst.head!);
-      assert.deepStrictEqual([...apply(documents.dst, 'meta')].map(el => el.id), [
+      sync(pair([...documents.src.querySelectorAll('meta')], [...documents.dst.querySelectorAll('meta')], (a, b) => a.id === b.id), documents.dst.head!);
+      assert.deepStrictEqual([...documents.dst.querySelectorAll('meta')].map(el => el.id), [
       ]);
     });
 
@@ -62,8 +62,8 @@ describe('Unit: layer/domain/router/module/update/sync', () => {
           html('meta', { id: 'd' }),
         ]).outerHTML).extract()
       };
-      sync(pair([...apply(documents.src, 'meta')], [...apply(documents.dst, 'meta')], (a, b) => a.id === b.id), documents.dst.head!);
-      assert.deepStrictEqual([...apply(documents.dst, 'meta')].map(el => el.id), [
+      sync(pair([...documents.src.querySelectorAll('meta')], [...documents.dst.querySelectorAll('meta')], (a, b) => a.id === b.id), documents.dst.head!);
+      assert.deepStrictEqual([...documents.dst.querySelectorAll('meta')].map(el => el.id), [
         'a',
         'c',
         'e'

@@ -1,6 +1,5 @@
 import { Maybe, Just, Nothing } from 'spica/maybe';
 import { Either, Left, Right } from 'spica/either';
-import { apply } from 'typed-dom';
 
 type Parser = (html: string) => Maybe<Document>;
 
@@ -31,7 +30,7 @@ export function fix(doc: Document): void {
 }
 
 function fixNoscript(doc: Document): [HTMLElement, HTMLElement][] {
-  return [...apply(doc, 'noscript')]
+  return [...doc.querySelectorAll('noscript')]
     .filter(el => el.children.length > 0)
     .map(el => {
       const clone = el.cloneNode(true) as HTMLElement;
