@@ -1,4 +1,4 @@
-import { parse, fix } from '../../../../../../lib/html';
+import { fix } from '../../../../../../lib/html';
 import { URL, StandardURL } from 'spica/url';
 
 export class FetchResponse {
@@ -22,8 +22,5 @@ export class FetchResponse {
   }
   public readonly header: (name: string) => string | null =
     name => this.xhr.getResponseHeader(name);
-  public readonly document: Document =
-    this.xhr.responseType === 'document'
-      ? this.xhr.responseXML!.cloneNode(true) as Document
-      : parse(this.xhr.responseText).extract();
+  public readonly document: Document = this.xhr.responseXML!.cloneNode(true) as Document;
 }

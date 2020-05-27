@@ -37,9 +37,7 @@ export function xhr(
       void xhr.setRequestHeader(name, value);
     }
 
-    xhr.responseType = window.navigator.userAgent.includes('Edge')
-      ? 'text'
-      : 'document';
+    xhr.responseType = 'document';
     xhr.timeout = timeout;
     void xhr.send(body);
 
