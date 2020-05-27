@@ -6,7 +6,7 @@ export class RouterEvent {
   constructor(
     public readonly original: Event
   ) {
-    assert(['click', 'submit', 'popstate'].some(type => this.original.type === type));
+    assert(['click', 'submit', 'popstate'].includes(this.original.type));
     assert([HTMLAnchorElement, HTMLFormElement, Window].some(Class => this.source instanceof Class));
     void Object.freeze(this);
   }
