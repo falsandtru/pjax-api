@@ -1,9 +1,10 @@
 export function serialize(form: HTMLFormElement): string {
-  return (Array.from(form.elements) as HTMLInputElement[])
-    .filter(el => {
+  return [...form.elements]
+    .filter((el: HTMLInputElement | HTMLElement): el is HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement => {
+      if (!('name' in el)) return false;
       if (el.disabled) return false;
-      switch (el.nodeName.toLowerCase()) {
-        case 'input':
+      switch (el.tagName) {
+        case 'INPUT':
           switch (el.type.toLowerCase()) {
             case 'checkbox':
             case 'radio':
@@ -17,16 +18,13 @@ export function serialize(form: HTMLFormElement): string {
             default:
               return true;
           }
-        case 'select':
-        case 'textarea':
+        case 'SELECT':
+        case 'TEXTAREA':
           return true;
         default:
           return false;
       }
     })
-    .filter(el =>
-      typeof el.name === 'string' &&
-      typeof el.value === 'string')
     .map(el =>
       [
         encodeURIComponent(removeInvalidSurrogatePairs(el.name)),
