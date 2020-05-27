@@ -26,11 +26,11 @@ export function route(
 ): boolean {
   assert([HTMLAnchorElement, HTMLFormElement, Window].some(Class => event.source instanceof Class));
   switch (event.type) {
-    case RouterEventType.click:
-    case RouterEventType.submit:
+    case RouterEventType.Click:
+    case RouterEventType.Submit:
       void savePosition();
       break;
-    case RouterEventType.popstate:
+    case RouterEventType.Popstate:
       io.document.title = loadTitle();
       break;
   }
@@ -77,11 +77,11 @@ export function route(
         void process.cast('', new Error(`Aborted.`));
         assert(!event.original.defaultPrevented);
         switch (event.type) {
-          case RouterEventType.click:
-          case RouterEventType.submit:
+          case RouterEventType.Click:
+          case RouterEventType.Submit:
             void docurl.sync();
             return false;
-          case RouterEventType.popstate:
+          case RouterEventType.Popstate:
             if (isHashChange(event.location.dest)) {
               void docurl.sync();
               return false;
@@ -97,7 +97,7 @@ export function route(
 function validate(url: URL<StandardURL>, config: Config, event: RouterEvent): boolean {
   if (event.original.defaultPrevented) return false;
   switch (event.type) {
-    case RouterEventType.click:
+    case RouterEventType.Click:
       assert(event.original instanceof MouseEvent);
       return isAccessible(url)
           && !isHashClick(url)
@@ -105,9 +105,9 @@ function validate(url: URL<StandardURL>, config: Config, event: RouterEvent): bo
           && !isDownload(event.source as RouterEventSource.Anchor)
           && !hasModifierKey(event.original as MouseEvent)
           && config.filter(event.source as RouterEventSource.Anchor);
-    case RouterEventType.submit:
+    case RouterEventType.Submit:
       return isAccessible(url);
-    case RouterEventType.popstate:
+    case RouterEventType.Popstate:
       return isAccessible(url)
           && !isHashChange(url);
     default:

@@ -37,10 +37,10 @@ function isRegisterable(
 ): boolean {
   if (location.dest.reference === location.orig.reference) return false;
   switch (type) {
-    case RouterEventType.click:
-    case RouterEventType.submit:
+    case RouterEventType.Click:
+    case RouterEventType.Submit:
       return true;
-    case RouterEventType.popstate:
+    case RouterEventType.Popstate:
       return false;
     default:
       throw new TypeError(type);
@@ -54,10 +54,10 @@ function isReplaceable(
   selector: string
 ): boolean {
   switch (type) {
-    case RouterEventType.click:
-    case RouterEventType.submit:
+    case RouterEventType.Click:
+    case RouterEventType.Submit:
       return (source as RouterEventSource.Form).matches(selector.trim() || '_');
-    case RouterEventType.popstate:
+    case RouterEventType.Popstate:
       return false;
     default:
       throw new TypeError(type);

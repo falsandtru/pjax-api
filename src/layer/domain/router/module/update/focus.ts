@@ -5,8 +5,8 @@ export function focus(
   document: Document,
 ): undefined {
   switch (type) {
-    case RouterEventType.click:
-    case RouterEventType.submit:
+    case RouterEventType.Click:
+    case RouterEventType.Submit:
       return void [...document.querySelectorAll<HTMLElement>('[autofocus]')]
         .slice(-1)
         .filter(el =>
@@ -14,7 +14,7 @@ export function focus(
           el !== document.activeElement)
         .forEach(el =>
           void el.focus());
-    case RouterEventType.popstate:
+    case RouterEventType.Popstate:
       return;
     default:
       throw new TypeError(type);

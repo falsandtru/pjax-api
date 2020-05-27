@@ -18,12 +18,12 @@ export function scroll(
   }
 ): void {
   switch (type) {
-    case RouterEventType.click:
+    case RouterEventType.Click:
       if (io.hash(document, env.hash, io)) return;
       return void io.scrollToPosition({ top: 0, left: 0 });
-    case RouterEventType.submit:
+    case RouterEventType.Submit:
       return void io.scrollToPosition({ top: 0, left: 0 });
-    case RouterEventType.popstate:
+    case RouterEventType.Popstate:
       return void io.scrollToPosition(env.position());
     default:
       throw new TypeError(type);

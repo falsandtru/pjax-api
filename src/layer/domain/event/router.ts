@@ -30,13 +30,13 @@ export namespace RouterEventSource {
 }
 
 export type RouterEventType
-  = typeof RouterEventType.click
-  | typeof RouterEventType.submit
-  | typeof RouterEventType.popstate;
+  = typeof RouterEventType.Click
+  | typeof RouterEventType.Submit
+  | typeof RouterEventType.Popstate;
 export namespace RouterEventType {
-  export const click = 'click';
-  export const submit = 'submit';
-  export const popstate = 'popstate';
+  export const Click = 'click';
+  export const Submit = 'submit';
+  export const Popstate = 'popstate';
 }
 
 export type RouterEventMethod
