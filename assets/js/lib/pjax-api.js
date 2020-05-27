@@ -5450,9 +5450,11 @@ require = function () {
             }
             exports.loadPosition = loadPosition;
             function savePosition() {
+                var _a;
                 void window.history.replaceState({
                     ...window.history.state,
                     position: {
+                        ...(_a = window.history.state) === null || _a === void 0 ? void 0 : _a.position,
                         top: window.pageYOffset,
                         left: window.pageXOffset
                     }
@@ -5753,7 +5755,7 @@ require = function () {
                     this.url = url;
                     this.xhr = xhr;
                     this.header = name => this.xhr.getResponseHeader(name);
-                    this.document = this.xhr.responseType === 'document' ? this.xhr.responseXML.cloneNode(true) : html_1.parse(this.xhr.responseText).extract();
+                    this.document = this.xhr.responseXML.cloneNode(true);
                     if (url.origin !== new url_1.URL(xhr.responseURL).origin)
                         throw new Error(`Redirected to another origin.`);
                     void Object.defineProperty(this.document, 'URL', {
@@ -5836,7 +5838,7 @@ require = function () {
                     for (const [name, value] of headers) {
                         void xhr.setRequestHeader(name, value);
                     }
-                    xhr.responseType = window.navigator.userAgent.includes('Edge') ? 'text' : 'document';
+                    xhr.responseType = 'document';
                     xhr.timeout = timeout;
                     void xhr.send(body);
                     void xhr.addEventListener('abort', () => void resolve(either_1.Left(new Error(`Failed to request a page by abort.`))));
@@ -6031,9 +6033,9 @@ require = function () {
                     return area.src.map((_, i) => ({
                         src: documents.dst.importNode(area.src[i].cloneNode(true), true),
                         dst: area.dst[i]
-                    })).map(area => (void replace(area), [...typed_dom_1.apply(area.src, 'img, iframe, frame')].map(wait))).reduce(array_1.push, []);
+                    })).map(area => (void replace(area), [...area.src.querySelectorAll('img, iframe, frame')].map(wait))).reduce(array_1.push, []);
                     function replace(area) {
-                        const unescape = [...typed_dom_1.apply(area.src, 'script')].map(script_1.escape).reduce((f, g) => () => (void f(), void g()), () => void 0);
+                        const unescape = [...area.src.querySelectorAll('script')].map(script_1.escape).reduce((f, g) => () => (void f(), void g()), () => void 0);
                         void io.replace(area.src, area.dst);
                         void unescape();
                     }
@@ -6048,8 +6050,8 @@ require = function () {
                 function sep(documents, area) {
                     return split(area).bind(areas => areas.reduce((m, area) => m.bind(acc => {
                         const record = {
-                            src: [...typed_dom_1.apply(documents.src, area)],
-                            dst: [...typed_dom_1.apply(documents.dst, area)]
+                            src: [...documents.src.querySelectorAll(area)],
+                            dst: [...documents.dst.querySelectorAll(area)]
                         };
                         return record.src.length > 0 && record.src.length === record.dst.length ? maybe_1.Just(array_1.push(acc, [record])) : maybe_1.Nothing;
                     }), maybe_1.Just([])));
@@ -6083,7 +6085,6 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.css = void 0;
             const sync_1 = _dereq_('./sync');
-            const typed_dom_1 = _dereq_('typed-dom');
             function css(documents, ignore) {
                 const selector = 'link[rel~="stylesheet"], style';
                 return void [
@@ -6094,15 +6095,12 @@ require = function () {
                     documents.dst.querySelector(query)
                 ]).forEach(([src, dst]) => void sync_1.sync(sync_1.pair(list(src), list(dst), (a, b) => a.outerHTML === b.outerHTML), dst));
                 function list(source) {
-                    return [...typed_dom_1.apply(source, selector)].filter(el => !ignore || !el.matches(ignore));
+                    return [...source.querySelectorAll(selector)].filter(el => !ignore || !el.matches(ignore));
                 }
             }
             exports.css = css;
         },
-        {
-            './sync': 120,
-            'typed-dom': 93
-        }
+        { './sync': 120 }
     ],
     116: [
         function (_dereq_, module, exports) {
@@ -6110,12 +6108,11 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.focus = void 0;
             const router_1 = _dereq_('../../../event/router');
-            const typed_dom_1 = _dereq_('typed-dom');
             function focus(type, document) {
                 switch (type) {
                 case router_1.RouterEventType.click:
                 case router_1.RouterEventType.submit:
-                    return void [...typed_dom_1.apply(document, '[autofocus]')].slice(-1).filter(el => el.closest('html') === window.document.documentElement && el !== document.activeElement).forEach(el => void el.focus());
+                    return void [...document.querySelectorAll('[autofocus]')].slice(-1).filter(el => el.closest('html') === window.document.documentElement && el !== document.activeElement).forEach(el => void el.focus());
                 case router_1.RouterEventType.popstate:
                     return;
                 default:
@@ -6124,10 +6121,7 @@ require = function () {
             }
             exports.focus = focus;
         },
-        {
-            '../../../event/router': 106,
-            'typed-dom': 93
-        }
+        { '../../../event/router': 106 }
     ],
     117: [
         function (_dereq_, module, exports) {
@@ -6135,20 +6129,16 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.head = void 0;
             const sync_1 = _dereq_('./sync');
-            const typed_dom_1 = _dereq_('typed-dom');
             function head(documents, selector, ignore) {
                 ignore += selector.includes('link') ? ', link[rel~="stylesheet"]' : '';
                 return void sync_1.sync(sync_1.pair(list(documents.src.head), list(documents.dst.head), (a, b) => a.outerHTML === b.outerHTML), documents.dst.head);
                 function list(source) {
-                    return [...typed_dom_1.apply(source, selector)].filter(el => !ignore || !el.matches(ignore));
+                    return [...source.querySelectorAll(selector)].filter(el => !ignore || !el.matches(ignore));
                 }
             }
             exports.head = head;
         },
-        {
-            './sync': 120,
-            'typed-dom': 93
-        }
+        { './sync': 120 }
     ],
     118: [
         function (_dereq_, module, exports) {
@@ -6200,7 +6190,7 @@ require = function () {
                 fetch,
                 evaluate
             }) {
-                const scripts = [...typed_dom_1.apply(documents.src, 'script')].filter(el => !el.type || /(?:application|text)\/(?:java|ecma)script|module/i.test(el.type)).filter(el => !el.matches(selector.ignore.trim() || '_')).filter(el => el.hasAttribute('src') ? !skip.has(new url_1.URL(url_1.standardize(el.src)).reference) || el.matches(selector.reload.trim() || '_') : true);
+                const scripts = [...documents.src.querySelectorAll('script')].filter(el => !el.type || /(?:application|text)\/(?:java|ecma)script|module/i.test(el.type)).filter(el => !el.matches(selector.ignore.trim() || '_')).filter(el => el.hasAttribute('src') ? !skip.has(new url_1.URL(url_1.standardize(el.src)).reference) || el.matches(selector.reload.trim() || '_') : true);
                 const {ss, as} = scripts.reduce((o, script) => {
                     switch (true) {
                     case script.matches('[src][async], [src][defer]'):
@@ -6875,7 +6865,7 @@ require = function () {
             const url_1 = _dereq_('spica/url');
             const typed_dom_1 = _dereq_('typed-dom');
             exports.scripts = new Set();
-            void typed_dom_1.bind(window, 'pjax:unload', () => void typed_dom_1.apply(document, 'script[src]').forEach(script => void exports.scripts.add(new url_1.URL(url_1.standardize(script.src)).reference)));
+            void typed_dom_1.bind(window, 'pjax:unload', () => void document.querySelectorAll('script[src]').forEach(script => void exports.scripts.add(new url_1.URL(url_1.standardize(script.src)).reference)));
         },
         {
             'spica/url': 90,
@@ -6981,7 +6971,6 @@ require = function () {
             exports._fixNoscript = exports.fix = exports.parse = void 0;
             const maybe_1 = _dereq_('spica/maybe');
             const either_1 = _dereq_('spica/either');
-            const typed_dom_1 = _dereq_('typed-dom');
             exports.parse = [
                 parseByDOM,
                 parseByDoc
@@ -7004,7 +6993,7 @@ require = function () {
             }
             exports.fix = fix;
             function fixNoscript(doc) {
-                return [...typed_dom_1.apply(doc, 'noscript')].filter(el => el.children.length > 0).map(el => {
+                return [...doc.querySelectorAll('noscript')].filter(el => el.children.length > 0).map(el => {
                     const clone = el.cloneNode(true);
                     clone.textContent = el.innerHTML;
                     return [
@@ -7052,8 +7041,7 @@ require = function () {
         },
         {
             'spica/either': 15,
-            'spica/maybe': 23,
-            'typed-dom': 93
+            'spica/maybe': 23
         }
     ],
     139: [
