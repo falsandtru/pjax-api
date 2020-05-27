@@ -30,6 +30,7 @@ export function savePosition(): void {
     {
       ...window.history.state,
       position: {
+        ...window.history.state?.position,
         top: window.pageYOffset,
         left: window.pageXOffset,
       },
