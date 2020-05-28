@@ -5616,9 +5616,9 @@ require = function () {
             }(RouterEventSource = exports.RouterEventSource || (exports.RouterEventSource = {})));
             var RouterEventType;
             (function (RouterEventType) {
-                RouterEventType.click = 'click';
-                RouterEventType.submit = 'submit';
-                RouterEventType.popstate = 'popstate';
+                RouterEventType.Click = 'click';
+                RouterEventType.Submit = 'submit';
+                RouterEventType.Popstate = 'popstate';
             }(RouterEventType = exports.RouterEventType || (exports.RouterEventType = {})));
             var RouterEventMethod;
             (function (RouterEventMethod) {
@@ -6110,10 +6110,10 @@ require = function () {
             const router_1 = _dereq_('../../../event/router');
             function focus(type, document) {
                 switch (type) {
-                case router_1.RouterEventType.click:
-                case router_1.RouterEventType.submit:
+                case router_1.RouterEventType.Click:
+                case router_1.RouterEventType.Submit:
                     return void [...document.querySelectorAll('[autofocus]')].slice(-1).filter(el => el.closest('html') === window.document.documentElement && el !== document.activeElement).forEach(el => void el.focus());
-                case router_1.RouterEventType.popstate:
+                case router_1.RouterEventType.Popstate:
                     return;
                 default:
                     throw new TypeError(type);
@@ -6320,19 +6320,19 @@ require = function () {
                 hash
             }) {
                 switch (type) {
-                case router_1.RouterEventType.click:
+                case router_1.RouterEventType.Click:
                     if (io.hash(document, env.hash, io))
                         return;
                     return void io.scrollToPosition({
                         top: 0,
                         left: 0
                     });
-                case router_1.RouterEventType.submit:
+                case router_1.RouterEventType.Submit:
                     return void io.scrollToPosition({
                         top: 0,
                         left: 0
                     });
-                case router_1.RouterEventType.popstate:
+                case router_1.RouterEventType.Popstate:
                     return void io.scrollToPosition(env.position());
                 default:
                     throw new TypeError(type);
@@ -6429,10 +6429,10 @@ require = function () {
                 if (location.dest.reference === location.orig.reference)
                     return false;
                 switch (type) {
-                case router_1.RouterEventType.click:
-                case router_1.RouterEventType.submit:
+                case router_1.RouterEventType.Click:
+                case router_1.RouterEventType.Submit:
                     return true;
-                case router_1.RouterEventType.popstate:
+                case router_1.RouterEventType.Popstate:
                     return false;
                 default:
                     throw new TypeError(type);
@@ -6441,10 +6441,10 @@ require = function () {
             exports._isRegisterable = isRegisterable;
             function isReplaceable(type, source, selector) {
                 switch (type) {
-                case router_1.RouterEventType.click:
-                case router_1.RouterEventType.submit:
+                case router_1.RouterEventType.Click:
+                case router_1.RouterEventType.Submit:
                     return source.matches(selector.trim() || '_');
-                case router_1.RouterEventType.popstate:
+                case router_1.RouterEventType.Popstate:
                     return false;
                 default:
                     throw new TypeError(type);
@@ -6741,11 +6741,11 @@ require = function () {
             void typed_dom_1.bind(window, 'pjax:unload', () => window.history.scrollRestoration = 'auto', true);
             function route(config, event, process, io) {
                 switch (event.type) {
-                case router_1.RouterEventType.click:
-                case router_1.RouterEventType.submit:
+                case router_1.RouterEventType.Click:
+                case router_1.RouterEventType.Submit:
                     void store_1.savePosition();
                     break;
-                case router_1.RouterEventType.popstate:
+                case router_1.RouterEventType.Popstate:
                     io.document.title = store_1.loadTitle();
                     break;
                 }
@@ -6770,11 +6770,11 @@ require = function () {
                 }).extract(() => {
                     void process.cast('', new Error(`Aborted.`));
                     switch (event.type) {
-                    case router_1.RouterEventType.click:
-                    case router_1.RouterEventType.submit:
+                    case router_1.RouterEventType.Click:
+                    case router_1.RouterEventType.Submit:
                         void url_1.docurl.sync();
                         return false;
-                    case router_1.RouterEventType.popstate:
+                    case router_1.RouterEventType.Popstate:
                         if (isHashChange(event.location.dest)) {
                             void url_1.docurl.sync();
                             return false;
@@ -6790,11 +6790,11 @@ require = function () {
                 if (event.original.defaultPrevented)
                     return false;
                 switch (event.type) {
-                case router_1.RouterEventType.click:
+                case router_1.RouterEventType.Click:
                     return isAccessible(url) && !isHashClick(url) && !isHashChange(url) && !isDownload(event.source) && !hasModifierKey(event.original) && config.filter(event.source);
-                case router_1.RouterEventType.submit:
+                case router_1.RouterEventType.Submit:
                     return isAccessible(url);
-                case router_1.RouterEventType.popstate:
+                case router_1.RouterEventType.Popstate:
                     return isAccessible(url) && !isHashChange(url);
                 default:
                     return false;
@@ -6912,11 +6912,13 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.serialize = void 0;
             function serialize(form) {
-                return Array.from(form.elements).filter(el => {
+                return [...form.elements].filter(el => {
+                    if (!('name' in el))
+                        return false;
                     if (el.disabled)
                         return false;
-                    switch (el.nodeName.toLowerCase()) {
-                    case 'input':
+                    switch (el.tagName) {
+                    case 'INPUT':
                         switch (el.type.toLowerCase()) {
                         case 'checkbox':
                         case 'radio':
@@ -6930,13 +6932,13 @@ require = function () {
                         default:
                             return true;
                         }
-                    case 'select':
-                    case 'textarea':
+                    case 'SELECT':
+                    case 'TEXTAREA':
                         return true;
                     default:
                         return false;
                     }
-                }).filter(el => typeof el.name === 'string' && typeof el.value === 'string').map(el => [
+                }).map(el => [
                     encodeURIComponent(removeInvalidSurrogatePairs(el.name)),
                     encodeURIComponent(removeInvalidSurrogatePairs(el.value))
                 ].join('=')).join('&');
