@@ -29,8 +29,10 @@ The second generation PJAX for advanced web frameworks.
 |**Browser history fix**|**X**|O|**X**|
 |**Scroll position restoration**|**X**|O|**X**|
 |NOSCRIPT tag restoration|X|O|X|
+|History API support<sup>\*2</sup>|?|O|?|
 
-\*1 Excludes ES modules.
+\*1 Excludes ES modules.\
+\*2 You can use pjax APIs and history APIs in combination.
 
 ## Documents, APIs, and Demos
 

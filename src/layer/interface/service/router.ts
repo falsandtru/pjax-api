@@ -1,5 +1,5 @@
 import { route as router, Config, scope, RouterEvent, RouterEventType, RouterEventSource } from '../../application/router';
-import { docurl } from './state/url';
+import { page } from './state/page';
 import { env } from '../service/state/env';
 //import { progressbar } from './progressbar';
 import { FatalError } from '../../../lib/error';
@@ -40,7 +40,7 @@ export function route(
       scope(config, (({ orig, dest }) => ({ orig: orig.pathname, dest: dest.pathname }))(event.location)))
     .fmap(async config => {
       void event.original.preventDefault();
-      void process.cast('', new Error(`Aborted.`));
+      void process.cast('', new Error(`Canceled.`));
       const cancellation = new Cancellation<Error>();
       const kill = process.register('', err => {
         void kill();
@@ -54,7 +54,7 @@ export function route(
         .then(m => m
           .fmap(async ([ss, p]) => (
             void kill(),
-            void docurl.sync(),
+            void page.sync(),
             void ss
               .filter(s => s.hasAttribute('src'))
               .forEach(s =>
@@ -66,7 +66,7 @@ export function route(
           .extract())
         .catch(reason => (
           void kill(),
-          void docurl.sync(),
+          void page.sync(),
           window.history.scrollRestoration = 'auto',
           cancellation.alive || reason instanceof FatalError
             ? void config.fallback(event.source, reason)
@@ -74,24 +74,31 @@ export function route(
     })
     .extract(
       () => {
-        void process.cast('', new Error(`Aborted.`));
+        void process.cast('', new Error(`Canceled.`));
         assert(!event.original.defaultPrevented);
         switch (event.type) {
           case RouterEventType.Click:
           case RouterEventType.Submit:
-            void docurl.sync();
+            void page.sync();
             return false;
           case RouterEventType.Popstate:
             if (isHashChange(event.location.dest)) {
-              void docurl.sync();
+              void page.sync();
               return false;
             }
             void config.fallback(event.source, new Error(`Disabled.`));
-            void docurl.sync();
+            void page.sync();
             return true;
         }
       },
       () => true);
+}
+
+export function sync(
+  process: Supervisor<'', Error>,
+): void {
+  void process.cast('', new Error(`Canceled.`));
+  void page.sync();
 }
 
 function validate(url: URL<StandardURL>, config: Config, event: RouterEvent): boolean {
@@ -115,12 +122,12 @@ function validate(url: URL<StandardURL>, config: Config, event: RouterEvent): bo
   }
 
   function isAccessible(dest: URL<StandardURL>): boolean {
-    const orig: URL<StandardURL> = new URL(docurl.href);
+    const orig: URL<StandardURL> = new URL(page.href);
     return orig.origin === dest.origin;
   }
 
   function isHashClick(dest: URL<StandardURL>): boolean {
-    const orig: URL<StandardURL> = new URL(docurl.href);
+    const orig: URL<StandardURL> = new URL(page.href);
     return orig.resource === dest.resource
         && dest.fragment !== '';
   }
@@ -140,7 +147,7 @@ function validate(url: URL<StandardURL>, config: Config, event: RouterEvent): bo
 export { validate as _validate }
 
 function isHashChange(dest: URL<StandardURL>): boolean {
-  const orig: URL<StandardURL> = new URL(docurl.href);
+  const orig: URL<StandardURL> = new URL(page.href);
   return orig.resource === dest.resource
       && orig.fragment !== dest.fragment;
 }

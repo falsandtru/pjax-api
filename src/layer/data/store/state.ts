@@ -37,3 +37,20 @@ export function savePosition(): void {
     },
     document.title);
 }
+
+export function isTransitable(state: State | null): boolean {
+  return state?.pjax?.transition
+      || false;
+}
+
+export function savePjax(): void {
+  void window.history.replaceState(
+    {
+      ...window.history.state,
+      pjax: {
+        ...window.history.state?.pjax,
+        transition: true,
+      },
+    },
+    document.title);
+}

@@ -10,7 +10,7 @@ import { css } from '../module/update/css';
 import { script } from '../module/update/script';
 import { focus } from '../module/update/focus';
 import { scroll } from '../module/update/scroll';
-import { saveTitle, savePosition } from '../../store/path';
+import { saveTitle, savePosition, savePjax } from '../../store/path';
 import { AtomicPromise } from 'spica/promise';
 import { Either, Left } from 'spica/either';
 import { HList } from 'spica/hlist';
@@ -70,12 +70,14 @@ export function update(
         HList()
           .unfold(() => (
             void blur(documents.dst),
+            void savePjax(),
             void url(
               new RouterEventLocation(response.url),
               documents.src.title,
               event.type,
               event.source,
               config.replace),
+            void savePjax(),
             void title(documents),
             void saveTitle(),
             void head(documents, config.update.head, config.update.ignore),

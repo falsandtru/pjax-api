@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.32.0
+
+- Add Pjax.sync, Pjax.pushURL, and Pjax.replaceURL methods.
+
 ## 3.31.2
 
 - Update dependencies.

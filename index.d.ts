@@ -3,6 +3,9 @@ export default Pjax;
 export class Pjax {
   static assign(url: string, config: Config): boolean;
   static replace(url: string, config: Config): boolean;
+  static sync(isPjaxPage?: boolean): void;
+  static pushURL(url: string, title: string, state?: any): void;
+  static replaceURL(url: string, title: string, state?: any): void;
   constructor(
     config: Config,
     io?: {

@@ -1,4 +1,5 @@
-import { docurl } from '../../service/state/url';
+import { page } from '../../service/state/page';
+import { isTransitable } from '../../../data/store/state';
 import { Coroutine } from 'spica/coroutine';
 import { standardize } from 'spica/url';
 import { bind } from 'typed-dom';
@@ -10,7 +11,8 @@ export class NavigationView extends Coroutine<never> {
   ) {
     super(async function* () {
       return this.finally(bind(window, 'popstate', ev => {
-        if (standardize(window.location.href) === docurl.href) return;
+        if (!isTransitable(page.state) || !isTransitable(window.history.state)) return;
+        if (standardize(window.location.href) === page.href) return;
         void listener(ev);
       }));
     }, { delay: false });
