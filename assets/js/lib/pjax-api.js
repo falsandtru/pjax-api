@@ -5426,7 +5426,7 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            exports.savePosition = exports.loadPosition = exports.saveTitle = exports.loadTitle = void 0;
+            exports.savePjax = exports.isTransitable = exports.savePosition = exports.loadPosition = exports.saveTitle = exports.loadTitle = void 0;
             void saveTitle();
             void savePosition();
             function loadTitle() {
@@ -5461,6 +5461,22 @@ require = function () {
                 }, document.title);
             }
             exports.savePosition = savePosition;
+            function isTransitable(state) {
+                var _a;
+                return ((_a = state === null || state === void 0 ? void 0 : state.pjax) === null || _a === void 0 ? void 0 : _a.transition) || false;
+            }
+            exports.isTransitable = isTransitable;
+            function savePjax() {
+                var _a;
+                void window.history.replaceState({
+                    ...window.history.state,
+                    pjax: {
+                        ...(_a = window.history.state) === null || _a === void 0 ? void 0 : _a.pjax,
+                        transition: true
+                    }
+                }, document.title);
+            }
+            exports.savePjax = savePjax;
         },
         {}
     ],
@@ -5944,7 +5960,7 @@ require = function () {
                 ]).extract(() => either_1.Left(new Error(`Failed to separate the areas.`)), process.either)).bind(([seqB, area]) => (void config.update.rewrite(documents.src, area), content_1.separate(documents, config.areas).fmap(([, areas]) => [
                     seqB,
                     areas
-                ]).extract(() => either_1.Left(new Error(`Failed to separate the areas.`)), process.either)))).then(process.promise).then(m => m.fmap(([seqB, areas]) => hlist_1.HList().unfold(() => (void blur_1.blur(documents.dst), void url_1.url(new router_1.RouterEventLocation(response.url), documents.src.title, event.type, event.source, config.replace), void title_1.title(documents), void path_1.saveTitle(), void head_1.head(documents, config.update.head, config.update.ignore), process.either(content_1.content(documents, areas)).fmap(([as, ps]) => [
+                ]).extract(() => either_1.Left(new Error(`Failed to separate the areas.`)), process.either)))).then(process.promise).then(m => m.fmap(([seqB, areas]) => hlist_1.HList().unfold(() => (void blur_1.blur(documents.dst), void path_1.savePjax(), void url_1.url(new router_1.RouterEventLocation(response.url), documents.src.title, event.type, event.source, config.replace), void path_1.savePjax(), void title_1.title(documents), void path_1.saveTitle(), void head_1.head(documents, config.update.head, config.update.ignore), process.either(content_1.content(documents, areas)).fmap(([as, ps]) => [
                     as,
                     promise_1.AtomicPromise.all(ps)
                 ]))).unfold(async p => (await p).fmap(async ([areas]) => {
@@ -6514,15 +6530,18 @@ require = function () {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.NavigationView = void 0;
-            const url_1 = _dereq_('../../service/state/url');
+            const page_1 = _dereq_('../../service/state/page');
+            const state_1 = _dereq_('../../../data/store/state');
             const coroutine_1 = _dereq_('spica/coroutine');
-            const url_2 = _dereq_('spica/url');
+            const url_1 = _dereq_('spica/url');
             const typed_dom_1 = _dereq_('typed-dom');
             class NavigationView extends coroutine_1.Coroutine {
                 constructor(window, listener) {
                     super(async function* () {
                         return this.finally(typed_dom_1.bind(window, 'popstate', ev => {
-                            if (url_2.standardize(window.location.href) === url_1.docurl.href)
+                            if (!state_1.isTransitable(page_1.page.state) || !state_1.isTransitable(window.history.state))
+                                return;
+                            if (url_1.standardize(window.location.href) === page_1.page.href)
                                 return;
                             void listener(ev);
                         }));
@@ -6532,7 +6551,8 @@ require = function () {
             exports.NavigationView = NavigationView;
         },
         {
-            '../../service/state/url': 135,
+            '../../../data/store/state': 103,
+            '../../service/state/page': 132,
             'spica/coroutine': 13,
             'spica/url': 90,
             'typed-dom': 93
@@ -6543,16 +6563,16 @@ require = function () {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.ScrollView = void 0;
-            const url_1 = _dereq_('../../service/state/url');
+            const page_1 = _dereq_('../../service/state/page');
             const coroutine_1 = _dereq_('spica/coroutine');
-            const url_2 = _dereq_('spica/url');
+            const url_1 = _dereq_('spica/url');
             const throttle_1 = _dereq_('spica/throttle');
             const typed_dom_1 = _dereq_('typed-dom');
             class ScrollView extends coroutine_1.Coroutine {
                 constructor(window, listener) {
                     super(async function* () {
                         return this.finally(typed_dom_1.bind(window, 'scroll', throttle_1.debounce(100, ev => {
-                            if (url_2.standardize(window.location.href) !== url_1.docurl.href)
+                            if (url_1.standardize(window.location.href) !== page_1.page.href)
                                 return;
                             void listener(ev);
                         }), { passive: true }));
@@ -6562,7 +6582,7 @@ require = function () {
             exports.ScrollView = ScrollView;
         },
         {
-            '../../service/state/url': 135,
+            '../../service/state/page': 132,
             'spica/coroutine': 13,
             'spica/throttle': 87,
             'spica/url': 90,
@@ -6601,6 +6621,7 @@ require = function () {
             exports.API = void 0;
             const router_1 = _dereq_('./router');
             const process_1 = _dereq_('./state/process');
+            const state_1 = _dereq_('../../data/store/state');
             const html_1 = _dereq_('../../../lib/html');
             const assign_1 = _dereq_('spica/assign');
             const typed_dom_1 = _dereq_('typed-dom');
@@ -6621,6 +6642,19 @@ require = function () {
                     void click(url, event => result = io.router(new router_1.Config(assign_1.extend({}, option, { replace: '*' })), new router_1.RouterEvent(event), process_1.process, io));
                     return result;
                 }
+                static sync(isPjaxPage) {
+                    isPjaxPage && void state_1.savePjax();
+                    void router_1.sync(process_1.process);
+                }
+                static pushURL(url, title, state = null) {
+                    void window.history.pushState(state, title, url);
+                    void this.sync();
+                }
+                static replaceURL(url, title, state = window.history.state) {
+                    const isPjaxPage = state_1.isTransitable(window.history.state);
+                    void window.history.replaceState(state, title, url);
+                    void this.sync(isPjaxPage);
+                }
             }
             exports.API = API;
             function click(url, callback) {
@@ -6634,8 +6668,9 @@ require = function () {
         },
         {
             '../../../lib/html': 138,
+            '../../data/store/state': 103,
             './router': 130,
-            './state/process': 132,
+            './state/process': 133,
             'spica/assign': 6,
             'typed-dom': 93
         }
@@ -6699,8 +6734,8 @@ require = function () {
             '../module/view/submit': 127,
             './api': 128,
             './router': 130,
-            './state/process': 132,
-            './state/scroll-restoration': 134,
+            './state/process': 133,
+            './state/scroll-restoration': 135,
             'spica/copropagator': 12,
             'spica/supervisor': 86
         }
@@ -6709,7 +6744,7 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            exports._validate = exports.route = exports.RouterEventSource = exports.RouterEvent = exports.Config = void 0;
+            exports._validate = exports.sync = exports.route = exports.RouterEventSource = exports.RouterEvent = exports.Config = void 0;
             const router_1 = _dereq_('../../application/router');
             Object.defineProperty(exports, 'Config', {
                 enumerable: true,
@@ -6729,11 +6764,11 @@ require = function () {
                     return router_1.RouterEventSource;
                 }
             });
-            const url_1 = _dereq_('./state/url');
+            const page_1 = _dereq_('./state/page');
             const env_1 = _dereq_('../service/state/env');
             const error_1 = _dereq_('../../../lib/error');
             const store_1 = _dereq_('../../application/store');
-            const url_2 = _dereq_('spica/url');
+            const url_1 = _dereq_('spica/url');
             const cancellation_1 = _dereq_('spica/cancellation');
             const maybe_1 = _dereq_('spica/maybe');
             const clock_1 = _dereq_('spica/clock');
@@ -6754,7 +6789,7 @@ require = function () {
                     dest: dest.pathname
                 }))(event.location))).fmap(async config => {
                     void event.original.preventDefault();
-                    void process.cast('', new Error(`Aborted.`));
+                    void process.cast('', new Error(`Canceled.`));
                     const cancellation = new cancellation_1.Cancellation();
                     const kill = process.register('', err => {
                         void kill();
@@ -6766,26 +6801,31 @@ require = function () {
                     return router_1.route(config, event, {
                         process: cancellation,
                         scripts
-                    }, io).then(m => m.fmap(async ([ss, p]) => (void kill(), void url_1.docurl.sync(), void ss.filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_2.URL(url_2.standardize(s.src)).reference)), void (await p).filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_2.URL(url_2.standardize(s.src)).reference)))).extract()).catch(reason => (void kill(), void url_1.docurl.sync(), window.history.scrollRestoration = 'auto', cancellation.alive || reason instanceof error_1.FatalError ? void config.fallback(event.source, reason) : void 0));
+                    }, io).then(m => m.fmap(async ([ss, p]) => (void kill(), void page_1.page.sync(), void ss.filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_1.URL(url_1.standardize(s.src)).reference)), void (await p).filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_1.URL(url_1.standardize(s.src)).reference)))).extract()).catch(reason => (void kill(), void page_1.page.sync(), window.history.scrollRestoration = 'auto', cancellation.alive || reason instanceof error_1.FatalError ? void config.fallback(event.source, reason) : void 0));
                 }).extract(() => {
-                    void process.cast('', new Error(`Aborted.`));
+                    void process.cast('', new Error(`Canceled.`));
                     switch (event.type) {
                     case router_1.RouterEventType.Click:
                     case router_1.RouterEventType.Submit:
-                        void url_1.docurl.sync();
+                        void page_1.page.sync();
                         return false;
                     case router_1.RouterEventType.Popstate:
                         if (isHashChange(event.location.dest)) {
-                            void url_1.docurl.sync();
+                            void page_1.page.sync();
                             return false;
                         }
                         void config.fallback(event.source, new Error(`Disabled.`));
-                        void url_1.docurl.sync();
+                        void page_1.page.sync();
                         return true;
                     }
                 }, () => true);
             }
             exports.route = route;
+            function sync(process) {
+                void process.cast('', new Error(`Canceled.`));
+                void page_1.page.sync();
+            }
+            exports.sync = sync;
             function validate(url, config, event) {
                 if (event.original.defaultPrevented)
                     return false;
@@ -6800,11 +6840,11 @@ require = function () {
                     return false;
                 }
                 function isAccessible(dest) {
-                    const orig = new url_2.URL(url_1.docurl.href);
+                    const orig = new url_1.URL(page_1.page.href);
                     return orig.origin === dest.origin;
                 }
                 function isHashClick(dest) {
-                    const orig = new url_2.URL(url_1.docurl.href);
+                    const orig = new url_1.URL(page_1.page.href);
                     return orig.resource === dest.resource && dest.fragment !== '';
                 }
                 function isDownload(el) {
@@ -6816,7 +6856,7 @@ require = function () {
             }
             exports._validate = validate;
             function isHashChange(dest) {
-                const orig = new url_2.URL(url_1.docurl.href);
+                const orig = new url_1.URL(page_1.page.href);
                 return orig.resource === dest.resource && orig.fragment !== dest.fragment;
             }
         },
@@ -6825,7 +6865,7 @@ require = function () {
             '../../application/router': 101,
             '../../application/store': 102,
             '../service/state/env': 131,
-            './state/url': 135,
+            './state/page': 132,
             'spica/cancellation': 8,
             'spica/clock': 11,
             'spica/maybe': 23,
@@ -6844,9 +6884,44 @@ require = function () {
                 new Promise(r => void setTimeout(r))
             ]);
         },
-        { './script': 133 }
+        { './script': 134 }
     ],
     132: [
+        function (_dereq_, module, exports) {
+            'use strict';
+            Object.defineProperty(exports, '__esModule', { value: true });
+            exports.page = void 0;
+            const global_1 = _dereq_('spica/global');
+            const state_1 = _dereq_('../../../data/store/state');
+            const url_1 = _dereq_('spica/url');
+            const typed_dom_1 = _dereq_('typed-dom');
+            void typed_dom_1.bind(global_1.window, 'hashchange', () => void exports.page.sync());
+            void typed_dom_1.bind(global_1.window, 'popstate', () => state_1.isTransitable(exports.page.state) && state_1.isTransitable(global_1.window.history.state) || void exports.page.sync());
+            exports.page = new class {
+                constructor() {
+                    this.url = url_1.standardize(global_1.window.location.href);
+                    this.state_ = global_1.window.history.state;
+                }
+                get href() {
+                    return this.url;
+                }
+                get state() {
+                    return this.state_;
+                }
+                sync() {
+                    this.url = url_1.standardize(global_1.window.location.href);
+                    this.state_ = global_1.window.history.state;
+                }
+            }();
+        },
+        {
+            '../../../data/store/state': 103,
+            'spica/global': 19,
+            'spica/url': 90,
+            'typed-dom': 93
+        }
+    ],
+    133: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6857,7 +6932,7 @@ require = function () {
         },
         { 'spica/supervisor': 86 }
     ],
-    133: [
+    134: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6872,7 +6947,7 @@ require = function () {
             'typed-dom': 93
         }
     ],
-    134: [
+    135: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6880,31 +6955,6 @@ require = function () {
             void typed_dom_1.bind(window, 'unload', () => window.history.scrollRestoration = 'auto', false);
         },
         { 'typed-dom': 93 }
-    ],
-    135: [
-        function (_dereq_, module, exports) {
-            'use strict';
-            Object.defineProperty(exports, '__esModule', { value: true });
-            exports.docurl = void 0;
-            const url_1 = _dereq_('spica/url');
-            const typed_dom_1 = _dereq_('typed-dom');
-            void typed_dom_1.bind(window, 'hashchange', () => void exports.docurl.sync());
-            exports.docurl = new class {
-                constructor() {
-                    this.url = url_1.standardize(window.location.href);
-                }
-                get href() {
-                    return this.url;
-                }
-                sync() {
-                    this.url = url_1.standardize(window.location.href);
-                }
-            }();
-        },
-        {
-            'spica/url': 90,
-            'typed-dom': 93
-        }
     ],
     136: [
         function (_dereq_, module, exports) {

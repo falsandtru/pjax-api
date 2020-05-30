@@ -70,7 +70,7 @@ Requires es6 support.
 - Chrome
 - Firefox
 - Safari
-- Edge
+- Edge (Chromium edition only)
 </div>
 
 <div class="col-md-4">
