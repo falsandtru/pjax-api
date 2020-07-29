@@ -5499,7 +5499,7 @@ require = function () {
             class Config {
                 constructor(option) {
                     this.areas = ['body'];
-                    this.link = 'a';
+                    this.link = 'a, area';
                     this.form = 'form:not([method])';
                     this.replace = '';
                     this.fetch = {
@@ -5543,7 +5543,7 @@ require = function () {
                     void this.fetch.headers.set('X-Pjax', '1');
                 }
                 filter(el) {
-                    return el.matches(':not([target])');
+                    return el.matches('[href]:not([target])');
                 }
                 fallback(target, reason) {
                     if (target instanceof HTMLAnchorElement) {
@@ -5630,6 +5630,7 @@ require = function () {
             var RouterEventSource;
             (function (RouterEventSource) {
                 RouterEventSource.Anchor = HTMLAnchorElement;
+                RouterEventSource.Area = HTMLAreaElement;
                 RouterEventSource.Form = HTMLFormElement;
                 RouterEventSource.Window = window.Window;
             }(RouterEventSource = exports.RouterEventSource || (exports.RouterEventSource = {})));
@@ -5648,7 +5649,7 @@ require = function () {
                 constructor(source) {
                     this.source = source;
                     this.method = (() => {
-                        if (this.source instanceof RouterEventSource.Anchor) {
+                        if (this.source instanceof RouterEventSource.Anchor || this.source instanceof RouterEventSource.Area) {
                             return RouterEventMethod.GET;
                         }
                         if (this.source instanceof RouterEventSource.Form) {
@@ -5660,7 +5661,7 @@ require = function () {
                         throw new TypeError();
                     })();
                     this.url = (() => {
-                        if (this.source instanceof RouterEventSource.Anchor) {
+                        if (this.source instanceof RouterEventSource.Anchor || this.source instanceof RouterEventSource.Area) {
                             return new url_1.URL(url_1.standardize(this.source.href));
                         }
                         if (this.source instanceof RouterEventSource.Form) {
@@ -6514,7 +6515,7 @@ require = function () {
                 constructor(document, selector, listener) {
                     super(async function* () {
                         return this.finally(typed_dom_1.delegate(document, selector, 'click', ev => {
-                            if (!(ev.currentTarget instanceof HTMLAnchorElement))
+                            if (!(ev.currentTarget instanceof HTMLAnchorElement || ev.currentTarget instanceof HTMLAreaElement))
                                 return;
                             void listener(ev);
                         }));
@@ -6647,7 +6648,8 @@ require = function () {
                 }
                 static sync(isPjaxPage) {
                     isPjaxPage && void state_1.savePjax();
-                    void router_1.sync(process_1.process);
+                    void process_1.process.cast('', new Error(`Canceled.`));
+                    void router_1.sync();
                 }
                 static pushURL(url, title, state = null) {
                     void window.history.pushState(state, title, url);
@@ -6806,14 +6808,18 @@ require = function () {
                         scripts
                     }, io).then(m => m.fmap(async ([ss, p]) => (void kill(), void page_1.page.sync(), void ss.filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_1.URL(url_1.standardize(s.src)).reference)), void (await p).filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_1.URL(url_1.standardize(s.src)).reference)))).extract()).catch(reason => (void kill(), void page_1.page.sync(), window.history.scrollRestoration = 'auto', cancellation.alive || reason instanceof error_1.FatalError ? void config.fallback(event.source, reason) : void 0));
                 }).extract(() => {
-                    void process.cast('', new Error(`Canceled.`));
                     switch (event.type) {
                     case router_1.RouterEventType.Click:
+                        event.source.matches('[href]') && void process.cast('', new Error(`Canceled.`));
+                        void page_1.page.sync();
+                        return false;
                     case router_1.RouterEventType.Submit:
+                        void process.cast('', new Error(`Canceled.`));
                         void page_1.page.sync();
                         return false;
                     case router_1.RouterEventType.Popstate:
                         if (isHashChange(event.location.dest)) {
+                            void process.cast('', new Error(`Canceled.`));
                             void page_1.page.sync();
                             return false;
                         }
@@ -6824,8 +6830,7 @@ require = function () {
                 }, () => true);
             }
             exports.route = route;
-            function sync(process) {
-                void process.cast('', new Error(`Canceled.`));
+            function sync() {
                 void page_1.page.sync();
             }
             exports.sync = sync;
