@@ -744,7 +744,7 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            exports.never = exports.wait = exports.clock = void 0;
+            exports.never = exports.wait = exports.clock = exports.tick = void 0;
             const global_1 = _dereq_('./global');
             const promise_1 = _dereq_('./promise');
             var clock_tick_1 = _dereq_('./clock.tick');
@@ -1215,7 +1215,7 @@ require = function () {
             });
             var __exportStar = this && this.__exportStar || function (m, exports) {
                 for (var p in m)
-                    if (p !== 'default' && !exports.hasOwnProperty(p))
+                    if (p !== 'default' && !Object.prototype.hasOwnProperty.call(exports, p))
                         __createBinding(exports, m, p);
             };
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1352,6 +1352,7 @@ require = function () {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.HList = void 0;
+            const array_1 = _dereq_('./array');
             function HList(...as) {
                 return as.length === 0 ? HNil : as.reduceRight((node, a) => node.add(a), HNil);
             }
@@ -1392,13 +1393,11 @@ require = function () {
                     return this.tuple().reverse();
                 }
                 tuple() {
-                    const t = this.tail.tuple();
-                    t.unshift(this.head);
-                    return t;
+                    return array_1.unshift([this.head], this.tail.tuple());
                 }
             }
         },
-        {}
+        { './array': 5 }
     ],
     22: [
         function (_dereq_, module, exports) {
@@ -1605,7 +1604,7 @@ require = function () {
             });
             var __exportStar = this && this.__exportStar || function (m, exports) {
                 for (var p in m)
-                    if (p !== 'default' && !exports.hasOwnProperty(p))
+                    if (p !== 'default' && !Object.prototype.hasOwnProperty.call(exports, p))
                         __createBinding(exports, m, p);
             };
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -1803,7 +1802,7 @@ require = function () {
                 var result = {};
                 if (mod != null)
                     for (var k in mod)
-                        if (Object.hasOwnProperty.call(mod, k))
+                        if (k !== 'default' && Object.prototype.hasOwnProperty.call(mod, k))
                             __createBinding(result, mod, k);
                 __setModuleDefault(result, mod);
                 return result;
@@ -2013,7 +2012,7 @@ require = function () {
                 var result = {};
                 if (mod != null)
                     for (var k in mod)
-                        if (Object.hasOwnProperty.call(mod, k))
+                        if (k !== 'default' && Object.prototype.hasOwnProperty.call(mod, k))
                             __createBinding(result, mod, k);
                 __setModuleDefault(result, mod);
                 return result;
@@ -2071,6 +2070,7 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
+            exports.Sequence = void 0;
             _dereq_('./sequence/member/static/resume');
             _dereq_('./sequence/member/static/from');
             _dereq_('./sequence/member/static/cycle');
@@ -3851,7 +3851,7 @@ require = function () {
             });
             var __exportStar = this && this.__exportStar || function (m, exports) {
                 for (var p in m)
-                    if (p !== 'default' && !exports.hasOwnProperty(p))
+                    if (p !== 'default' && !Object.prototype.hasOwnProperty.call(exports, p))
                         __createBinding(exports, m, p);
             };
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4433,7 +4433,7 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            exports.URL = void 0;
+            exports.URL = exports.standardize = void 0;
             const global_1 = _dereq_('./global');
             const format_1 = _dereq_('./url/domain/format');
             var format_2 = _dereq_('./url/domain/format');
@@ -4582,6 +4582,7 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
+            exports.apply = exports.currentTarget = exports.bind = exports.delegate = exports.wait = exports.once = exports.listen = exports.define = exports.element = exports.text = exports.svg = exports.html = exports.frag = exports.shadow = exports.proxy = exports.API = exports.SVG = exports.HTML = exports.Shadow = void 0;
             _dereq_('spica/global');
             var builder_1 = _dereq_('./src/builder');
             Object.defineProperty(exports, 'Shadow', {
@@ -5208,9 +5209,9 @@ require = function () {
                         const newChild = children[i];
                         if (typeof newChild === 'object' && newChild.nodeType === 11) {
                             const sourceLength = newChild.childNodes.length;
+                            targetLength += newChild !== node ? sourceLength : 0;
                             node.insertBefore(newChild, targetNodes[count] || null);
                             count += sourceLength;
-                            targetLength += sourceLength;
                             continue;
                         }
                         ++count;
@@ -5225,8 +5226,8 @@ require = function () {
                         if (equal(oldChild, newChild))
                             continue;
                         if (targetLength < children.length - i + count) {
+                            targetLength += typeof newChild === 'string' || newChild.parentNode !== node ? 1 : 0;
                             node.insertBefore(typeof newChild === 'string' ? text(newChild) : newChild, oldChild);
-                            ++targetLength;
                         } else {
                             node.replaceChild(typeof newChild === 'string' ? text(newChild) : newChild, oldChild);
                         }
@@ -5327,6 +5328,7 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
+            exports.router = exports.default = exports.Pjax = void 0;
             var gui_1 = _dereq_('./layer/interface/service/gui');
             Object.defineProperty(exports, 'Pjax', {
                 enumerable: true,
@@ -5357,7 +5359,7 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            exports.route = void 0;
+            exports.route = exports.scope = exports.Config = exports.RouterEventSource = exports.RouterEventType = exports.RouterEvent = void 0;
             const api_1 = _dereq_('../domain/router/api');
             var router_1 = _dereq_('../domain/event/router');
             Object.defineProperty(exports, 'RouterEvent', {
@@ -5406,6 +5408,7 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
+            exports.savePosition = exports.loadTitle = void 0;
             var path_1 = _dereq_('../domain/store/path');
             Object.defineProperty(exports, 'loadTitle', {
                 enumerable: true,
@@ -5484,7 +5487,7 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            exports.Config = void 0;
+            exports.Config = exports.scope = void 0;
             const assign_1 = _dereq_('spica/assign');
             var scope_1 = _dereq_('./config/scope');
             Object.defineProperty(exports, 'scope', {
@@ -5692,7 +5695,7 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            exports.route = void 0;
+            exports.route = exports.RouterEntityState = exports.RouterEntity = void 0;
             const fetch_1 = _dereq_('./module/fetch');
             const update_1 = _dereq_('./module/update');
             const content_1 = _dereq_('./module/update/content');
@@ -6187,7 +6190,7 @@ require = function () {
                 var result = {};
                 if (mod != null)
                     for (var k in mod)
-                        if (Object.hasOwnProperty.call(mod, k))
+                        if (k !== 'default' && Object.prototype.hasOwnProperty.call(mod, k))
                             __createBinding(result, mod, k);
                 __setModuleDefault(result, mod);
                 return result;
@@ -6492,7 +6495,7 @@ require = function () {
             });
             var __exportStar = this && this.__exportStar || function (m, exports) {
                 for (var p in m)
-                    if (p !== 'default' && !exports.hasOwnProperty(p))
+                    if (p !== 'default' && !Object.prototype.hasOwnProperty.call(exports, p))
                         __createBinding(exports, m, p);
             };
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7180,15 +7183,19 @@ require = function () {
             });
             var __exportStar = this && this.__exportStar || function (m, exports) {
                 for (var p in m)
-                    if (p !== 'default' && !exports.hasOwnProperty(p))
+                    if (p !== 'default' && !Object.prototype.hasOwnProperty.call(exports, p))
                         __createBinding(exports, m, p);
             };
+            var __importDefault = this && this.__importDefault || function (mod) {
+                return mod && mod.__esModule ? mod : { 'default': mod };
+            };
             Object.defineProperty(exports, '__esModule', { value: true });
+            exports.default = void 0;
             var export_1 = _dereq_('./src/export');
             Object.defineProperty(exports, 'default', {
                 enumerable: true,
                 get: function () {
-                    return export_1.default;
+                    return __importDefault(export_1).default;
                 }
             });
             __exportStar(_dereq_('./src/export'), exports);
