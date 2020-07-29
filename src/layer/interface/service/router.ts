@@ -24,7 +24,7 @@ export function route(
     document: Document;
   }
 ): boolean {
-  assert([HTMLAnchorElement, HTMLFormElement, Window].some(Class => event.source instanceof Class));
+  assert([HTMLAnchorElement, HTMLAreaElement, HTMLFormElement, Window].some(Class => event.source instanceof Class));
   switch (event.type) {
     case RouterEventType.Click:
     case RouterEventType.Submit:
@@ -74,15 +74,19 @@ export function route(
     })
     .extract(
       () => {
-        void process.cast('', new Error(`Canceled.`));
         assert(!event.original.defaultPrevented);
         switch (event.type) {
           case RouterEventType.Click:
+            (event.source as RouterEventSource.Link).matches('[href]') && void process.cast('', new Error(`Canceled.`));
+            void page.sync();
+            return false;
           case RouterEventType.Submit:
+            void process.cast('', new Error(`Canceled.`));
             void page.sync();
             return false;
           case RouterEventType.Popstate:
             if (isHashChange(event.location.dest)) {
+              void process.cast('', new Error(`Canceled.`));
               void page.sync();
               return false;
             }
@@ -94,10 +98,7 @@ export function route(
       () => true);
 }
 
-export function sync(
-  process: Supervisor<'', Error>,
-): void {
-  void process.cast('', new Error(`Canceled.`));
+export function sync(): void {
   void page.sync();
 }
 
@@ -109,9 +110,9 @@ function validate(url: URL<StandardURL>, config: Config, event: RouterEvent): bo
       return isAccessible(url)
           && !isHashClick(url)
           && !isHashChange(url)
-          && !isDownload(event.source as RouterEventSource.Anchor)
+          && !isDownload(event.source as RouterEventSource.Link)
           && !hasModifierKey(event.original as MouseEvent)
-          && config.filter(event.source as RouterEventSource.Anchor);
+          && config.filter(event.source as RouterEventSource.Link);
     case RouterEventType.Submit:
       return isAccessible(url);
     case RouterEventType.Popstate:
@@ -132,7 +133,7 @@ function validate(url: URL<StandardURL>, config: Config, event: RouterEvent): bo
         && dest.fragment !== '';
   }
 
-  function isDownload(el: HTMLAnchorElement): boolean {
+  function isDownload(el: HTMLAnchorElement | HTMLAreaElement): boolean {
     return el.hasAttribute('download');
   }
 

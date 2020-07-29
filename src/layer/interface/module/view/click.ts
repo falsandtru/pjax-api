@@ -9,7 +9,7 @@ export class ClickView extends Coroutine<never> {
   ) {
     super(async function* () {
       return this.finally(delegate(document, selector, 'click', ev => {
-        if (!(ev.currentTarget instanceof HTMLAnchorElement)) return;
+        if (!(ev.currentTarget instanceof HTMLAnchorElement || ev.currentTarget instanceof HTMLAreaElement)) return;
         assert(typeof ev.currentTarget.href === 'string');
         void listener(ev);
       }));

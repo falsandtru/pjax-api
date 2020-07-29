@@ -25,6 +25,27 @@ describe('Integration: Usecase', function () {
       a.click();
     });
 
+    it('area', function (done) {
+      const url = '/base/test/integration/fixture/basic/1.html';
+      const document = parse('').extract();
+      new Pjax({}, { document, router });
+      once(document, 'pjax:ready', () => {
+        assert(window.location.pathname === url);
+        assert(document.title === 'Title 1');
+        assert(document.querySelector('#primary')!.textContent === 'Primary 1');
+        done();
+      });
+      const a = document.createElement('area');
+      const b = document.createElement('area');
+      a.href = url;
+      assert(a.matches('[href]'));
+      assert(b.matches(':not([href])'));
+      document.body.appendChild(a);
+      document.body.appendChild(b);
+      a.click();
+      b.click();
+    });
+
     it('shadow', function (done) {
       if (!window.document.body.attachShadow) return done();
       const url = '/base/test/integration/fixture/basic/1.html';

@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.33.0
+
+- Support HTMLAreaElement.
+
 ## 3.32.0
 
 - Add Pjax.sync, Pjax.pushURL, and Pjax.replaceURL methods.

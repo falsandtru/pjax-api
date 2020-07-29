@@ -23,7 +23,8 @@ export class API {
   }
   public static sync(isPjaxPage?: boolean): void {
     isPjaxPage && void savePjax();
-    void sync(process);
+    void process.cast('', new Error(`Canceled.`));
+    void sync();
   }
   public static pushURL(url: string, title: string, state: any = null): void {
     void window.history.pushState(state, title, url);
@@ -37,7 +38,7 @@ export class API {
 }
 
 function click(url: string, callback: (ev: Event) => void): void {
-  const el: RouterEventSource.Anchor = document.createElement('a');
+  const el: RouterEventSource.Link = document.createElement('a');
   el.href = url;
   void parse('').extract().body.appendChild(el);
   void once(el, 'click', callback);

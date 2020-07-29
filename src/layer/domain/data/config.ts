@@ -28,9 +28,9 @@ export class Config implements DeepRequired<Option, Config['scope']> {
     void this.fetch.headers.set('X-Pjax', '1');
   }
   public readonly areas = ['body'];
-  public readonly link = 'a';
-  public filter(el: HTMLAnchorElement): boolean {
-    return el.matches(':not([target])');
+  public readonly link = 'a, area';
+  public filter(el: HTMLAnchorElement | HTMLAreaElement): boolean {
+    return el.matches('[href]:not([target])');
   }
   public readonly form = 'form:not([method])';
   public readonly replace = '';
@@ -54,7 +54,7 @@ export class Config implements DeepRequired<Option, Config['scope']> {
     reload: '',
     logger: '',
   };
-  public fallback(target: HTMLAnchorElement | HTMLFormElement | Window, reason: any): void {
+  public fallback(target: HTMLAnchorElement | HTMLAreaElement | HTMLFormElement | Window, reason: any): void {
     if (target instanceof HTMLAnchorElement) {
       return void window.location.assign(target.href);
     }

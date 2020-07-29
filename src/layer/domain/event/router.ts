@@ -7,7 +7,7 @@ export class RouterEvent {
     public readonly original: Event
   ) {
     assert(['click', 'submit', 'popstate'].includes(this.original.type));
-    assert([HTMLAnchorElement, HTMLFormElement, Window].some(Class => this.source instanceof Class));
+    assert([HTMLAnchorElement, HTMLAreaElement, HTMLFormElement, Window].some(Class => this.source instanceof Class));
     void Object.freeze(this);
   }
   public readonly type: RouterEventType = this.original.type.toLowerCase() as RouterEventType;
@@ -17,12 +17,13 @@ export class RouterEvent {
 }
 
 export type RouterEventSource
-  = RouterEventSource.Anchor
+  = RouterEventSource.Link
   | RouterEventSource.Form
   | RouterEventSource.Window;
 export namespace RouterEventSource {
-  export type Anchor = HTMLAnchorElement;
+  export type Link = HTMLAnchorElement | HTMLAreaElement;
   export const Anchor = HTMLAnchorElement;
+  export const Area = HTMLAreaElement;
   export type Form = HTMLFormElement;
   export const Form = HTMLFormElement;
   export type Window = typeof window;
@@ -54,7 +55,7 @@ export class RouterEventRequest {
     void Object.freeze(this);
   }
   public readonly method: RouterEventMethod = (() => {
-    if (this.source instanceof RouterEventSource.Anchor) {
+    if (this.source instanceof RouterEventSource.Anchor || this.source instanceof RouterEventSource.Area) {
       return RouterEventMethod.GET;
     }
     if (this.source instanceof RouterEventSource.Form) {
@@ -68,7 +69,7 @@ export class RouterEventRequest {
     throw new TypeError();
   })();
   public readonly url: URL<StandardURL> = (() => {
-    if (this.source instanceof RouterEventSource.Anchor) {
+    if (this.source instanceof RouterEventSource.Anchor || this.source instanceof RouterEventSource.Area) {
       return new URL(standardize(this.source.href));
     }
     if (this.source instanceof RouterEventSource.Form) {

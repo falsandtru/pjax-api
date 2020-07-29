@@ -13,20 +13,20 @@ class: style-api style-api-detail
 Set target areas.
 
 You can define the multiple targets like `['#header, #primary']`.
-Also, you can define the other candidates of targets like `['#container', 'body']`. 
+Also, you can define the other candidates of targets like `['#container', 'body']`.
 
-## link: string = `'a'`
+## link: string = `'a, area'`
 
-Set target anchor links.
+Set target links.
 
-## filter: (el: HTMLAnchorElement) => boolean = ...
+## filter: (el: HTMLAnchorElement | HTMLAreaElement) => boolean = ...
 
-Filter target anchor links.
+Filter target links.
 
 ```ts
   // default
-  public filter(el: HTMLAnchorElement): boolean {
-    return el.matches(':not([target])');
+  public filter(el: HTMLAnchorElement | HTMLAreaElement): boolean {
+    return el.matches('[href]:not([target])');
   }
 ```
 
@@ -36,7 +36,7 @@ Set target forms.
 
 ## replace: string = `''`
 
-Set target anchor links that will replace the current URL.
+Set target links that will replace the current URL.
 
 ## fetch: {...} = ...
 
@@ -101,14 +101,14 @@ Set reload targets for script.
 
 Set logging targets for script.
 
-## fallback: (target: HTMLAnchorElement | HTMLFormElement | Window, reason: any) => void = ...
+## fallback: (target: HTMLAnchorElement | HTMLAreaElement | HTMLFormElement | Window, reason: any) => void = ...
 
 Override a fallback processing.
 
 ```ts
   // default
-  public fallback(target: HTMLAnchorElement | HTMLFormElement | Window, reason: any): void {
-    if (target instanceof HTMLAnchorElement) {
+  public fallback(target: HTMLAnchorElement | HTMLAreaElement | HTMLFormElement | Window, reason: any): void {
+    if (target instanceof HTMLAnchorElement || target instanceof HTMLAreaElement) {
       return void window.location.assign(target.href);
     }
     if (target instanceof HTMLFormElement) {
