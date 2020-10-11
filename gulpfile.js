@@ -158,7 +158,7 @@ gulp.task('install', done => {
 gulp.task('update', done => {
   shell('bundle update');
   shell('ncu -ux del');
-  shell('ncu -ut typescript');
+  shell('ncu -ut greatest typescript');
   shell('npm i --no-shrinkwrap');
   done();
 });
