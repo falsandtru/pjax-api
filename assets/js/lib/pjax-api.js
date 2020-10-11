@@ -1185,7 +1185,8 @@ require = function () {
                 let g;
                 return xs.length < arity ? (...ys) => curry_(g = g || xs.length && f.bind(global_1.undefined, ...xs) || f, arity - xs.length, ...ys) : f(...xs);
             }
-            exports.uncurry = f => uncurry_(f);
+            const uncurry = f => uncurry_(f);
+            exports.uncurry = uncurry;
             function uncurry_(f) {
                 const arity = f.length;
                 return (...xs) => arity === 0 || xs.length < 2 || xs.length <= arity ? f(...xs) : uncurry_(f(...array_1.shift(xs, arity)[0]))(...xs);
@@ -1326,7 +1327,7 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             const global = void 0 || typeof globalThis !== 'undefined' && globalThis || typeof self !== 'undefined' && self || Function('return this')();
-            global.global = global;
+            eval('global.global = global');
             module.exports = global;
         },
         {}
@@ -6198,6 +6199,7 @@ require = function () {
             };
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.escape = exports._evaluate = exports._fetch = exports.script = void 0;
+            const global_1 = _dereq_('spica/global');
             const error_1 = _dereq_('../../../../../lib/error');
             const promise_1 = _dereq_('spica/promise');
             const either_1 = _dereq_('spica/either');
@@ -6314,7 +6316,7 @@ require = function () {
                 if (new url_1.URL(url_1.standardize(script.src)).origin === new url_1.URL(url_1.standardize(window.location.href)).origin)
                     return promise_1.AtomicPromise.reject(new Error());
                 script = typed_dom_1.html('script', Object.values(script.attributes).reduce((o, {name, value}) => (o[name] = value, o), {}), [...script.childNodes]);
-                return new promise_1.AtomicPromise((resolve, reject) => (void script.addEventListener('load', () => void resolve()), void script.addEventListener('error', reject), void document.body.appendChild(script), void script.remove()));
+                return new promise_1.AtomicPromise((resolve, reject) => (void script.addEventListener('load', () => void resolve(global_1.undefined)), void script.addEventListener('error', reject), void document.body.appendChild(script), void script.remove()));
             }
         },
         {
@@ -6322,6 +6324,7 @@ require = function () {
             'spica/array': 5,
             'spica/clock': 11,
             'spica/either': 15,
+            'spica/global': 19,
             'spica/promise': 83,
             'spica/tuple': 88,
             'spica/url': 90,
