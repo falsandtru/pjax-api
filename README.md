@@ -37,7 +37,7 @@ The second generation PJAX for advanced web frameworks.
 
 ## Documents, APIs, and Demos
 
-[pjax-api](http://falsandtru.github.io/pjax-api)
+https://falsandtru.github.io/pjax-api
 
 ## Get
 
