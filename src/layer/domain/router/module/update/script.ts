@@ -17,7 +17,7 @@ export function script(
     src: Document;
     dst: Document;
   },
-  skip: ReadonlySet<URL.Reference<StandardURL>>,
+  skip: ReadonlySet<URL.Href<StandardURL>>,
   selector: {
     ignore: string;
     reload: string;
@@ -35,7 +35,7 @@ export function script(
     .filter(el => !el.matches(selector.ignore.trim() || '_'))
     .filter(el =>
       el.hasAttribute('src')
-        ? !skip.has(new URL(standardize(el.src)).reference) || el.matches(selector.reload.trim() || '_')
+        ? !skip.has(new URL(standardize(el.src)).href) || el.matches(selector.reload.trim() || '_')
         : true);
   const { ss, as } = scripts.reduce((o, script) => {
     switch (true) {
@@ -140,7 +140,7 @@ function evaluate(
   script: HTMLScriptElement,
   code: string,
   logger: string,
-  skip: ReadonlySet<URL.Reference<StandardURL>>,
+  skip: ReadonlySet<URL.Href<StandardURL>>,
   wait: Promise<any>,
   cancellation: Cancellee<Error>,
 ): Either<AtomicPromise<Either<Error, HTMLScriptElement>>, AtomicPromise<Either<Error, HTMLScriptElement>>> {
@@ -185,7 +185,7 @@ function evaluate(
     }
     else {
       try {
-        if (skip.has(new URL(standardize(window.location.href)).reference)) throw new FatalError('Expired.');
+        if (skip.has(new URL(standardize(window.location.href)).href)) throw new FatalError('Expired.');
         void (0, eval)(code);
         script.hasAttribute('src') && void script.dispatchEvent(new Event('load'));
         return AtomicPromise.resolve(Right(script));

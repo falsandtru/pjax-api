@@ -19,13 +19,13 @@ export function url(
       return void window.history.replaceState(
         {},
         title,
-        location.dest.reference);
+        location.dest.href);
     case isRegisterable(type, location):
-      assert(location.dest.reference !== location.orig.reference);
+      assert(location.dest.href !== location.orig.href);
       return void window.history.pushState(
         {},
         title,
-        location.dest.reference);
+        location.dest.href);
     default:
       return;
   }
@@ -35,7 +35,7 @@ function isRegisterable(
   type: RouterEventType,
   location: RouterEventLocation
 ): boolean {
-  if (location.dest.reference === location.orig.reference) return false;
+  if (location.dest.href === location.orig.href) return false;
   switch (type) {
     case RouterEventType.Click:
     case RouterEventType.Submit:

@@ -13,11 +13,11 @@ export class FetchResponse {
     void Object.defineProperty(this.document, 'URL', {
       configurable: true,
       enumerable: true,
-      value: url.reference,
+      value: url.href,
       writable: false,
     });
     void fix(this.document);
-    assert(this.document.URL === url.reference);
+    assert(this.document.URL === url.href);
     void Object.freeze(this);
   }
   public readonly header: (name: string) => string | null =

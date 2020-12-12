@@ -12,7 +12,7 @@ export function route(
   event: RouterEvent,
   state: {
     process: Cancellee<Error>;
-    scripts: ReadonlySet<URL.Reference<StandardURL>>;
+    scripts: ReadonlySet<URL.Href<StandardURL>>;
   },
   io: {
     document: Document;
