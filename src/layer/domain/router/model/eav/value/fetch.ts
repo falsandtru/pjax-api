@@ -9,7 +9,7 @@ export class FetchResponse {
     assert(this.document instanceof Document);
     assert([...this.document.querySelectorAll('link')].every(el => !el.href.startsWith('about:')));
     assert([...this.document.querySelectorAll('script')].every(el => !el.src.startsWith('about:')));
-    if (url.origin !== new URL(xhr.responseURL).origin) throw new Error(`Redirected to another origin.`);
+    if (url.origin !== new URL(xhr.responseURL, window.location.href).origin) throw new Error(`Redirected to another origin.`);
     void Object.defineProperty(this.document, 'URL', {
       configurable: true,
       enumerable: true,

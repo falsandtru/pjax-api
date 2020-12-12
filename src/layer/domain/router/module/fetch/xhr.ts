@@ -54,7 +54,7 @@ export function xhr(
       void verify(xhr, method)
         .fmap(xhr => {
           const responseURL: URL<StandardURL> = new URL(standardize(xhr.responseURL));
-          assert(responseURL.origin === new URL(window.location.origin).origin);
+          assert(responseURL.origin === new URL('', window.location.origin).origin);
           if (method === 'GET') {
             const cc = new Map<string, string>(
               xhr.getResponseHeader('Cache-Control')
@@ -107,7 +107,7 @@ function verify(xhr: XMLHttpRequest, method: RouterEventMethod): Either<Error, X
       switch (true) {
         case !xhr.responseURL:
           return Left(new Error(`Failed to get the response URL.`));
-        case url.origin !== new URL(window.location.origin).origin:
+        case url.origin !== new URL('', window.location.origin).origin:
           return Left(new Error(`Redirected to another origin.`));
         case !/2..|304/.test(`${xhr.status}`):
           return Left(new Error(`Failed to validate the status of response.`));
