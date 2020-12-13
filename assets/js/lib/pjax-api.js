@@ -397,7 +397,7 @@ require = function () {
                 }
                 set(key, value) {
                     this.put(key, value);
-                    return value;
+                    return this;
                 }
                 get(key) {
                     const val = this.store.get(key);
@@ -732,7 +732,7 @@ require = function () {
                         exception_1.causeAsyncException(reason);
                     }
                 }
-                jobs.length > 1000 && count < jobs.length * 0.5 && jobs.splice(jobs.length * 0.9 | 0, jobs.length);
+                jobs.length > 1000 && count < jobs.length * 0.5 && jobs.splice(global_1.Math.floor(jobs.length * 0.9), jobs.length);
             }
         },
         {
@@ -3147,15 +3147,17 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
+            const global_1 = _dereq_('../../../../global');
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
             compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
-                static random(p = () => Math.random()) {
-                    return typeof p === 'function' ? core_1.Sequence.from(new core_1.Sequence((_, cons) => cons(p(), _))) : this.random().map(r => p[r * p.length | 0]);
+                static random(p = () => global_1.Math.random()) {
+                    return typeof p === 'function' ? core_1.Sequence.from(new core_1.Sequence((_, cons) => cons(p(), _))) : this.random().map(r => p[global_1.Math.floor(r * p.length)]);
                 }
             });
         },
         {
+            '../../../../global': 19,
             '../../../../helper/compose': 20,
             '../../core': 35
         }
@@ -4434,8 +4436,7 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            exports.URL = exports.standardize = void 0;
-            const global_1 = _dereq_('./global');
+            exports.URL = exports.ReadonlyURL = exports.standardize = void 0;
             const format_1 = _dereq_('./url/domain/format');
             var format_2 = _dereq_('./url/domain/format');
             Object.defineProperty(exports, 'standardize', {
@@ -4444,62 +4445,81 @@ require = function () {
                     return format_2.standardize;
                 }
             });
-            class URL {
-                constructor(url, base = global_1.location.href) {
-                    this.url = new format_1.ReadonlyURL(url, base);
+            var format_3 = _dereq_('./url/domain/format');
+            Object.defineProperty(exports, 'ReadonlyURL', {
+                enumerable: true,
+                get: function () {
+                    return format_3.ReadonlyURL;
                 }
-                get reference() {
-                    var _a;
-                    return this.reference_ = (_a = this.reference_) !== null && _a !== void 0 ? _a : this.url.href;
+            });
+            const internal = Symbol.for('spica/url::internal');
+            class URL {
+                constructor(url, base) {
+                    this.url = url;
+                    this.base = base;
+                    this[internal] = new format_1.ReadonlyURL(url, base);
+                }
+                get href() {
+                    return this[internal].href;
                 }
                 get resource() {
-                    return this.resource_ = this.resource_ === void 0 ? this.reference.slice(0, this.query === '?' ? this.fragment ? -this.fragment.length - 1 : -1 : -this.fragment.length || this.reference.length) : this.resource_;
+                    return this[internal].resource;
                 }
                 get origin() {
-                    var _a;
-                    return this.origin_ = (_a = this.origin_) !== null && _a !== void 0 ? _a : this.url.origin;
+                    return this[internal].origin;
                 }
                 get scheme() {
-                    var _a;
-                    return this.scheme_ = (_a = this.scheme_) !== null && _a !== void 0 ? _a : this.url.protocol.slice(0, -1);
+                    return this[internal].protocol.slice(0, -1);
                 }
                 get protocol() {
-                    var _a;
-                    return this.protocol_ = (_a = this.protocol_) !== null && _a !== void 0 ? _a : this.reference.slice(0, this.reference.indexOf(':') + 1);
+                    return this[internal].protocol;
+                }
+                get username() {
+                    return this[internal].username;
+                }
+                get password() {
+                    return this[internal].password;
                 }
                 get host() {
-                    var _a;
-                    return this.host_ = (_a = this.host_) !== null && _a !== void 0 ? _a : this.url.host;
+                    return this[internal].host;
                 }
                 get hostname() {
-                    var _a;
-                    return this.hostname_ = (_a = this.hostname_) !== null && _a !== void 0 ? _a : this.url.hostname;
+                    return this[internal].hostname;
                 }
                 get port() {
-                    var _a;
-                    return this.port_ = (_a = this.port_) !== null && _a !== void 0 ? _a : this.url.port;
+                    return this[internal].port;
                 }
                 get path() {
-                    var _a;
-                    return this.path_ = (_a = this.path_) !== null && _a !== void 0 ? _a : `${ this.pathname }${ this.query }`;
+                    return this[internal].path;
                 }
                 get pathname() {
-                    var _a;
-                    return this.pathname_ = (_a = this.pathname_) !== null && _a !== void 0 ? _a : this.url.pathname;
+                    return this[internal].pathname;
+                }
+                get search() {
+                    return this[internal].search;
                 }
                 get query() {
-                    return this.query_ = this.query_ === void 0 ? this.reference.slice(~(~this.reference.slice(0, -this.fragment.length || this.reference.length).indexOf('?') || ~this.reference.length), -this.fragment.length || this.reference.length) : this.query_;
+                    return this[internal].query;
+                }
+                get hash() {
+                    return this[internal].hash;
                 }
                 get fragment() {
-                    return this.fragment_ = this.fragment_ === void 0 ? this.reference.slice(~(~this.reference.indexOf('#') || ~this.reference.length)) : this.fragment_;
+                    return this[internal].fragment;
+                }
+                get searchParams() {
+                    return this[internal].searchParams;
+                }
+                toString() {
+                    return this.href;
+                }
+                toJSON() {
+                    return this.href;
                 }
             }
             exports.URL = URL;
         },
-        {
-            './global': 19,
-            './url/domain/format': 91
-        }
+        { './url/domain/format': 91 }
     ],
     91: [
         function (_dereq_, module, exports) {
@@ -4507,7 +4527,6 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.ReadonlyURL = exports._encode = exports.standardize = void 0;
             const global_1 = _dereq_('../../global');
-            const alias_1 = _dereq_('../../alias');
             const memoize_1 = _dereq_('../../memoize');
             const cache_1 = _dereq_('../../cache');
             const flip_1 = _dereq_('../../flip');
@@ -4526,27 +4545,99 @@ require = function () {
             function normalize(url, base) {
                 return new ReadonlyURL(url, base).href;
             }
+            const internal = Symbol.for('spica/url::internal');
             class ReadonlyURL {
-                constructor(url, base) {
-                    return ReadonlyURL.freezable ? alias_1.ObjectFreeze(ReadonlyURL.new(url, base)) : ReadonlyURL.new(url, base);
+                constructor(src, base) {
+                    var _a, _b;
+                    this.src = src;
+                    this.base = base;
+                    const i = (_a = base === null || base === void 0 ? void 0 : base.indexOf('#')) !== null && _a !== void 0 ? _a : -1;
+                    if (i > -1) {
+                        base = base === null || base === void 0 ? void 0 : base.slice(0, i);
+                    }
+                    const j = (_b = base === null || base === void 0 ? void 0 : base.indexOf('?')) !== null && _b !== void 0 ? _b : -1;
+                    if (i > -1 && src.indexOf('#') === -1) {
+                        base = base === null || base === void 0 ? void 0 : base.slice(0, j);
+                    }
+                    this[internal] = ReadonlyURL.get(src, base);
+                }
+                get href() {
+                    return this[internal].href === global_1.undefined ? this[internal].href = this[internal].url.href : this[internal].href;
+                }
+                get resource() {
+                    return this[internal].resource === global_1.undefined ? this[internal].resource = this.host ? `${ this.origin }${ this.pathname === '/' ? '' : this.pathname }${ this.search }` : this.href.slice(0, -this.fragment.length || this.href.length) : this[internal].resource;
+                }
+                get origin() {
+                    return this[internal].origin === global_1.undefined ? this[internal].origin = this[internal].url.origin : this[internal].origin;
+                }
+                get protocol() {
+                    return this[internal].protocol === global_1.undefined ? this[internal].protocol = this[internal].url.protocol : this[internal].protocol;
+                }
+                get username() {
+                    return this[internal].username === global_1.undefined ? this[internal].username = this[internal].url.username : this[internal].username;
+                }
+                get password() {
+                    return this[internal].password === global_1.undefined ? this[internal].password = this[internal].url.password : this[internal].password;
+                }
+                get host() {
+                    return this[internal].host === global_1.undefined ? this[internal].host = this[internal].url.host : this[internal].host;
+                }
+                get hostname() {
+                    return this[internal].hostname === global_1.undefined ? this[internal].hostname = this[internal].url.hostname : this[internal].hostname;
+                }
+                get port() {
+                    return this[internal].port === global_1.undefined ? this[internal].port = this[internal].url.port : this[internal].port;
+                }
+                get path() {
+                    return this[internal].path === global_1.undefined ? this[internal].path = `${ this.pathname }${ this.search }` : this[internal].path;
+                }
+                get pathname() {
+                    return this[internal].pathname === global_1.undefined ? this[internal].pathname = this[internal].url.pathname : this[internal].pathname;
+                }
+                get search() {
+                    return this[internal].search === global_1.undefined ? this[internal].search = this[internal].url.search : this[internal].search;
+                }
+                get query() {
+                    return this[internal].query === global_1.undefined ? this[internal].query = this.search || this.href[this.href.length - this.fragment.length - 1] === '?' && '?' || '' : this[internal].query;
+                }
+                get hash() {
+                    return this[internal].hash === global_1.undefined ? this[internal].hash = this[internal].url.hash : this[internal].hash;
+                }
+                get fragment() {
+                    return this[internal].fragment === global_1.undefined ? this[internal].fragment = this.hash || this.href[this.href.length - 1] === '#' && '#' || '' : this[internal].fragment;
+                }
+                get searchParams() {
+                    return this[internal].searchParams === global_1.undefined ? this[internal].searchParams = this[internal].url.searchParams : this[internal].searchParams;
+                }
+                toString() {
+                    return this.href;
+                }
+                toJSON() {
+                    return this.href;
                 }
             }
             exports.ReadonlyURL = ReadonlyURL;
-            ReadonlyURL.freezable = (() => {
-                try {
-                    alias_1.ObjectFreeze(new global_1.global.URL(global_1.location.href));
-                    return true;
-                } catch (_a) {
-                    return false;
-                }
-            })();
-            ReadonlyURL.new = flip_1.flip(curry_1.uncurry(memoize_1.memoize(base => memoize_1.memoize(url => new global_1.global.URL(formatURLForEdge(url, base), base), new cache_1.Cache(100)), new cache_1.Cache(100))));
-            function formatURLForEdge(url, base) {
-                return url.trim() || base;
-            }
+            ReadonlyURL.get = flip_1.flip(curry_1.uncurry(memoize_1.memoize(base => memoize_1.memoize(url => ({
+                url: new global_1.global.URL(url, base),
+                href: global_1.undefined,
+                resource: global_1.undefined,
+                origin: global_1.undefined,
+                protocol: global_1.undefined,
+                username: global_1.undefined,
+                password: global_1.undefined,
+                host: global_1.undefined,
+                hostname: global_1.undefined,
+                port: global_1.undefined,
+                path: global_1.undefined,
+                pathname: global_1.undefined,
+                search: global_1.undefined,
+                query: global_1.undefined,
+                hash: global_1.undefined,
+                fragment: global_1.undefined,
+                searchParams: global_1.undefined
+            }), new cache_1.Cache(100)), new cache_1.Cache(100))));
         },
         {
-            '../../alias': 4,
             '../../cache': 7,
             '../../curry': 14,
             '../../flip': 17,
@@ -5777,12 +5868,12 @@ require = function () {
                     this.xhr = xhr;
                     this.header = name => this.xhr.getResponseHeader(name);
                     this.document = this.xhr.responseXML.cloneNode(true);
-                    if (url.origin !== new url_1.URL(xhr.responseURL).origin)
+                    if (url.origin !== new url_1.URL(xhr.responseURL, window.location.href).origin)
                         throw new Error(`Redirected to another origin.`);
                     void Object.defineProperty(this.document, 'URL', {
                         configurable: true,
                         enumerable: true,
-                        value: url.reference,
+                        value: url.href,
                         writable: false
                     });
                     void html_1.fix(this.document);
@@ -5901,7 +5992,7 @@ require = function () {
                     switch (true) {
                     case !xhr.responseURL:
                         return either_1.Left(new Error(`Failed to get the response URL.`));
-                    case url.origin !== new url_1.URL(window.location.origin).origin:
+                    case url.origin !== new url_1.URL('', window.location.origin).origin:
                         return either_1.Left(new Error(`Redirected to another origin.`));
                     case !/2..|304/.test(`${ xhr.status }`):
                         return either_1.Left(new Error(`Failed to validate the status of response.`));
@@ -5958,7 +6049,7 @@ require = function () {
                 };
                 return promise_1.AtomicPromise.resolve(seq).then(process.either).then(m => m.bind(() => content_1.separate(documents, config.areas).extract(() => either_1.Left(new Error(`Failed to separate the areas.`)), () => m)).fmap(seqA => (void window.dispatchEvent(new Event('pjax:unload')), config.sequence.unload(seqA, {
                     ...response,
-                    url: response.url.reference
+                    url: response.url.href
                 })))).then(m => either_1.Either.sequence(m)).then(process.promise).then(m => m.bind(seqB => content_1.separate(documents, config.areas).fmap(([area]) => [
                     seqB,
                     area
@@ -6212,7 +6303,7 @@ require = function () {
                 fetch,
                 evaluate
             }) {
-                const scripts = [...documents.src.querySelectorAll('script')].filter(el => !el.type || /(?:application|text)\/(?:java|ecma)script|module/i.test(el.type)).filter(el => !el.matches(selector.ignore.trim() || '_')).filter(el => el.hasAttribute('src') ? !skip.has(new url_1.URL(url_1.standardize(el.src)).reference) || el.matches(selector.reload.trim() || '_') : true);
+                const scripts = [...documents.src.querySelectorAll('script')].filter(el => !el.type || /(?:application|text)\/(?:java|ecma)script|module/i.test(el.type)).filter(el => !el.matches(selector.ignore.trim() || '_')).filter(el => el.hasAttribute('src') ? !skip.has(new url_1.URL(url_1.standardize(el.src)).href) || el.matches(selector.reload.trim() || '_') : true);
                 const {ss, as} = scripts.reduce((o, script) => {
                     switch (true) {
                     case script.matches('[src][async], [src][defer]'):
@@ -6291,7 +6382,7 @@ require = function () {
                         return promise_1.AtomicPromise.resolve(Promise.resolve().then(() => __importStar(_dereq_(script.src)))).catch(reason => reason.message.startsWith('Failed to load ') && script.matches('[src][async]') ? retry(script).catch(() => promise_1.AtomicPromise.reject(reason)) : promise_1.AtomicPromise.reject(reason)).then(() => (void script.dispatchEvent(new Event('load')), either_1.Right(script)), reason => (void script.dispatchEvent(new Event('error')), either_1.Left(new error_1.FatalError(reason instanceof Error ? reason.message : reason + ''))));
                     } else {
                         try {
-                            if (skip.has(new url_1.URL(url_1.standardize(window.location.href)).reference))
+                            if (skip.has(new url_1.URL(url_1.standardize(window.location.href)).href))
                                 throw new error_1.FatalError('Expired.');
                             void (0, eval)(code);
                             script.hasAttribute('src') && void script.dispatchEvent(new Event('load'));
@@ -6440,16 +6531,16 @@ require = function () {
             function url(location, title, type, source, replaceable) {
                 switch (true) {
                 case isReplaceable(type, source, replaceable):
-                    return void window.history.replaceState({}, title, location.dest.reference);
+                    return void window.history.replaceState({}, title, location.dest.href);
                 case isRegisterable(type, location):
-                    return void window.history.pushState({}, title, location.dest.reference);
+                    return void window.history.pushState({}, title, location.dest.href);
                 default:
                     return;
                 }
             }
             exports.url = url;
             function isRegisterable(type, location) {
-                if (location.dest.reference === location.orig.reference)
+                if (location.dest.href === location.orig.href)
                     return false;
                 switch (type) {
                 case router_1.RouterEventType.Click:
@@ -6809,7 +6900,7 @@ require = function () {
                     return router_1.route(config, event, {
                         process: cancellation,
                         scripts
-                    }, io).then(m => m.fmap(async ([ss, p]) => (void kill(), void page_1.page.sync(), void ss.filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_1.URL(url_1.standardize(s.src)).reference)), void (await p).filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_1.URL(url_1.standardize(s.src)).reference)))).extract()).catch(reason => (void kill(), void page_1.page.sync(), window.history.scrollRestoration = 'auto', cancellation.alive || reason instanceof error_1.FatalError ? void config.fallback(event.source, reason) : void 0));
+                    }, io).then(m => m.fmap(async ([ss, p]) => (void kill(), void page_1.page.sync(), void ss.filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_1.URL(url_1.standardize(s.src)).href)), void (await p).filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_1.URL(url_1.standardize(s.src)).href)))).extract()).catch(reason => (void kill(), void page_1.page.sync(), window.history.scrollRestoration = 'auto', cancellation.alive || reason instanceof error_1.FatalError ? void config.fallback(event.source, reason) : void 0));
                 }).extract(() => {
                     switch (event.type) {
                     case router_1.RouterEventType.Click:
@@ -6951,7 +7042,7 @@ require = function () {
             const url_1 = _dereq_('spica/url');
             const typed_dom_1 = _dereq_('typed-dom');
             exports.scripts = new Set();
-            void typed_dom_1.bind(window, 'pjax:unload', () => void document.querySelectorAll('script[src]').forEach(script => void exports.scripts.add(new url_1.URL(url_1.standardize(script.src)).reference)));
+            void typed_dom_1.bind(window, 'pjax:unload', () => void document.querySelectorAll('script[src]').forEach(script => void exports.scripts.add(new url_1.URL(url_1.standardize(script.src)).href)));
         },
         {
             'spica/url': 90,
