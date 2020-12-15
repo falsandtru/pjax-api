@@ -7,38 +7,38 @@ describe('Unit: layer/domain/data/config/scope', () => {
     it('match', () => {
       assert.deepStrictEqual(
         JSON.stringify(scope(new Config({}), {
-          orig: new URL(standardize('/')).pathname,
-          dest: new URL(standardize('/')).pathname
+          orig: new URL(standardize('/', window.location.href)).pathname,
+          dest: new URL(standardize('/', window.location.href)).pathname
         }).extract()),
         JSON.stringify(new Config({})));
       assert.deepStrictEqual(
         JSON.stringify(scope(new Config({}), {
-          orig: new URL(standardize('/a')).pathname,
-          dest: new URL(standardize('/a')).pathname
+          orig: new URL(standardize('/a', window.location.href)).pathname,
+          dest: new URL(standardize('/a', window.location.href)).pathname
         }).extract()),
         JSON.stringify(new Config({})));
       assert.deepStrictEqual(
         JSON.stringify(scope(new Config({}), {
-          orig: new URL(standardize('/a/')).pathname,
-          dest: new URL(standardize('/a/')).pathname
+          orig: new URL(standardize('/a/', window.location.href)).pathname,
+          dest: new URL(standardize('/a/', window.location.href)).pathname
         }).extract()),
         JSON.stringify(new Config({})));
       assert.deepStrictEqual(
         JSON.stringify(scope(new Config({}), {
-          orig: new URL(standardize('/abc')).pathname,
-          dest: new URL(standardize('/abc')).pathname
+          orig: new URL(standardize('/abc', window.location.href)).pathname,
+          dest: new URL(standardize('/abc', window.location.href)).pathname
         }).extract()),
         JSON.stringify(new Config({})));
       assert.deepStrictEqual(
         JSON.stringify(scope(new Config({}), {
-          orig: new URL(standardize('/abc/')).pathname,
-          dest: new URL(standardize('/abc/')).pathname
+          orig: new URL(standardize('/abc/', window.location.href)).pathname,
+          dest: new URL(standardize('/abc/', window.location.href)).pathname
         }).extract()),
         JSON.stringify(new Config({})));
       assert.deepStrictEqual(
         JSON.stringify(scope(new Config({}), {
-          orig: new URL(standardize('/a/b/c.d')).pathname,
-          dest: new URL(standardize('/a/b/c.d')).pathname
+          orig: new URL(standardize('/a/b/c.d', window.location.href)).pathname,
+          dest: new URL(standardize('/a/b/c.d', window.location.href)).pathname
         }).extract()),
         JSON.stringify(new Config({})));
     });
@@ -46,14 +46,14 @@ describe('Unit: layer/domain/data/config/scope', () => {
     it('mismatch', () => {
       assert.deepStrictEqual(
         JSON.stringify(scope(new Config({ scope: { '/a': {} } }), {
-          orig: new URL(standardize('/')).pathname,
-          dest: new URL(standardize('/a')).pathname
+          orig: new URL(standardize('/', window.location.href)).pathname,
+          dest: new URL(standardize('/a', window.location.href)).pathname
         }).extract(() => [])),
         JSON.stringify([]));
       assert.deepStrictEqual(
         JSON.stringify(scope(new Config({ scope: { '/a': {} } }), {
-          orig: new URL(standardize('/a')).pathname,
-          dest: new URL(standardize('/')).pathname
+          orig: new URL(standardize('/a', window.location.href)).pathname,
+          dest: new URL(standardize('/', window.location.href)).pathname
         }).extract(() => [])),
         JSON.stringify([]));
     });
@@ -61,8 +61,8 @@ describe('Unit: layer/domain/data/config/scope', () => {
     it('extend', () => {
       assert.deepStrictEqual(
         JSON.stringify(scope(new Config({ scope: { '/': { fetch: { wait: 100 } } } }), {
-          orig: new URL(standardize('/')).pathname,
-          dest: new URL(standardize('/')).pathname
+          orig: new URL(standardize('/', window.location.href)).pathname,
+          dest: new URL(standardize('/', window.location.href)).pathname
         }).extract()),
         JSON.stringify(new Config({ fetch: { wait: 100 }, scope: { '/': { fetch: { wait: 100 } } } })));
     });
@@ -70,8 +70,8 @@ describe('Unit: layer/domain/data/config/scope', () => {
     it('disable', () => {
       assert.deepStrictEqual(
         JSON.stringify(scope(new Config({ scope: { '/': undefined } }), {
-          orig: new URL(standardize('/')).pathname,
-          dest: new URL(standardize('/')).pathname
+          orig: new URL(standardize('/', window.location.href)).pathname,
+          dest: new URL(standardize('/', window.location.href)).pathname
         }).extract(() => ({}))),
         JSON.stringify({}));
     });
@@ -79,8 +79,8 @@ describe('Unit: layer/domain/data/config/scope', () => {
     it('enable', () => {
       assert.deepStrictEqual(
         JSON.stringify(scope(new Config({ scope: { '/': undefined, '/a': {} } }), {
-          orig: new URL(standardize('/a')).pathname,
-          dest: new URL(standardize('/a')).pathname
+          orig: new URL(standardize('/a', window.location.href)).pathname,
+          dest: new URL(standardize('/a', window.location.href)).pathname
         }).extract()),
         JSON.stringify(new Config({ scope: { '/': undefined, '/a': {} } })));
     });

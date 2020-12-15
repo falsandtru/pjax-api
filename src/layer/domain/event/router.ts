@@ -70,12 +70,12 @@ export class RouterEventRequest {
   })();
   public readonly url: URL<StandardURL> = (() => {
     if (this.source instanceof RouterEventSource.Anchor || this.source instanceof RouterEventSource.Area) {
-      return new URL(standardize(this.source.href));
+      return new URL(standardize(this.source.href, window.location.href));
     }
     if (this.source instanceof RouterEventSource.Form) {
       return this.source.method.toUpperCase() === RouterEventMethod.GET
-        ? new URL(standardize(this.source.action.split(/[?#]/)[0] + `?${serialize(this.source)}`))
-        : new URL(standardize(this.source.action.split(/[?#]/)[0]));
+        ? new URL(standardize(this.source.action.split(/[?#]/)[0] + `?${serialize(this.source)}`, window.location.href))
+        : new URL(standardize(this.source.action.split(/[?#]/)[0], window.location.href));
     }
     if (this.source instanceof RouterEventSource.Window) {
       return new URL(standardize(window.location.href));

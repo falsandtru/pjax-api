@@ -22,7 +22,7 @@ export function xhr(
 ): AtomicPromise<Either<Error, FetchResponse>> {
   headers = new Headers(headers);
   void headers.set('Accept', headers.get('Accept') || 'text/html');
-  const requestURL = new URL(standardize(rewrite(displayURL.path)));
+  const requestURL = new URL(standardize(rewrite(displayURL.path), window.location.href));
   if (method === 'GET' && caches.has(requestURL.path) && Date.now() > caches.get(requestURL.path)!.expiry) {
     void headers.set('If-None-Match', headers.get('If-None-Match') || caches.get(requestURL.path)!.etag);
   }
@@ -53,7 +53,7 @@ export function xhr(
     void xhr.addEventListener("load", () =>
       void verify(xhr, method)
         .fmap(xhr => {
-          const responseURL: URL<StandardURL> = new URL(standardize(xhr.responseURL));
+          const responseURL: URL<StandardURL> = new URL(standardize(xhr.responseURL, window.location.href));
           assert(responseURL.origin === new URL('', window.location.origin).origin);
           if (method === 'GET') {
             const cc = new Map<string, string>(
@@ -103,7 +103,7 @@ export function xhr(
 function verify(xhr: XMLHttpRequest, method: RouterEventMethod): Either<Error, XMLHttpRequest> {
   return Right<Error, XMLHttpRequest>(xhr)
     .bind(xhr => {
-      const url = new URL(standardize(xhr.responseURL));
+      const url = new URL(standardize(xhr.responseURL, window.location.href));
       switch (true) {
         case !xhr.responseURL:
           return Left(new Error(`Failed to get the response URL.`));

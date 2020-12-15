@@ -37,39 +37,39 @@ describe('Unit: lib/router', () => {
 
   describe('compare', () => {
     it('root', () => {
-      assert(compare('/', new URL(standardize('/')).pathname));
-      assert(compare('/', new URL(standardize('/a')).pathname));
-      assert(compare('/', new URL(standardize('/abc')).pathname));
-      assert(compare('/', new URL(standardize('/a/')).pathname));
-      assert(compare('/', new URL(standardize('/abc/')).pathname));
-      assert(compare('/', new URL(standardize('/a/b')).pathname));
-      assert(compare('/', new URL(standardize('/abc/bcd')).pathname));
+      assert(compare('/', new URL(standardize('/', window.location.href)).pathname));
+      assert(compare('/', new URL(standardize('/a', window.location.href)).pathname));
+      assert(compare('/', new URL(standardize('/abc', window.location.href)).pathname));
+      assert(compare('/', new URL(standardize('/a/', window.location.href)).pathname));
+      assert(compare('/', new URL(standardize('/abc/', window.location.href)).pathname));
+      assert(compare('/', new URL(standardize('/a/b', window.location.href)).pathname));
+      assert(compare('/', new URL(standardize('/abc/bcd', window.location.href)).pathname));
     });
 
     it('dir', () => {
-      assert(!compare('/abc', new URL(standardize('/')).pathname));
-      assert(compare('/abc', new URL(standardize('/abc')).pathname));
-      assert(compare('/abc', new URL(standardize('/abc/')).pathname));
-      assert(!compare('/abc/', new URL(standardize('/abc')).pathname));
-      assert(compare('/abc/', new URL(standardize('/abc/')).pathname));
-      assert(!compare('/abc', new URL(standardize('/ab')).pathname));
-      assert(!compare('/ab', new URL(standardize('/abc')).pathname));
+      assert(!compare('/abc', new URL(standardize('/', window.location.href)).pathname));
+      assert(compare('/abc', new URL(standardize('/abc', window.location.href)).pathname));
+      assert(compare('/abc', new URL(standardize('/abc/', window.location.href)).pathname));
+      assert(!compare('/abc/', new URL(standardize('/abc', window.location.href)).pathname));
+      assert(compare('/abc/', new URL(standardize('/abc/', window.location.href)).pathname));
+      assert(!compare('/abc', new URL(standardize('/ab', window.location.href)).pathname));
+      assert(!compare('/ab', new URL(standardize('/abc', window.location.href)).pathname));
     });
 
     it('file', () => {
-      assert(compare('/a/b/c.d', new URL(standardize('/a/b/c.d')).pathname));
-      assert(!compare('/a/b/c', new URL(standardize('/a/b/c.d')).pathname));
-      assert(!compare('/a/b/c.d', new URL(standardize('/a/b/c')).pathname));
+      assert(compare('/a/b/c.d', new URL(standardize('/a/b/c.d', window.location.href)).pathname));
+      assert(!compare('/a/b/c', new URL(standardize('/a/b/c.d', window.location.href)).pathname));
+      assert(!compare('/a/b/c.d', new URL(standardize('/a/b/c', window.location.href)).pathname));
     });
 
     it('expand', () => {
-      assert(compare('/{a,b}', new URL(standardize('/a')).pathname));
-      assert(compare('/{a,b}', new URL(standardize('/b')).pathname));
+      assert(compare('/{a,b}', new URL(standardize('/a', window.location.href)).pathname));
+      assert(compare('/{a,b}', new URL(standardize('/b', window.location.href)).pathname));
     });
 
     it('match', () => {
-      assert(compare('/*/{a,b}?/*/{1?3}', new URL(standardize('/---/ac/-/103')).pathname));
-      assert(compare('/*/{a,b}?/*/{1?3}', new URL(standardize('/---/bc/-/103')).pathname));
+      assert(compare('/*/{a,b}?/*/{1?3}', new URL(standardize('/---/ac/-/103', window.location.href)).pathname));
+      assert(compare('/*/{a,b}?/*/{1?3}', new URL(standardize('/---/bc/-/103', window.location.href)).pathname));
     });
 
   });

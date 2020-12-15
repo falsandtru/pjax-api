@@ -6,7 +6,7 @@ import { memoize } from 'spica/memoize';
 
 export function router<T>(config: Record<string, (path: string) => T>): (url: string) => T {
   return (url: string) => {
-    const { path, pathname } = new URL(standardize(url));
+    const { path, pathname } = new URL(standardize(url, window.location.href));
     return Sequence.from(Object.keys(config).filter(p => p[0] === '/').sort().reverse())
       .filter(curry(flip(compare))(pathname))
       .map(pattern => config[pattern])

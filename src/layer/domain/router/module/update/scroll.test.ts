@@ -11,7 +11,7 @@ describe('Unit: layer/domain/router/module/update/scroll', () => {
         parse(html('body', [
           html('div', { id: 'hash.#' }),
         ]).outerHTML).extract(),
-        new URL(standardize('#hash.#')).fragment,
+        new URL(standardize('#hash.#', window.location.href)).fragment,
         {
           scrollToElement: (el) => {
             assert(el.id === 'hash.#');
@@ -27,7 +27,7 @@ describe('Unit: layer/domain/router/module/update/scroll', () => {
       const result = hash(
         parse(html('body', [
         ]).outerHTML).extract(),
-        new URL(standardize('#hash.#')).fragment,
+        new URL(standardize('#hash.#', window.location.href)).fragment,
         {
           scrollToElement: () => {
             throw new Error();

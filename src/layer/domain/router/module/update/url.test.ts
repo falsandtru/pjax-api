@@ -12,15 +12,15 @@ describe('Unit: layer/domain/router/module/update/url', () => {
     });
 
     it('click', () => {
-      assert(isRegisterable(RouterEventType.Click, new RouterEventLocation(new URL(standardize(`#${Math.random()}`)))));
+      assert(isRegisterable(RouterEventType.Click, new RouterEventLocation(new URL(standardize(`#${Math.random()}`, window.location.href)))));
     });
 
     it('submit', () => {
-      assert(isRegisterable(RouterEventType.Submit, new RouterEventLocation(new URL(standardize(`#${Math.random()}`)))));
+      assert(isRegisterable(RouterEventType.Submit, new RouterEventLocation(new URL(standardize(`#${Math.random()}`, window.location.href)))));
     });
 
     it('popstate', () => {
-      assert(!isRegisterable(RouterEventType.Popstate, new RouterEventLocation(new URL(standardize(`#${Math.random()}`)))));
+      assert(!isRegisterable(RouterEventType.Popstate, new RouterEventLocation(new URL(standardize(`#${Math.random()}`, window.location.href)))));
     });
 
   });

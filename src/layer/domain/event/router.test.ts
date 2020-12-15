@@ -6,7 +6,7 @@ describe('Unit: layer/domain/event/router', () => {
   describe('RouterEventRequest', () => {
     it('click', () => {
       const req = new RouterEventRequest(html('a', { href: window.location.href }));
-      assert(req.url.href === standardize(''));
+      assert(req.url.href === standardize('', window.location.href));
       assert(req.method === RouterEventMethod.GET);
       assert(req.body === null);
     });
@@ -15,7 +15,7 @@ describe('Unit: layer/domain/event/router', () => {
       const req = new RouterEventRequest(html('form', { method: 'GET', action: './search' }, [
         html('input', { name: 'test', type: 'text', value: 'abc' })
       ]));
-      assert(req.url.href === standardize('./search?test=abc'));
+      assert(req.url.href === standardize('./search?test=abc', window.location.href));
       assert(req.method === RouterEventMethod.GET);
       assert(req.body === null);
     });
@@ -24,14 +24,14 @@ describe('Unit: layer/domain/event/router', () => {
       const req = new RouterEventRequest(html('form', { method: 'POST', action: './send' }, [
         html('input', { name: 'test', type: 'text', value: 'abc' })
       ]));
-      assert(req.url.href === standardize('./send'));
+      assert(req.url.href === standardize('./send', window.location.href));
       assert(req.method === RouterEventMethod.POST);
       assert(req.body instanceof FormData);
     });
 
     it('popstate', () => {
       const req = new RouterEventRequest(window);
-      assert(req.url.href === standardize(''));
+      assert(req.url.href === standardize('', window.location.href));
       assert(req.method === RouterEventMethod.GET);
       assert(req.body === null);
     });
@@ -40,7 +40,7 @@ describe('Unit: layer/domain/event/router', () => {
 
   describe('RouterEventLocation', () => {
     it('instance', () => {
-      const loc = new RouterEventLocation(new URL(standardize('#')));
+      const loc = new RouterEventLocation(new URL(standardize('#', window.location.href)));
       assert(loc.orig.href === standardize(window.location.href));
       assert(loc.dest.href === standardize(window.location.href + '#'));
     });
