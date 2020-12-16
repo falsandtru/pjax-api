@@ -1027,7 +1027,8 @@ require = function () {
                     this.recvBuffer = this.settings.size >= 0 ? new channel_1.Channel(0) : new BroadcastChannel();
                     this.result = new future_1.AtomicFuture();
                     this.result.finally(() => {
-                        this.sendBuffer.close(msgs => {
+                        var _c;
+                        (_c = this.sendBuffer) === null || _c === void 0 ? void 0 : _c.close(msgs => {
                             while (msgs.length > 0) {
                                 const [, reply] = msgs.shift();
                                 try {
@@ -4437,15 +4438,16 @@ require = function () {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.URL = exports.ReadonlyURL = exports.standardize = void 0;
-            const format_1 = _dereq_('./url/domain/format');
-            var format_2 = _dereq_('./url/domain/format');
+            const global_1 = _dereq_('./global');
+            const format_1 = _dereq_('./url/format');
+            var format_2 = _dereq_('./url/format');
             Object.defineProperty(exports, 'standardize', {
                 enumerable: true,
                 get: function () {
                     return format_2.standardize;
                 }
             });
-            var format_3 = _dereq_('./url/domain/format');
+            var format_3 = _dereq_('./url/format');
             Object.defineProperty(exports, 'ReadonlyURL', {
                 enumerable: true,
                 get: function () {
@@ -4457,58 +4459,66 @@ require = function () {
                 constructor(url, base) {
                     this.url = url;
                     this.base = base;
-                    this[internal] = new format_1.ReadonlyURL(url, base);
+                    this[internal] = {
+                        url: new format_1.ReadonlyURL(url, base),
+                        searchParams: global_1.undefined
+                    };
                 }
                 get href() {
-                    return this[internal].href;
+                    var _a, _b;
+                    return (_b = (_a = this[internal].searchParams) === null || _a === void 0 ? void 0 : _a.toString().replace(/^(?=.)/, `${ this[internal].url.href.slice(0, -this[internal].url.query.length - this[internal].url.fragment.length || this[internal].url.href.length) }?`).concat(this.fragment)) !== null && _b !== void 0 ? _b : this[internal].url.href;
                 }
                 get resource() {
-                    return this[internal].resource;
+                    var _a, _b;
+                    return (_b = (_a = this[internal].searchParams) === null || _a === void 0 ? void 0 : _a.toString().replace(/^(?=.)/, `${ this[internal].url.href.slice(0, -this[internal].url.query.length - this[internal].url.fragment.length || this[internal].url.href.length) }?`)) !== null && _b !== void 0 ? _b : this[internal].url.resource;
                 }
                 get origin() {
-                    return this[internal].origin;
+                    return this[internal].url.origin;
                 }
                 get scheme() {
-                    return this[internal].protocol.slice(0, -1);
+                    return this[internal].url.protocol.slice(0, -1);
                 }
                 get protocol() {
-                    return this[internal].protocol;
+                    return this[internal].url.protocol;
                 }
                 get username() {
-                    return this[internal].username;
+                    return this[internal].url.username;
                 }
                 get password() {
-                    return this[internal].password;
+                    return this[internal].url.password;
                 }
                 get host() {
-                    return this[internal].host;
+                    return this[internal].url.host;
                 }
                 get hostname() {
-                    return this[internal].hostname;
+                    return this[internal].url.hostname;
                 }
                 get port() {
-                    return this[internal].port;
+                    return this[internal].url.port;
                 }
                 get path() {
-                    return this[internal].path;
+                    var _a, _b;
+                    return (_b = (_a = this[internal].searchParams) === null || _a === void 0 ? void 0 : _a.toString().replace(/^(?=.)/, `${ this.pathname }?`)) !== null && _b !== void 0 ? _b : this[internal].url.path;
                 }
                 get pathname() {
-                    return this[internal].pathname;
+                    return this[internal].url.pathname;
                 }
                 get search() {
-                    return this[internal].search;
+                    var _a, _b;
+                    return (_b = (_a = this[internal].searchParams) === null || _a === void 0 ? void 0 : _a.toString().replace(/^(?=.)/, '?')) !== null && _b !== void 0 ? _b : this[internal].url.search;
                 }
                 get query() {
-                    return this[internal].query;
+                    var _a, _b;
+                    return (_b = (_a = this[internal].searchParams) === null || _a === void 0 ? void 0 : _a.toString().replace(/^(?=.)/, '?')) !== null && _b !== void 0 ? _b : this[internal].url.query;
                 }
                 get hash() {
-                    return this[internal].hash;
+                    return this[internal].url.hash;
                 }
                 get fragment() {
-                    return this[internal].fragment;
+                    return this[internal].url.fragment;
                 }
                 get searchParams() {
-                    return this[internal].searchParams;
+                    return this[internal].searchParams === global_1.undefined ? this[internal].searchParams = new global_1.URLSearchParams(this.search) : this[internal].searchParams;
                 }
                 toString() {
                     return this.href;
@@ -4519,32 +4529,31 @@ require = function () {
             }
             exports.URL = URL;
         },
-        { './url/domain/format': 91 }
+        {
+            './global': 19,
+            './url/format': 91
+        }
     ],
     91: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.ReadonlyURL = exports._encode = exports.standardize = void 0;
-            const global_1 = _dereq_('../../global');
-            const memoize_1 = _dereq_('../../memoize');
-            const cache_1 = _dereq_('../../cache');
-            const flip_1 = _dereq_('../../flip');
-            const curry_1 = _dereq_('../../curry');
-            var Identifier;
-            (function (Identifier) {
-            }(Identifier || (Identifier = {})));
-            function standardize(url, base = global_1.location.href) {
-                return encode(normalize(url, base));
+            const global_1 = _dereq_('../global');
+            const memoize_1 = _dereq_('../memoize');
+            const cache_1 = _dereq_('../cache');
+            const flip_1 = _dereq_('../flip');
+            const curry_1 = _dereq_('../curry');
+            function standardize(url, base) {
+                const u = new ReadonlyURL(url, base);
+                url = u.origin !== 'null' ? u.origin.toLowerCase() + u.href.slice(u.origin.length) : u.protocol.toLowerCase() + u.href.slice(u.protocol.length);
+                return encode(url);
             }
             exports.standardize = standardize;
             function encode(url) {
-                return url.trim().replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]?|[\uDC00-\uDFFF]/g, str => str.length === 2 ? str : '').replace(/%(?![0-9A-F]{2})|[^%\[\]]+/ig, encodeURI).replace(/\?[^#]+/, query => '?' + query.slice(1).replace(/%[0-9A-F]{2}|[^=&]/ig, str => str.length < 3 ? encodeURIComponent(str) : str)).replace(/%[0-9A-F]{2}/ig, str => str.toUpperCase()).replace(/#.+/, url.slice(url.indexOf('#')).trim());
+                return url.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]?|[\uDC00-\uDFFF]/g, str => str.length === 2 ? str : '').replace(/%(?![0-9A-F]{2})|[^%\[\]]+/ig, encodeURI).replace(/\?[^#]+/, query => '?' + query.slice(1).replace(/%[0-9A-F]{2}|%|[^=&]+/ig, str => str[0] === '%' && str.length === 3 ? str : encodeURIComponent(str))).replace(/%[0-9A-F]{2}/ig, str => str.toUpperCase()).replace(/#.+/, url.slice(url.indexOf('#')));
             }
             exports._encode = encode;
-            function normalize(url, base) {
-                return new ReadonlyURL(url, base).href;
-            }
             const internal = Symbol.for('spica/url::internal');
             class ReadonlyURL {
                 constructor(src, base) {
@@ -4559,55 +4568,58 @@ require = function () {
                     if (i > -1 && src.indexOf('#') === -1) {
                         base = base === null || base === void 0 ? void 0 : base.slice(0, j);
                     }
-                    this[internal] = ReadonlyURL.get(src, base);
+                    this[internal] = {
+                        share: ReadonlyURL.get(src, base),
+                        searchParams: global_1.undefined
+                    };
                 }
                 get href() {
-                    return this[internal].href === global_1.undefined ? this[internal].href = this[internal].url.href : this[internal].href;
+                    return this[internal].share.href === global_1.undefined ? this[internal].share.href = this[internal].share.url.href : this[internal].share.href;
                 }
                 get resource() {
-                    return this[internal].resource === global_1.undefined ? this[internal].resource = this.host ? `${ this.origin }${ this.pathname === '/' ? '' : this.pathname }${ this.search }` : this.href.slice(0, -this.fragment.length || this.href.length) : this[internal].resource;
+                    return this[internal].share.resource === global_1.undefined ? this[internal].share.resource = this.href.slice(0, -this.fragment.length - this.query.length || this.href.length) + this.search : this[internal].share.resource;
                 }
                 get origin() {
-                    return this[internal].origin === global_1.undefined ? this[internal].origin = this[internal].url.origin : this[internal].origin;
+                    return this[internal].share.origin === global_1.undefined ? this[internal].share.origin = this[internal].share.url.origin : this[internal].share.origin;
                 }
                 get protocol() {
-                    return this[internal].protocol === global_1.undefined ? this[internal].protocol = this[internal].url.protocol : this[internal].protocol;
+                    return this[internal].share.protocol === global_1.undefined ? this[internal].share.protocol = this[internal].share.url.protocol : this[internal].share.protocol;
                 }
                 get username() {
-                    return this[internal].username === global_1.undefined ? this[internal].username = this[internal].url.username : this[internal].username;
+                    return this[internal].share.username === global_1.undefined ? this[internal].share.username = this[internal].share.url.username : this[internal].share.username;
                 }
                 get password() {
-                    return this[internal].password === global_1.undefined ? this[internal].password = this[internal].url.password : this[internal].password;
+                    return this[internal].share.password === global_1.undefined ? this[internal].share.password = this[internal].share.url.password : this[internal].share.password;
                 }
                 get host() {
-                    return this[internal].host === global_1.undefined ? this[internal].host = this[internal].url.host : this[internal].host;
+                    return this[internal].share.host === global_1.undefined ? this[internal].share.host = this[internal].share.url.host : this[internal].share.host;
                 }
                 get hostname() {
-                    return this[internal].hostname === global_1.undefined ? this[internal].hostname = this[internal].url.hostname : this[internal].hostname;
+                    return this[internal].share.hostname === global_1.undefined ? this[internal].share.hostname = this[internal].share.url.hostname : this[internal].share.hostname;
                 }
                 get port() {
-                    return this[internal].port === global_1.undefined ? this[internal].port = this[internal].url.port : this[internal].port;
+                    return this[internal].share.port === global_1.undefined ? this[internal].share.port = this[internal].share.url.port : this[internal].share.port;
                 }
                 get path() {
-                    return this[internal].path === global_1.undefined ? this[internal].path = `${ this.pathname }${ this.search }` : this[internal].path;
+                    return this[internal].share.path === global_1.undefined ? this[internal].share.path = `${ this.pathname }${ this.search }` : this[internal].share.path;
                 }
                 get pathname() {
-                    return this[internal].pathname === global_1.undefined ? this[internal].pathname = this[internal].url.pathname : this[internal].pathname;
+                    return this[internal].share.pathname === global_1.undefined ? this[internal].share.pathname = this[internal].share.url.pathname : this[internal].share.pathname;
                 }
                 get search() {
-                    return this[internal].search === global_1.undefined ? this[internal].search = this[internal].url.search : this[internal].search;
+                    return this[internal].share.search === global_1.undefined ? this[internal].share.search = this[internal].share.url.search : this[internal].share.search;
                 }
                 get query() {
-                    return this[internal].query === global_1.undefined ? this[internal].query = this.search || this.href[this.href.length - this.fragment.length - 1] === '?' && '?' || '' : this[internal].query;
+                    return this[internal].share.query === global_1.undefined ? this[internal].share.query = this.search || this.href[this.href.length - this.fragment.length - 1] === '?' && '?' || '' : this[internal].share.query;
                 }
                 get hash() {
-                    return this[internal].hash === global_1.undefined ? this[internal].hash = this[internal].url.hash : this[internal].hash;
+                    return this[internal].share.hash === global_1.undefined ? this[internal].share.hash = this[internal].share.url.hash : this[internal].share.hash;
                 }
                 get fragment() {
-                    return this[internal].fragment === global_1.undefined ? this[internal].fragment = this.hash || this.href[this.href.length - 1] === '#' && '#' || '' : this[internal].fragment;
+                    return this[internal].share.fragment === global_1.undefined ? this[internal].share.fragment = this.hash || this.href[this.href.length - 1] === '#' && '#' || '' : this[internal].share.fragment;
                 }
                 get searchParams() {
-                    return this[internal].searchParams === global_1.undefined ? this[internal].searchParams = this[internal].url.searchParams : this[internal].searchParams;
+                    return this[internal].searchParams === global_1.undefined ? this[internal].searchParams = new global_1.URLSearchParams(this.search) : this[internal].searchParams;
                 }
                 toString() {
                     return this.href;
@@ -4633,16 +4645,15 @@ require = function () {
                 search: global_1.undefined,
                 query: global_1.undefined,
                 hash: global_1.undefined,
-                fragment: global_1.undefined,
-                searchParams: global_1.undefined
+                fragment: global_1.undefined
             }), new cache_1.Cache(100)), new cache_1.Cache(100))));
         },
         {
-            '../../cache': 7,
-            '../../curry': 14,
-            '../../flip': 17,
-            '../../global': 19,
-            '../../memoize': 24
+            '../cache': 7,
+            '../curry': 14,
+            '../flip': 17,
+            '../global': 19,
+            '../memoize': 24
         }
     ],
     92: [
@@ -5754,10 +5765,10 @@ require = function () {
                     })();
                     this.url = (() => {
                         if (this.source instanceof RouterEventSource.Anchor || this.source instanceof RouterEventSource.Area) {
-                            return new url_1.URL(url_1.standardize(this.source.href));
+                            return new url_1.URL(url_1.standardize(this.source.href, window.location.href));
                         }
                         if (this.source instanceof RouterEventSource.Form) {
-                            return this.source.method.toUpperCase() === RouterEventMethod.GET ? new url_1.URL(url_1.standardize(this.source.action.split(/[?#]/)[0] + `?${ dom_1.serialize(this.source) }`)) : new url_1.URL(url_1.standardize(this.source.action.split(/[?#]/)[0]));
+                            return this.source.method.toUpperCase() === RouterEventMethod.GET ? new url_1.URL(url_1.standardize(this.source.action.split(/[?#]/)[0] + `?${ dom_1.serialize(this.source) }`, window.location.href)) : new url_1.URL(url_1.standardize(this.source.action.split(/[?#]/)[0], window.location.href));
                         }
                         if (this.source instanceof RouterEventSource.Window) {
                             return new url_1.URL(url_1.standardize(window.location.href));
@@ -5937,7 +5948,7 @@ require = function () {
             function xhr(method, displayURL, headers, body, timeout, rewrite, cache, cancellation) {
                 headers = new Headers(headers);
                 void headers.set('Accept', headers.get('Accept') || 'text/html');
-                const requestURL = new url_1.URL(url_1.standardize(rewrite(displayURL.path)));
+                const requestURL = new url_1.URL(url_1.standardize(rewrite(displayURL.path), window.location.href));
                 if (method === 'GET' && caches.has(requestURL.path) && Date.now() > caches.get(requestURL.path).expiry) {
                     void headers.set('If-None-Match', headers.get('If-None-Match') || caches.get(requestURL.path).etag);
                 }
@@ -5957,7 +5968,7 @@ require = function () {
                     void xhr.addEventListener('error', () => void resolve(either_1.Left(new Error(`Failed to request a page by error.`))));
                     void xhr.addEventListener('timeout', () => void resolve(either_1.Left(new Error(`Failed to request a page by timeout.`))));
                     void xhr.addEventListener('load', () => void verify(xhr, method).fmap(xhr => {
-                        const responseURL = new url_1.URL(url_1.standardize(xhr.responseURL));
+                        const responseURL = new url_1.URL(url_1.standardize(xhr.responseURL, window.location.href));
                         if (method === 'GET') {
                             const cc = new Map(xhr.getResponseHeader('Cache-Control') ? xhr.getResponseHeader('Cache-Control').trim().split(/\s*,\s*/).filter(v => v.length > 0).map(v => v.split('=').concat('')) : []);
                             for (const path of new Set([
@@ -5988,7 +5999,7 @@ require = function () {
             exports.xhr = xhr;
             function verify(xhr, method) {
                 return either_1.Right(xhr).bind(xhr => {
-                    const url = new url_1.URL(url_1.standardize(xhr.responseURL));
+                    const url = new url_1.URL(url_1.standardize(xhr.responseURL, window.location.href));
                     switch (true) {
                     case !xhr.responseURL:
                         return either_1.Left(new Error(`Failed to get the response URL.`));
@@ -7210,7 +7221,7 @@ require = function () {
             const memoize_1 = _dereq_('spica/memoize');
             function router(config) {
                 return url => {
-                    const {path, pathname} = new url_1.URL(url_1.standardize(url));
+                    const {path, pathname} = new url_1.URL(url_1.standardize(url, window.location.href));
                     return sequence_1.Sequence.from(Object.keys(config).filter(p => p[0] === '/').sort().reverse()).filter(curry_1.curry(flip_1.flip(compare))(pathname)).map(pattern => config[pattern]).take(1).extract().pop().call(config, path);
                 };
             }
