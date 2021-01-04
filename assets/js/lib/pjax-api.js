@@ -104,7 +104,7 @@ require = function () {
             }
             exports.shift = shift;
             function unshift(as, bs) {
-                if (alias_1.isArray(as)) {
+                if ('length' in as || alias_1.isArray(as)) {
                     for (let i = as.length - 1; i >= 0; --i) {
                         bs.unshift(as[i]);
                     }
@@ -127,12 +127,14 @@ require = function () {
             }
             exports.pop = pop;
             function push(as, bs) {
-                if (alias_1.isArray(bs)) {
-                    for (let i = 0; i < bs.length; ++i) {
+                if ('length' in bs || alias_1.isArray(bs)) {
+                    for (let i = 0, len = bs.length; i < len; ++i) {
                         as.push(bs[i]);
                     }
                 } else {
-                    as.push(...bs);
+                    for (const b of bs) {
+                        as.push(b);
+                    }
                 }
                 return as;
             }
@@ -221,7 +223,7 @@ require = function () {
                 case 'Object':
                     switch (type_1.type(target[prop])) {
                     case 'Object':
-                        return target[prop] = exports.clone(empty_(source[prop]), source[prop]);
+                        return target[prop] = exports.clone(empty(source[prop]), source[prop]);
                     default:
                         return target[prop] = source[prop];
                     }
@@ -238,7 +240,7 @@ require = function () {
                     case 'Object':
                         return target[prop] = exports.extend(target[prop], source[prop]);
                     default:
-                        return target[prop] = exports.extend(empty_(source[prop]), source[prop]);
+                        return target[prop] = exports.extend(empty(source[prop]), source[prop]);
                     }
                 default:
                     return target[prop] = source[prop];
@@ -258,7 +260,7 @@ require = function () {
                     case 'Object':
                         return target[prop] = exports.merge(target[prop], source[prop]);
                     default:
-                        return target[prop] = exports.merge(empty_(source[prop]), source[prop]);
+                        return target[prop] = exports.merge(empty(source[prop]), source[prop]);
                     }
                 default:
                     return target[prop] = source[prop];
@@ -271,7 +273,7 @@ require = function () {
                 case 'Object':
                     switch (type_1.type(target[prop])) {
                     case 'Object':
-                        return target[prop] = isOwnProperty(target, prop) ? exports.inherit(target[prop], source[prop]) : exports.inherit(alias_1.ObjectCreate(target[prop]), source[prop]);
+                        return target[prop] = alias_1.hasOwnProperty(target, prop) ? exports.inherit(target[prop], source[prop]) : exports.inherit(alias_1.ObjectCreate(target[prop]), source[prop]);
                     default:
                         return target[prop] = alias_1.ObjectCreate(source[prop]);
                     }
@@ -279,34 +281,27 @@ require = function () {
                     return target[prop] = source[prop];
                 }
             });
-            const isOwnProperty = '__proto__' in {} ? (o, p) => !('__proto__' in o) || o[p] !== o['__proto__'][p] : alias_1.hasOwnProperty;
-            function template(strategy, empty = empty_) {
+            function template(strategy) {
                 return walk;
                 function walk(target, ...sources) {
-                    let isPrimitiveTarget = type_1.isPrimitive(target);
-                    for (const source of sources) {
-                        const isPrimitiveSource = type_1.isPrimitive(source);
-                        if (isPrimitiveSource) {
-                            target = source;
-                            isPrimitiveTarget = isPrimitiveSource;
-                        } else {
-                            if (isPrimitiveTarget) {
-                                target = empty(source);
-                                isPrimitiveTarget = isPrimitiveSource;
-                            }
-                            const keys = alias_1.ObjectKeys(source);
-                            for (let i = 0; i < keys.length; ++i) {
-                                if (keys[i] in {})
-                                    continue;
-                                void strategy(keys[i], target, source);
-                            }
+                    if (type_1.isPrimitive(target))
+                        return target;
+                    for (let i = 0; i < sources.length; ++i) {
+                        const source = sources[i];
+                        if (source === target)
+                            continue;
+                        if (type_1.isPrimitive(source))
+                            continue;
+                        const keys = alias_1.ObjectKeys(source);
+                        for (let i = 0; i < keys.length; ++i) {
+                            strategy(keys[i], target, source);
                         }
                     }
                     return target;
                 }
             }
             exports.template = template;
-            function empty_(source) {
+            function empty(source) {
                 switch (type_1.type(source)) {
                 case 'Array':
                     return [];
@@ -3898,7 +3893,7 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            exports.unique = exports.rnd0Z = exports.rnd0z = exports.rnd0f = exports.rnd62 = exports.rnd36 = exports.rnd32 = exports.rnd16 = void 0;
+            exports.unique = exports.rnd0Z = exports.rnd0z = exports.rnd0f = exports.rnd64 = exports.rnd62 = exports.rnd36 = exports.rnd32 = exports.rnd16 = void 0;
             const global_1 = _dereq_('./global');
             const bases = [...Array(7)].map((_, i) => 1 << i);
             const dict = [
@@ -3909,6 +3904,7 @@ require = function () {
             exports.rnd32 = cons(32);
             exports.rnd36 = cons(36);
             exports.rnd62 = cons(62);
+            exports.rnd64 = cons(64);
             exports.rnd0f = conv(exports.rnd16);
             exports.rnd0z = conv(exports.rnd36);
             exports.rnd0Z = conv(exports.rnd62);
@@ -4527,51 +4523,46 @@ require = function () {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.isPrimitive = exports.isType = exports.type = void 0;
-            const toString = Object.prototype.toString.call.bind(Object.prototype.toString);
+            const global_1 = _dereq_('./global');
+            const alias_1 = _dereq_('./alias');
+            const toString = global_1.Object.prototype.toString.call.bind(global_1.Object.prototype.toString);
             function type(value) {
-                const t = value == null ? value : typeof value;
-                switch (t) {
-                case undefined:
-                case null:
-                    return `${ value }`;
-                case 'boolean':
-                case 'number':
-                case 'bigint':
-                case 'string':
-                case 'symbol':
-                    return t;
-                default:
+                if (value === global_1.undefined)
+                    return 'undefined';
+                if (value === null)
+                    return 'null';
+                const type = typeof value;
+                if (type === 'object') {
+                    const proto = alias_1.ObjectGetPrototypeOf(value);
+                    if (proto === global_1.Object.prototype || proto === null)
+                        return 'Object';
+                    if (proto === global_1.Array.prototype)
+                        return 'Array';
                     return toString(value).slice(8, -1);
                 }
+                if (type === 'function')
+                    return 'Function';
+                return type;
             }
             exports.type = type;
             function isType(value, name) {
-                switch (name) {
-                case 'function':
-                    return typeof value === 'function';
-                case 'object':
-                    return value !== null && typeof value === 'object';
-                default:
-                    return type(value) === name;
-                }
+                if (name === 'object')
+                    return value !== null && typeof value === name;
+                if (name === 'function')
+                    return typeof value === name;
+                return type(value) === name;
             }
             exports.isType = isType;
             function isPrimitive(value) {
-                switch (typeof value) {
-                case 'undefined':
-                case 'boolean':
-                case 'number':
-                case 'bigint':
-                case 'string':
-                case 'symbol':
-                    return true;
-                default:
-                    return value === null;
-                }
+                const type = typeof value;
+                return type === 'object' || type === 'function' ? value === null : true;
             }
             exports.isPrimitive = isPrimitive;
         },
-        {}
+        {
+            './alias': 4,
+            './global': 20
+        }
     ],
     92: [
         function (_dereq_, module, exports) {
@@ -4982,7 +4973,8 @@ require = function () {
                             throw new Error(`TypedDOM: Expected tag name is "${ tag }" but actually "${ el.tagName.toLowerCase() }".`);
                         if (factory !== defaultFactory) {
                             if (attrs)
-                                for (const name of alias_1.ObjectKeys(attrs)) {
+                                for (let i = 0, names = alias_1.ObjectKeys(attrs); i < names.length; ++i) {
+                                    const name = names[i];
                                     const value = attrs[name];
                                     if (typeof value !== 'function')
                                         continue;
@@ -5310,6 +5302,7 @@ require = function () {
             const global_1 = _dereq_('spica/global');
             const alias_1 = _dereq_('spica/alias');
             const memoize_1 = _dereq_('spica/memoize');
+            const array_1 = _dereq_('spica/array');
             var caches;
             (function (caches) {
                 caches.shadows = new WeakMap();
@@ -5359,7 +5352,8 @@ require = function () {
             function defineAttrs(el, attrs) {
                 if (!attrs)
                     return el;
-                for (const name of alias_1.ObjectKeys(attrs)) {
+                for (let i = 0, names = alias_1.ObjectKeys(attrs); i < names.length; ++i) {
+                    const name = names[i];
                     const value = attrs[name];
                     switch (typeof value) {
                     case 'string':
@@ -5397,28 +5391,31 @@ require = function () {
                 case 'string':
                     return defineChildren(node, [children]);
                 }
-                if (!alias_1.isArray(children)) {
-                    if (!('length' in children))
-                        return defineChildren(node, [...children]);
-                    const ns = global_1.Array(children.length);
-                    for (let i = 0; i < ns.length; ++i) {
-                        ns[i] = children[i];
+                if (!('length' in children)) {
+                    if (node.firstChild)
+                        return defineChildren(node, array_1.push([], children));
+                    for (const child of children) {
+                        node.append(child);
                     }
-                    return defineChildren(node, ns);
+                    return node;
+                }
+                if (!alias_1.isArray(children)) {
+                    if (node.firstChild)
+                        return defineChildren(node, array_1.push([], children));
+                    for (let i = children.length; i--;) {
+                        node.prepend(children[i]);
+                    }
+                    return node;
                 }
                 const targetNodes = node.firstChild ? node.childNodes : [];
                 let targetLength = targetNodes.length;
-                if (targetLength === 0) {
-                    node.append(...children);
-                    return node;
-                }
+                if (targetLength === 0)
+                    return append(node, children);
                 let count = 0;
                 I:
                     for (let i = 0; i < children.length; ++i) {
-                        if (count === targetLength) {
-                            node.append(...children.slice(i));
-                            return node;
-                        }
+                        if (count === targetLength)
+                            return append(node, children, i);
                         const newChild = children[i];
                         if (typeof newChild === 'object' && newChild.nodeType === 11) {
                             const sourceLength = newChild.childNodes.length;
@@ -5457,9 +5454,16 @@ require = function () {
             function equal(node, data) {
                 return typeof data === 'string' ? 'wholeText' in node && node.data === data : node === data;
             }
+            function append(node, children, i = 0) {
+                for (let len = children.length; i < len; ++i) {
+                    node.append(children[i]);
+                }
+                return node;
+            }
         },
         {
             'spica/alias': 4,
+            'spica/array': 5,
             'spica/global': 20,
             'spica/memoize': 25
         }
