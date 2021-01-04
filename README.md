@@ -1,6 +1,6 @@
 # PJAX
 
-[![Build Status](https://travis-ci.org/falsandtru/pjax-api.svg?branch=master)](https://travis-ci.org/falsandtru/pjax-api)
+![CI](https://github.com/falsandtru/pjax-api/workflows/CI/badge.svg)
 
 The second generation PJAX for advanced web frameworks.
 

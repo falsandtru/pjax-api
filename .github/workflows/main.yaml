@@ -1,0 +1,106 @@
+name: CI
+
+on:
+  push:
+    branches: ['**', '!gh-pages']
+  pull_request:
+    branches: ['**', '!gh-pages']
+  create:
+    tags: 'v[0-9]*'
+
+jobs:
+
+  test:
+    name: Test on ${{ matrix.os }}
+    strategy:
+      matrix: { os: [ubuntu-latest] }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-${{ hashFiles('package.json', 'package-lock.json') }}
+          restore-keys: ${{ runner.os }}-
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '12'
+      - run: |
+          npm install
+          xvfb-run --auto-servernum npm test
+
+  deploy:
+    name: Deploy on ${{ matrix.os }}
+    needs: test
+    if: |
+      github.event_name == 'create' &&
+      startsWith(github.ref, 'refs/tags/')
+    strategy:
+      matrix: { os: [ubuntu-latest] }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-${{ hashFiles('package.json', 'package-lock.json') }}
+          restore-keys: ${{ runner.os }}-
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '12'
+          registry-url: 'https://registry.npmjs.org'
+      - run: |
+          npm install
+          gulp dist
+          sed -i 's/"private":\ true/"private":\ false/' package.json
+          sed -i -E 's/^dist\/?.*$//' .gitignore
+          cp -r src/* .
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
+
+  web:
+    name: Web on ${{ matrix.os }}
+    needs: test
+    if: |
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/master'
+    strategy:
+      matrix: { os: [ubuntu-latest] }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-${{ hashFiles('package.json', 'package-lock.json') }}
+          restore-keys: ${{ runner.os }}-
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '12'
+      - run: |
+          npm install
+          gulp dist
+      - run: |
+          git config user.name "GitHub Actions"
+          git fetch --depth 2 origin $(git branch --show-current)
+          npm i -g json
+          mkdir ../gh-pages
+          cp -rf ./gh-pages ../
+          cat package.json | json version
+          NEW_VERSION=$(cat package.json | json version)
+          git checkout HEAD~ package.json
+          cat package.json | json version
+          OLD_VERSION=$(cat package.json | json version)
+          git checkout $GITHUB_SHA package.json
+          node -e 'if (!require("semver").gte(process.argv[1], process.argv[2])) process.exit(1)' $NEW_VERSION $OLD_VERSION || travis_terminate 0
+          git fetch --depth 1 origin gh-pages:gh-pages
+          git checkout --orphan gh-pages || true
+          git checkout -f gh-pages
+          ls -a | grep -vE "^.git$|^\.+$" | xargs rm -rf
+          cp -rf ../gh-pages/* ./
+          find | grep -vE "^./.git(/|$)"
+          sed -i 's|\(baseurl:\s\+\)|\1//falsandtru.github.io|' _config.yml
+          git add -A
+          git commit -m "Update web contents"
+          git push origin gh-pages:gh-pages

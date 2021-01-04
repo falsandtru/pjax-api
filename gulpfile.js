@@ -136,17 +136,6 @@ gulp.task('karma:test', done =>
     concurrency: 1,
   }, done).start());
 
-gulp.task('karma:ci', done =>
-  void new Server({
-    configFile: __dirname + '/karma.conf.js',
-    browsers: config.browsers,
-    reporters: ['dots', 'coverage-istanbul', 'coveralls'],
-    preprocessors: {
-      'dist/*.js': ['espower', 'karma-coverage-istanbul-instrumenter']
-    },
-    concurrency: 1,
-  }, done).start());
-
 gulp.task('clean', () =>
   del(config.clean));
 
@@ -198,12 +187,3 @@ gulp.task('view',
         '"bundle exec jekyll serve -s ./gh-pages -d ./gh-pages/_site --incremental"'
       ].join(' ')),
   ));
-
-gulp.task('ci',
-  series(
-    'clean',
-    series(
-      'ts:test',
-      'karma:ci',
-      'dist',
-    )));
