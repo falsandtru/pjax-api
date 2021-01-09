@@ -102,5 +102,5 @@ jobs:
           find | grep -vE "^./.git(/|$)"
           sed -i 's|\(baseurl:\s\+\)|\1//falsandtru.github.io|' _config.yml
           git add -A
-          git commit -m "Update web contents"
+          git commit -m "Update web contents" || true
           git push origin gh-pages:gh-pages
