@@ -2,12 +2,9 @@
 coverage
 dist/**/*
 
-# vs
-.vs
-obj
-
 # node
 node_modules
+debug.log
 
 # jekyll
 Gemfile.lock
