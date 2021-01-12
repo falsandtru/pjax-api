@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.33.1
+
+- Update dependencies.
+
 ## 3.33.0
 
 - Support HTMLAreaElement.
