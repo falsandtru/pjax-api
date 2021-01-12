@@ -86,7 +86,6 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.join = exports.splice = exports.push = exports.pop = exports.unshift = exports.shift = exports.indexOf = void 0;
             const global_1 = _dereq_('./global');
-            const alias_1 = _dereq_('./alias');
             function indexOf(as, a) {
                 return a === a ? as.indexOf(a) : as.findIndex(a => a !== a);
             }
@@ -104,7 +103,7 @@ require = function () {
             }
             exports.shift = shift;
             function unshift(as, bs) {
-                if ('length' in as || alias_1.isArray(as)) {
+                if ('length' in as) {
                     for (let i = as.length - 1; i >= 0; --i) {
                         bs.unshift(as[i]);
                     }
@@ -127,7 +126,7 @@ require = function () {
             }
             exports.pop = pop;
             function push(as, bs) {
-                if ('length' in bs || alias_1.isArray(bs)) {
+                if ('length' in bs) {
                     for (let i = 0, len = bs.length; i < len; ++i) {
                         as.push(bs[i]);
                     }
@@ -167,13 +166,7 @@ require = function () {
                     break;
                 case -1:
                 case as.length - 1:
-                case global_1.Infinity:
                     switch (count) {
-                    case 0:
-                        return [
-                            [],
-                            push(as, inserts)
-                        ][0];
                     case 1:
                         return as.length === 0 ? [
                             [],
@@ -188,6 +181,12 @@ require = function () {
                         return as.length === 0 ? [] : splice(as, index, 1);
                     }
                     break;
+                case as.length:
+                case global_1.Infinity:
+                    return [
+                        [],
+                        push(as, inserts)
+                    ][0];
                 }
                 return arguments.length > 2 ? as.splice(index, count, ...inserts) : as.splice(index);
             }
@@ -201,10 +200,7 @@ require = function () {
             }
             exports.join = join;
         },
-        {
-            './alias': 4,
-            './global': 20
-        }
+        { './global': 20 }
     ],
     6: [
         function (_dereq_, module, exports) {
