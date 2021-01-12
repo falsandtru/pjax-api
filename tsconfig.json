@@ -10,6 +10,7 @@
     "noUnusedLocals": true,
     "noFallthroughCasesInSwitch": true,
     "suppressImplicitAnyIndexErrors": true,
+    "noErrorTruncation": true,
     "rootDir": "./",
     "forceConsistentCasingInFileNames": true,
     "removeComments": false
