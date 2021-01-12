@@ -83,7 +83,7 @@ jobs:
           gulp dist
       - run: |
           git config user.name "GitHub Actions"
-          git fetch --depth 2 origin $(git branch --show-current)
+          git fetch --depth 9 origin $(git branch --show-current)
           npm i -g json
           mkdir ../gh-pages
           cp -rf ./gh-pages ../
