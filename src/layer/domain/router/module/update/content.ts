@@ -33,7 +33,7 @@ export function content(
         void replace(area),
         [...area.src.querySelectorAll('img, iframe, frame')]
           .map(wait)))
-      .reduce(push, []);
+      .reduce<AtomicPromise<Event>[]>(push, []);
 
     function replace(area: { src: HTMLElement, dst: HTMLElement; }): void {
       const unescape = [...area.src.querySelectorAll('script')]

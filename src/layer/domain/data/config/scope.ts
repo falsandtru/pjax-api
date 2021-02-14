@@ -5,7 +5,7 @@ import { Config } from '../../../domain/data/config';
 import { URL, StandardURL } from 'spica/url';
 import { Sequence } from 'spica/sequence';
 import { Maybe, Just, Nothing } from 'spica/maybe';
-import { extend } from 'spica/assign';
+import { extend, overwrite } from 'spica/assign';
 
 export function scope(
   config: Config,
@@ -26,8 +26,9 @@ export function scope(
     .map<Option | undefined>(pattern => scope[pattern])
     .map<Maybe<Config>>(option =>
       option
-        ? Just(new Config(extend<Option>({}, config, option)))
+        ? Just(new Config(extend({
+            scope: option.scope && overwrite(config.scope, option.scope)
+          }, config, option)))
         : Nothing)
-    .extract()
-    .reduce((_, m) => m, Nothing);
+    .extract()[0] ?? Nothing;
 }

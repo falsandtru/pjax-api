@@ -3,7 +3,7 @@ import { route, sync, Config, RouterEvent, RouterEventSource } from './router';
 import { process } from './state/process';
 import { savePjax, isTransitable } from '../../data/store/state';
 import { parse } from '../../../lib/html';
-import { extend } from 'spica/assign';
+import { assign } from 'spica/assign';
 import { once } from 'typed-dom';
 
 export class API {
@@ -17,7 +17,7 @@ export class API {
   public static replace(url: string, option: Option, io = { document: window.document, router: route }): boolean {
     let result!: boolean;
     void click(url, event =>
-      result = io.router(new Config(extend<Option>({}, option, { replace: '*' })), new RouterEvent(event), process, io));
+      result = io.router(new Config(assign({}, option, { replace: '*' })), new RouterEvent(event), process, io));
     assert(result !== void 0);
     return result;
   }

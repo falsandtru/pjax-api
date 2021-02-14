@@ -2,7 +2,7 @@ import { DeepRequired } from 'spica/type';
 import { ObjectDefineProperties, ObjectFreeze, ObjectKeys } from 'spica/alias';
 import { Config as Option, Sequence as ISequence } from '../../../../';
 import { URL, StandardURL } from 'spica/url';
-import { extend } from 'spica/assign';
+import { extend, overwrite } from 'spica/assign';
 
 export { scope } from './config/scope';
 
@@ -23,6 +23,7 @@ export class Config implements DeepRequired<Option, Config['scope']> {
       },
     });
     void extend(this, option);
+    void overwrite(this.scope, option?.scope ?? {});
     this.fetch.headers = new Headers(this.fetch.headers);
     void ObjectFreeze(this);
     void this.fetch.headers.set('X-Requested-With', 'XMLHttpRequest');
