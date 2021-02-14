@@ -47,8 +47,9 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            exports.isArray = exports.ObjectValues = exports.ObjectSetPrototypeOf = exports.ObjectSeal = exports.ObjectPreventExtensions = exports.ObjectKeys = exports.isSealed = exports.isFrozen = exports.isExtensible = exports.ObjectIs = exports.ObjectGetPrototypeOf = exports.ObjectGetOwnPropertySymbols = exports.ObjectGetOwnPropertyNames = exports.ObjectGetOwnPropertyDescriptors = exports.ObjectGetOwnPropertyDescriptor = exports.ObjectFromEntries = exports.ObjectFreeze = exports.ObjectEntries = exports.ObjectDefineProperty = exports.ObjectDefineProperties = exports.ObjectCreate = exports.ObjectAssign = exports.toString = exports.isEnumerable = exports.isPrototypeOf = exports.hasOwnProperty = exports.SymbolKeyFor = exports.SymbolFor = exports.parseInt = exports.parseFloat = exports.isSafeInteger = exports.isNaN = exports.isInteger = exports.isFinite = exports.NaN = void 0;
+            exports.isArray = exports.ObjectValues = exports.ObjectSetPrototypeOf = exports.ObjectSeal = exports.ObjectPreventExtensions = exports.ObjectKeys = exports.isSealed = exports.isFrozen = exports.isExtensible = exports.ObjectIs = exports.ObjectGetPrototypeOf = exports.ObjectGetOwnPropertySymbols = exports.ObjectGetOwnPropertyNames = exports.ObjectGetOwnPropertyDescriptors = exports.ObjectGetOwnPropertyDescriptor = exports.ObjectFromEntries = exports.ObjectFreeze = exports.ObjectEntries = exports.ObjectDefineProperty = exports.ObjectDefineProperties = exports.ObjectCreate = exports.ObjectAssign = exports.toString = exports.isEnumerable = exports.isPrototypeOf = exports.hasOwnProperty = exports.SymbolKeyFor = exports.SymbolFor = exports.sign = exports.round = exports.random = exports.min = exports.max = exports.floor = exports.ceil = exports.abs = exports.parseInt = exports.parseFloat = exports.isSafeInteger = exports.isNaN = exports.isInteger = exports.isFinite = exports.NaN = void 0;
             exports.NaN = Number.NaN, exports.isFinite = Number.isFinite, exports.isInteger = Number.isInteger, exports.isNaN = Number.isNaN, exports.isSafeInteger = Number.isSafeInteger, exports.parseFloat = Number.parseFloat, exports.parseInt = Number.parseInt;
+            exports.abs = Math.abs, exports.ceil = Math.ceil, exports.floor = Math.floor, exports.max = Math.max, exports.min = Math.min, exports.random = Math.random, exports.round = Math.round, exports.sign = Math.sign;
             exports.SymbolFor = Symbol.for;
             exports.SymbolKeyFor = Symbol.keyFor;
             exports.hasOwnProperty = Object.prototype.hasOwnProperty.call.bind(Object.prototype.hasOwnProperty);
@@ -84,12 +85,25 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            exports.join = exports.splice = exports.push = exports.pop = exports.unshift = exports.shift = exports.indexOf = void 0;
+            exports.join = exports.splice = exports.pop = exports.push = exports.shift = exports.unshift = exports.indexOf = void 0;
             const global_1 = _dereq_('./global');
             function indexOf(as, a) {
+                if (as.length === 0)
+                    return -1;
                 return a === a ? as.indexOf(a) : as.findIndex(a => a !== a);
             }
             exports.indexOf = indexOf;
+            function unshift(as, bs) {
+                if ('length' in as) {
+                    for (let i = as.length - 1; i >= 0; --i) {
+                        bs.unshift(as[i]);
+                    }
+                } else {
+                    bs.unshift(...as);
+                }
+                return bs;
+            }
+            exports.unshift = unshift;
             function shift(as, count) {
                 if (count < 0)
                     throw new Error('Unexpected negative number');
@@ -102,29 +116,6 @@ require = function () {
                 ];
             }
             exports.shift = shift;
-            function unshift(as, bs) {
-                if ('length' in as) {
-                    for (let i = as.length - 1; i >= 0; --i) {
-                        bs.unshift(as[i]);
-                    }
-                } else {
-                    bs.unshift(...as);
-                }
-                return bs;
-            }
-            exports.unshift = unshift;
-            function pop(as, count) {
-                if (count < 0)
-                    throw new Error('Unexpected negative number');
-                return count === global_1.undefined ? [
-                    as,
-                    as.pop()
-                ] : [
-                    as,
-                    splice(as, as.length - count, count)
-                ];
-            }
-            exports.pop = pop;
             function push(as, bs) {
                 if ('length' in bs) {
                     for (let i = 0, len = bs.length; i < len; ++i) {
@@ -138,6 +129,18 @@ require = function () {
                 return as;
             }
             exports.push = push;
+            function pop(as, count) {
+                if (count < 0)
+                    throw new Error('Unexpected negative number');
+                return count === global_1.undefined ? [
+                    as,
+                    as.pop()
+                ] : [
+                    as,
+                    splice(as, as.length - count, count)
+                ];
+            }
+            exports.pop = pop;
             function splice(as, index, count, ...inserts) {
                 if (count === 0 && inserts.length === 0)
                     return [];
@@ -206,7 +209,7 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            exports.template = exports.inherit = exports.merge = exports.extend = exports.clone = exports.assign = void 0;
+            exports.template = exports.inherit = exports.merge = exports.extend = exports.overwrite = exports.clone = exports.assign = void 0;
             const type_1 = _dereq_('./type');
             const global_1 = _dereq_('./global');
             const alias_1 = _dereq_('./alias');
@@ -227,10 +230,27 @@ require = function () {
                     return target[prop] = source[prop];
                 }
             });
-            exports.extend = template((prop, target, source) => {
+            exports.overwrite = template((prop, target, source) => {
                 switch (type_1.type(source[prop])) {
                 case 'Array':
-                    return target[prop] = source[prop].slice();
+                    return target[prop] = source[prop];
+                case 'Object':
+                    switch (type_1.type(target[prop])) {
+                    case 'Object':
+                        return target[prop] = exports.overwrite(target[prop], source[prop]);
+                    default:
+                        return target[prop] = exports.overwrite(empty(source[prop]), source[prop]);
+                    }
+                default:
+                    return target[prop] = source[prop];
+                }
+            });
+            exports.extend = template((prop, target, source) => {
+                switch (type_1.type(source[prop])) {
+                case 'undefined':
+                    return;
+                case 'Array':
+                    return target[prop] = source[prop];
                 case 'Object':
                     switch (type_1.type(target[prop])) {
                     case 'Object':
@@ -244,6 +264,8 @@ require = function () {
             });
             exports.merge = template((prop, target, source) => {
                 switch (type_1.type(source[prop])) {
+                case 'undefined':
+                    return;
                 case 'Array':
                     switch (type_1.type(target[prop])) {
                     case 'Array':
@@ -264,6 +286,8 @@ require = function () {
             });
             exports.inherit = template((prop, target, source) => {
                 switch (type_1.type(source[prop])) {
+                case 'undefined':
+                    return;
                 case 'Array':
                     return target[prop] = source[prop].slice();
                 case 'Object':
@@ -324,67 +348,58 @@ require = function () {
             const assign_1 = _dereq_('./assign');
             const array_1 = _dereq_('./array');
             class Cache {
-                constructor(capacity, callback = () => global_1.undefined, opts = {}) {
+                constructor(capacity, opts = {}) {
                     this.capacity = capacity;
-                    this.callback = callback;
                     this.settings = {
-                        ignore: {
-                            delete: false,
-                            clear: false
-                        },
-                        data: {
-                            stats: [
-                                [],
-                                []
-                            ],
-                            entries: []
+                        dispose: {
+                            delete: true,
+                            clear: true
                         }
                     };
                     this.nullish = false;
+                    this.store = new global_1.Map();
+                    this.indexes = {
+                        LRU: [],
+                        LFU: []
+                    };
+                    this.stats = {
+                        LRU: [
+                            0,
+                            0
+                        ],
+                        LFU: [
+                            0,
+                            0
+                        ],
+                        miss: 0
+                    };
+                    this.ratio = 50;
                     if (capacity > 0 === false)
                         throw new Error(`Spica: Cache: Cache capacity must be greater than 0.`);
                     assign_1.extend(this.settings, opts);
-                    const {stats, entries} = this.settings.data;
-                    const LFU = stats[1].slice(0, capacity);
-                    const LRU = stats[0].slice(0, capacity - LFU.length);
-                    this.stats = {
-                        LRU,
-                        LFU
-                    };
-                    this.store = new global_1.Map(entries);
-                    if (!opts.data)
-                        return;
-                    for (const k of array_1.push(stats[1].slice(LFU.length), stats[0].slice(LRU.length))) {
-                        this.store.delete(k);
-                    }
-                    if (this.store.size !== LFU.length + LRU.length)
-                        throw new Error(`Spica: Cache: Size of stats and entries is not matched.`);
-                    if (![
-                            ...LFU,
-                            ...LRU
-                        ].every(k => this.store.has(k)))
-                        throw new Error(`Spica: Cache: Keys of stats and entries is not matched.`);
                 }
                 put(key, value) {
-                    !this.nullish && value === global_1.undefined ? this.nullish = true : global_1.undefined;
-                    const hit = this.store.has(key);
-                    if (hit && this.access(key))
+                    value === global_1.undefined ? this.nullish || (this.nullish = true) : global_1.undefined;
+                    if (this.has(key))
                         return this.store.set(key, value), true;
-                    const {LRU, LFU} = this.stats;
-                    if (LRU.length + LFU.length === this.capacity && LRU.length < LFU.length) {
-                        const key = LFU.pop();
-                        const val = this.store.get(key);
-                        this.store.delete(key);
-                        this.callback(key, val);
+                    const {LRU, LFU} = this.indexes;
+                    if (this.size === this.capacity) {
+                        let key;
+                        if (LFU.length > this.capacity * this.ratio / 100 || LFU.length === this.capacity) {
+                            key = LFU.pop();
+                        } else {
+                            key = LRU.pop();
+                        }
+                        if (this.settings.disposer) {
+                            const val = this.store.get(key);
+                            this.store.delete(key);
+                            this.settings.disposer(key, val);
+                        } else {
+                            this.store.delete(key);
+                        }
                     }
                     LRU.unshift(key);
                     this.store.set(key, value);
-                    if (LRU.length + LFU.length > this.capacity) {
-                        const key = LRU.pop();
-                        const val = this.store.get(key);
-                        this.store.delete(key);
-                        this.callback(key, val);
-                    }
                     return false;
                 }
                 set(key, value) {
@@ -393,91 +408,151 @@ require = function () {
                 }
                 get(key) {
                     const val = this.store.get(key);
-                    const hit = val !== global_1.undefined || this.nullish && this.store.has(key);
-                    return hit && this.access(key) ? val : global_1.undefined;
+                    if (val !== global_1.undefined || this.nullish && this.has(key)) {
+                        this.access(key);
+                    } else {
+                        ++this.stats.miss;
+                        this.slide();
+                    }
+                    return val;
                 }
                 has(key) {
                     return this.store.has(key);
                 }
                 delete(key) {
-                    if (!this.store.has(key))
+                    if (!this.has(key))
                         return false;
-                    const {LRU, LFU} = this.stats;
-                    for (const stat of [
+                    const {LRU, LFU} = this.indexes;
+                    for (const index of [
                             LFU,
                             LRU
                         ]) {
-                        const index = array_1.indexOf(stat, key);
-                        if (index === -1)
+                        const i = array_1.indexOf(index, key);
+                        if (i === -1)
                             continue;
-                        const val = this.store.get(key);
-                        this.store.delete(array_1.splice(stat, index, 1)[0]);
-                        if (this.settings.ignore.delete)
-                            return true;
-                        this.callback(key, val);
+                        if (!this.settings.disposer || !this.settings.dispose.delete) {
+                            this.store.delete(array_1.splice(index, i, 1)[0]);
+                        } else {
+                            const val = this.store.get(key);
+                            this.store.delete(array_1.splice(index, i, 1)[0]);
+                            this.settings.disposer(key, val);
+                        }
                         return true;
                     }
                     return false;
                 }
                 clear() {
-                    const store = this.store;
-                    this.store = new global_1.Map();
-                    this.stats = {
+                    var _a;
+                    this.nullish = false;
+                    this.ratio = 50;
+                    this.indexes = {
                         LRU: [],
                         LFU: []
                     };
-                    if (this.settings.ignore.clear)
+                    this.stats = {
+                        LRU: [
+                            0,
+                            0
+                        ],
+                        LFU: [
+                            0,
+                            0
+                        ],
+                        miss: 0
+                    };
+                    const store = this.store;
+                    this.store = new global_1.Map();
+                    if (!this.settings.disposer || !((_a = this.settings.dispose) === null || _a === void 0 ? void 0 : _a.clear))
                         return;
-                    for (const kv of store) {
-                        this.callback(kv[0], kv[1]);
+                    for (const [key, value] of store) {
+                        this.settings.disposer(key, value);
                     }
                 }
                 get size() {
-                    return this.store.size;
+                    return this.indexes.LRU.length + this.indexes.LFU.length;
                 }
                 [Symbol.iterator]() {
                     return this.store[Symbol.iterator]();
                 }
-                export() {
-                    return {
-                        stats: [
-                            this.stats.LRU.slice(),
-                            this.stats.LFU.slice()
-                        ],
-                        entries: [...this]
-                    };
-                }
-                inspect() {
-                    const {LRU, LFU} = this.stats;
-                    return [
-                        LRU.slice(),
-                        LFU.slice()
-                    ];
+                slide() {
+                    const {LRU, LFU, miss} = this.stats;
+                    const capacity = this.capacity;
+                    const window = capacity;
+                    const rateR = rate(window, LRU[0], LRU[0] + LFU[0], LRU[1], LRU[1] + LFU[1]);
+                    const rateF = 100 - rateR;
+                    const ratio = this.ratio;
+                    const step = 1;
+                    if (ratio < 90 && rateF > rateR * 1.2) {
+                        this.ratio += step;
+                    } else if (ratio > 50 && rateR > rateF * 1.2) {
+                        this.ratio -= step;
+                    } else if (ratio <= 50 && rateR > rateF * 1.5 && this.indexes.LRU.length > capacity / 100 * (100 - ratio) - 1) {
+                        if (ratio > 10 && miss > capacity / 2) {
+                            this.ratio = 50;
+                        } else if (ratio > 10 && miss > 5 && this.indexes.LRU.length < miss * 5) {
+                            this.ratio -= step;
+                        } else if (ratio < 50) {
+                            this.ratio += step;
+                        }
+                    }
+                    if (LRU[0] + LFU[0] === window) {
+                        this.stats = {
+                            LRU: [
+                                0,
+                                LRU[0]
+                            ],
+                            LFU: [
+                                0,
+                                LFU[0]
+                            ],
+                            miss
+                        };
+                    }
                 }
                 access(key) {
-                    return this.accessLFU(key) || this.accessLRU(key);
+                    const stats = this.stats;
+                    const hit = false || this.accessLFU(key, stats) || this.accessLRU(key, stats);
+                    stats.miss = 0;
+                    this.slide();
+                    return hit;
                 }
-                accessLRU(key) {
-                    const {LRU} = this.stats;
+                accessLRU(key, stats) {
+                    const {LRU, LFU} = this.indexes;
                     const index = array_1.indexOf(LRU, key);
                     if (index === -1)
                         return false;
-                    const {LFU} = this.stats;
-                    LFU.unshift(array_1.splice(LRU, index, 1)[0]);
+                    stats && ++stats.LRU[0];
+                    if (index === 0)
+                        return LFU.unshift(LRU.shift()), true;
+                    [LRU[index - 1], LRU[index]] = [
+                        LRU[index],
+                        LRU[index - 1]
+                    ];
                     return true;
                 }
-                accessLFU(key) {
-                    const {LFU} = this.stats;
+                accessLFU(key, stats) {
+                    const {LFU} = this.indexes;
                     const index = array_1.indexOf(LFU, key);
                     if (index === -1)
                         return false;
+                    stats && ++stats.LFU[0];
                     if (index === 0)
                         return true;
-                    LFU.unshift(array_1.splice(LFU, index, 1)[0]);
+                    [LFU[index - 1], LFU[index]] = [
+                        LFU[index],
+                        LFU[index - 1]
+                    ];
                     return true;
                 }
             }
             exports.Cache = Cache;
+            function rate(window, currHits, currTotal, prevHits, prevTotal) {
+                const currRate = currHits * 100 / currTotal | 0;
+                const currRatio = currTotal / window;
+                const prevRate = prevHits * 100 / prevTotal | 0;
+                const prevRatio = 1 - currRatio;
+                return currRate * currRatio + prevRate * prevRatio | 0;
+            }
         },
         {
             './array': 5,
@@ -701,6 +776,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.tick = void 0;
             const global_1 = _dereq_('./global');
+            const alias_1 = _dereq_('./alias');
             const exception_1 = _dereq_('./exception');
             let queue = [];
             let jobs = [];
@@ -726,10 +802,11 @@ require = function () {
                         exception_1.causeAsyncException(reason);
                     }
                 }
-                jobs.length > 1000 && count < jobs.length * 0.5 && jobs.splice(global_1.Math.floor(jobs.length * 0.9), jobs.length);
+                jobs.length > 1000 && count < jobs.length * 0.5 && jobs.splice(alias_1.floor(jobs.length * 0.9), jobs.length);
             }
         },
         {
+            './alias': 4,
             './exception': 16,
             './global': 20
         }
@@ -816,7 +893,7 @@ require = function () {
                     const same = after.length === before.length && after.every((_, i) => after[i] === before[i]);
                     if (!memory && same)
                         return values;
-                    memory = memory || new global_1.Map();
+                    memory !== null && memory !== void 0 ? memory : memory = new global_1.Map();
                     for (let i = 0; i < values.length; ++i) {
                         void memory.set(before[i], values[i]);
                     }
@@ -1178,7 +1255,7 @@ require = function () {
             exports.curry = f => curry_(f, f.length);
             function curry_(f, arity, ...xs) {
                 let g;
-                return xs.length < arity ? (...ys) => curry_(g = g || xs.length && f.bind(global_1.undefined, ...xs) || f, arity - xs.length, ...ys) : f(...xs);
+                return xs.length < arity ? (...ys) => curry_(g !== null && g !== void 0 ? g : g = xs.length && f.bind(global_1.undefined, ...xs) || f, arity - xs.length, ...ys) : f(...xs);
             }
             const uncurry = f => uncurry_(f);
             exports.uncurry = uncurry;
@@ -1680,7 +1757,7 @@ require = function () {
                     if (z !== global_1.undefined || nullish && memory.has(b))
                         return z;
                     z = f(...as);
-                    nullish = nullish || z === global_1.undefined;
+                    nullish || (nullish = z === global_1.undefined);
                     memory.set(b, z);
                     return z;
                 };
@@ -1907,7 +1984,8 @@ require = function () {
                     this.memory_ = global_1.undefined;
                 }
                 evaluate() {
-                    return this.memory_ ? this.memory_ : this.memory_ = this.thunk();
+                    var _a;
+                    return (_a = this.memory_) !== null && _a !== void 0 ? _a : this.memory_ = this.thunk();
                 }
             }
             exports.Lazy = Lazy;
@@ -3198,17 +3276,17 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const global_1 = _dereq_('../../../../global');
+            const alias_1 = _dereq_('../../../../alias');
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
             compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
-                static random(p = () => global_1.Math.random()) {
-                    return typeof p === 'function' ? core_1.Sequence.from(new core_1.Sequence((_, cons) => cons(p(), _))) : this.random().map(r => p[global_1.Math.floor(r * p.length)]);
+                static random(p = () => alias_1.random()) {
+                    return typeof p === 'function' ? core_1.Sequence.from(new core_1.Sequence((_, cons) => cons(p(), _))) : this.random().map(r => p[alias_1.floor(r * p.length)]);
                 }
             });
         },
         {
-            '../../../../global': 20,
+            '../../../../alias': 4,
             '../../../../helper/compose': 21,
             '../../core': 36
         }
@@ -3922,8 +4000,7 @@ require = function () {
             }
             exports.unique = unique;
             function cons(radix) {
-                var _a;
-                const base = (_a = bases.find(base => base >= radix)) !== null && _a !== void 0 ? _a : bases[bases.length - 1];
+                const base = bases.find(base => base >= radix);
                 const len = bases.indexOf(base);
                 return () => {
                     while (true) {
@@ -4024,420 +4101,422 @@ require = function () {
     ],
     88: [
         function (_dereq_, module, exports) {
-            'use strict';
-            var _a;
-            Object.defineProperty(exports, '__esModule', { value: true });
-            exports.Supervisor = void 0;
-            const global_1 = _dereq_('./global');
-            const alias_1 = _dereq_('./alias');
-            const coroutine_1 = _dereq_('./coroutine');
-            const promise_1 = _dereq_('./promise');
-            const future_1 = _dereq_('./future');
-            const observer_1 = _dereq_('./observer');
-            const array_1 = _dereq_('./array');
-            const assign_1 = _dereq_('./assign');
-            const clock_1 = _dereq_('./clock');
-            const sqid_1 = _dereq_('./sqid');
-            const exception_1 = _dereq_('./exception');
-            class Supervisor extends coroutine_1.Coroutine {
-                constructor(opts = {}) {
-                    super(async function* () {
-                        return this.state;
-                    }, { delay: false });
-                    this.state = new future_1.AtomicFuture();
-                    this.id = sqid_1.sqid();
-                    this.settings = {
-                        name: '',
-                        size: global_1.Infinity,
-                        timeout: global_1.Infinity,
-                        destructor: _ => void 0,
-                        scheduler: clock_1.tick,
-                        resource: 10
-                    };
-                    this.events_ = {
-                        init: new observer_1.Observation(),
-                        loss: new observer_1.Observation(),
-                        exit: new observer_1.Observation()
-                    };
-                    this.events = this.events_;
-                    this.workers = new global_1.Map();
-                    this.alive = true;
-                    this.available = true;
-                    this[_a] = {
-                        ask: () => {
-                            throw new global_1.Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: Cannot use coroutine port.`);
-                        },
-                        recv: () => {
-                            throw new global_1.Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: Cannot use coroutine port.`);
-                        },
-                        send: () => {
-                            throw new global_1.Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: Cannot use coroutine port.`);
-                        },
-                        connect: () => {
-                            throw new global_1.Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: Cannot use coroutine port.`);
+            (function (global) {
+                (function () {
+                    'use strict';
+                    var _a;
+                    Object.defineProperty(exports, '__esModule', { value: true });
+                    exports.Supervisor = void 0;
+                    const global_1 = _dereq_('./global');
+                    const alias_1 = _dereq_('./alias');
+                    const coroutine_1 = _dereq_('./coroutine');
+                    const promise_1 = _dereq_('./promise');
+                    const future_1 = _dereq_('./future');
+                    const observer_1 = _dereq_('./observer');
+                    const array_1 = _dereq_('./array');
+                    const assign_1 = _dereq_('./assign');
+                    const clock_1 = _dereq_('./clock');
+                    const sqid_1 = _dereq_('./sqid');
+                    const exception_1 = _dereq_('./exception');
+                    class Supervisor extends coroutine_1.Coroutine {
+                        constructor(opts = {}) {
+                            super(async function* () {
+                                return this.state;
+                            }, { delay: false });
+                            this.state = new future_1.AtomicFuture();
+                            this.id = sqid_1.sqid();
+                            this.settings = {
+                                name: '',
+                                size: global_1.Infinity,
+                                timeout: global_1.Infinity,
+                                destructor: _ => void 0,
+                                scheduler: clock_1.tick,
+                                resource: 10
+                            };
+                            this.events_ = {
+                                init: new observer_1.Observation(),
+                                loss: new observer_1.Observation(),
+                                exit: new observer_1.Observation()
+                            };
+                            this.events = this.events_;
+                            this.workers = new global_1.Map();
+                            this.alive = true;
+                            this.available = true;
+                            this[_a] = {
+                                ask: () => {
+                                    throw new global_1.Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: Cannot use coroutine port.`);
+                                },
+                                recv: () => {
+                                    throw new global_1.Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: Cannot use coroutine port.`);
+                                },
+                                send: () => {
+                                    throw new global_1.Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: Cannot use coroutine port.`);
+                                },
+                                connect: () => {
+                                    throw new global_1.Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: Cannot use coroutine port.`);
+                                }
+                            };
+                            this.scheduled = false;
+                            this.messages = [];
+                            void assign_1.extend(this.settings, opts);
+                            this.name = this.settings.name;
+                            if (this.constructor === Supervisor)
+                                throw new global_1.Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: Cannot instantiate abstract classes.`);
+                            void this.constructor.instances.add(this);
                         }
-                    };
-                    this.scheduled = false;
-                    this.messages = [];
-                    void assign_1.extend(this.settings, opts);
-                    this.name = this.settings.name;
-                    if (this.constructor === Supervisor)
-                        throw new global_1.Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: Cannot instantiate abstract classes.`);
-                    void this.constructor.instances.add(this);
-                }
-                static get instances() {
-                    return this.hasOwnProperty('instances_') ? this.instances_ : this.instances_ = new global_1.Set();
-                }
-                static get count() {
-                    return this.instances.size;
-                }
-                static get procs() {
-                    return [...this.instances].reduce((acc, sv) => acc + sv.workers.size, 0);
-                }
-                static clear(reason) {
-                    while (this.instances.size > 0) {
-                        for (const sv of this.instances) {
-                            void sv.terminate(reason);
+                        static get instances() {
+                            return this.hasOwnProperty('instances_') ? this.instances_ : this.instances_ = new global_1.Set();
                         }
-                    }
-                }
-                destructor(reason) {
-                    this.available = false;
-                    void this.clear(reason);
-                    void alias_1.ObjectFreeze(this.workers);
-                    while (this.messages.length > 0) {
-                        const [names, param] = this.messages.shift();
-                        const name = typeof names === 'string' ? names : names[Symbol.iterator]().next().value;
-                        void this.events_.loss.emit([name], [
-                            name,
-                            param
-                        ]);
-                    }
-                    this.alive = false;
-                    void this.constructor.instances.delete(this);
-                    void alias_1.ObjectFreeze(this);
-                    void this.settings.destructor(reason);
-                    void this.state.bind(reason === void 0 ? void 0 : promise_1.AtomicPromise.reject(reason));
-                }
-                throwErrorIfNotAvailable() {
-                    if (!this.available)
-                        throw new global_1.Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: A supervisor is already terminated.`);
-                }
-                register(name, process, state) {
-                    state = state;
-                    void this.throwErrorIfNotAvailable();
-                    if (coroutine_1.isCoroutine(process)) {
-                        const port = process[process.constructor.port];
-                        const proc = {
-                            init: state => state,
-                            main: (param, state, kill) => port.ask(param).then(({
-                                value: reply,
-                                done
-                            }) => done && void kill() || [
-                                reply,
-                                state
-                            ]),
-                            exit: reason => void process[process.constructor.terminate](reason)
-                        };
-                        void this.constructor.standalone.add(proc);
-                        const kill = this.register(name, proc, state);
-                        void process.catch(kill);
-                        return kill;
-                    }
-                    if (isAsyncGeneratorFunction(process)) {
-                        let iter;
-                        return this.register(name, {
-                            init: (state, kill) => (iter = process(state, kill), void iter.next().catch(kill), state),
-                            main: (param, state, kill) => promise_1.AtomicPromise.resolve(iter.next(param)).then(({
-                                value: reply,
-                                done
-                            }) => done && void kill() || [
-                                reply,
-                                state
-                            ]),
-                            exit: () => void 0
-                        }, state);
-                    }
-                    if (typeof process === 'function') {
-                        if (isGeneratorFunction(process)) {
-                            let iter;
-                            return this.register(name, {
-                                init: (state, kill) => (iter = process(state, kill), void iter.next(), state),
-                                main: (param, state, kill) => {
-                                    const {
+                        static get count() {
+                            return this.instances.size;
+                        }
+                        static get procs() {
+                            return [...this.instances].reduce((acc, sv) => acc + sv.workers.size, 0);
+                        }
+                        static clear(reason) {
+                            while (this.instances.size > 0) {
+                                for (const sv of this.instances) {
+                                    void sv.terminate(reason);
+                                }
+                            }
+                        }
+                        destructor(reason) {
+                            this.available = false;
+                            void this.clear(reason);
+                            void alias_1.ObjectFreeze(this.workers);
+                            while (this.messages.length > 0) {
+                                const [names, param] = this.messages.shift();
+                                const name = typeof names === 'string' ? names : names[Symbol.iterator]().next().value;
+                                void this.events_.loss.emit([name], [
+                                    name,
+                                    param
+                                ]);
+                            }
+                            this.alive = false;
+                            void this.constructor.instances.delete(this);
+                            void alias_1.ObjectFreeze(this);
+                            void this.settings.destructor(reason);
+                            void this.state.bind(reason === void 0 ? void 0 : promise_1.AtomicPromise.reject(reason));
+                        }
+                        throwErrorIfNotAvailable() {
+                            if (!this.available)
+                                throw new global_1.Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: A supervisor is already terminated.`);
+                        }
+                        register(name, process, state) {
+                            state = state;
+                            void this.throwErrorIfNotAvailable();
+                            if (coroutine_1.isCoroutine(process)) {
+                                const port = process[process.constructor.port];
+                                const proc = {
+                                    init: state => state,
+                                    main: (param, state, kill) => port.ask(param).then(({
                                         value: reply,
                                         done
-                                    } = iter.next(param);
-                                    done && kill();
-                                    return [
+                                    }) => done && void kill() || [
                                         reply,
                                         state
-                                    ];
-                                },
-                                exit: () => void 0
-                            }, state);
+                                    ]),
+                                    exit: reason => void process[process.constructor.terminate](reason)
+                                };
+                                void this.constructor.standalone.add(proc);
+                                const kill = this.register(name, proc, state);
+                                void process.catch(kill);
+                                return kill;
+                            }
+                            if (isAsyncGeneratorFunction(process)) {
+                                let iter;
+                                return this.register(name, {
+                                    init: (state, kill) => (iter = process(state, kill), void iter.next().catch(kill), state),
+                                    main: (param, state, kill) => promise_1.AtomicPromise.resolve(iter.next(param)).then(({
+                                        value: reply,
+                                        done
+                                    }) => done && void kill() || [
+                                        reply,
+                                        state
+                                    ]),
+                                    exit: () => void 0
+                                }, state);
+                            }
+                            if (typeof process === 'function') {
+                                if (isGeneratorFunction(process)) {
+                                    let iter;
+                                    return this.register(name, {
+                                        init: (state, kill) => (iter = process(state, kill), void iter.next(), state),
+                                        main: (param, state, kill) => {
+                                            const {
+                                                value: reply,
+                                                done
+                                            } = iter.next(param);
+                                            done && kill();
+                                            return [
+                                                reply,
+                                                state
+                                            ];
+                                        },
+                                        exit: () => void 0
+                                    }, state);
+                                }
+                                return this.register(name, {
+                                    init: state => state,
+                                    main: process,
+                                    exit: () => void 0
+                                }, state);
+                            }
+                            if (this.workers.has(name))
+                                throw new global_1.Error(`Spica: Supervisor: <${ this.id }/${ this.name }/${ name }>: Cannot register a process multiply with the same name.`);
+                            void this.schedule();
+                            const worker = new Worker(name, process, state, this, () => void this.schedule(), this.constructor.standalone.has(process), this.events_, () => this.workers.get(name) === worker && void this.workers.delete(name));
+                            void this.workers.set(name, worker);
+                            return worker.terminate;
+                            function isAsyncGeneratorFunction(process) {
+                                return process[Symbol.toStringTag] === 'AsyncGeneratorFunction';
+                            }
+                            function isGeneratorFunction(process) {
+                                return process[Symbol.toStringTag] === 'GeneratorFunction';
+                            }
                         }
-                        return this.register(name, {
-                            init: state => state,
-                            main: process,
-                            exit: () => void 0
-                        }, state);
-                    }
-                    if (this.workers.has(name))
-                        throw new global_1.Error(`Spica: Supervisor: <${ this.id }/${ this.name }/${ name }>: Cannot register a process multiply with the same name.`);
-                    void this.schedule();
-                    const worker = new Worker(name, process, state, this, () => void this.schedule(), this.constructor.standalone.has(process), this.events_, () => this.workers.get(name) === worker && void this.workers.delete(name));
-                    void this.workers.set(name, worker);
-                    return worker.terminate;
-                    function isAsyncGeneratorFunction(process) {
-                        return process[Symbol.toStringTag] === 'AsyncGeneratorFunction';
-                    }
-                    function isGeneratorFunction(process) {
-                        return process[Symbol.toStringTag] === 'GeneratorFunction';
-                    }
-                }
-                call(name, param, callback = this.settings.timeout, timeout = this.settings.timeout) {
-                    if (typeof callback !== 'function')
-                        return new promise_1.AtomicPromise((resolve, reject) => void this.call(name, param, (result, err) => err ? reject(err) : resolve(result), callback));
-                    void this.messages.push([
-                        typeof name === 'string' ? name : new NamePool(this.workers, name),
-                        param,
-                        callback,
-                        Date.now() + timeout
-                    ]);
-                    while (this.messages.length > (this.available ? this.settings.size : 0)) {
-                        const [names, param, callback] = this.messages.shift();
-                        const name = typeof names === 'string' ? names : names[Symbol.iterator]().next().value;
-                        void this.events_.loss.emit([name], [
-                            name,
-                            param
-                        ]);
-                        try {
-                            void callback(void 0, new global_1.Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: A message overflowed.`));
-                        } catch (reason) {
-                            void exception_1.causeAsyncException(reason);
-                        }
-                    }
-                    void this.throwErrorIfNotAvailable();
-                    void this.schedule();
-                    if (timeout > 0 && timeout !== global_1.Infinity) {
-                        void global_1.setTimeout(() => void this.schedule(), timeout + 3);
-                    }
-                }
-                cast(name, param, timeout = this.settings.timeout) {
-                    var _b;
-                    void this.throwErrorIfNotAvailable();
-                    let result;
-                    for (name of typeof name === 'string' ? [name] : new NamePool(this.workers, name)) {
-                        if (result = (_b = this.workers.get(name)) === null || _b === void 0 ? void 0 : _b.call([
+                        call(name, param, callback = this.settings.timeout, timeout = this.settings.timeout) {
+                            if (typeof callback !== 'function')
+                                return new promise_1.AtomicPromise((resolve, reject) => void this.call(name, param, (result, err) => err ? reject(err) : resolve(result), callback));
+                            void this.messages.push([
+                                typeof name === 'string' ? name : new NamePool(this.workers, name),
                                 param,
+                                callback,
                                 Date.now() + timeout
-                            ]))
-                            break;
-                    }
-                    name = name;
-                    if (result)
-                        return true;
-                    void this.events_.loss.emit([name], [
-                        name,
-                        param
-                    ]);
-                    return false;
-                }
-                refs(name) {
-                    return name === void 0 ? [...this.workers.values()].map(convert) : this.workers.has(name) ? [convert(this.workers.get(name))] : [];
-                    function convert(worker) {
-                        return [
-                            worker.name,
-                            worker.process,
-                            worker.state,
-                            worker.terminate
-                        ];
-                    }
-                }
-                kill(name, reason) {
-                    if (!this.available)
-                        return false;
-                    return this.workers.has(name) ? this.workers.get(name).terminate(reason) : false;
-                }
-                clear(reason) {
-                    while (this.workers.size > 0) {
-                        for (const worker of this.workers.values()) {
-                            void worker.terminate(reason);
+                            ]);
+                            while (this.messages.length > (this.available ? this.settings.size : 0)) {
+                                const [names, param, callback] = this.messages.shift();
+                                const name = typeof names === 'string' ? names : names[Symbol.iterator]().next().value;
+                                void this.events_.loss.emit([name], [
+                                    name,
+                                    param
+                                ]);
+                                try {
+                                    void callback(void 0, new global_1.Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: A message overflowed.`));
+                                } catch (reason) {
+                                    void exception_1.causeAsyncException(reason);
+                                }
+                            }
+                            void this.throwErrorIfNotAvailable();
+                            void this.schedule();
+                            if (timeout > 0 && timeout !== global_1.Infinity) {
+                                void global_1.setTimeout(() => void this.schedule(), timeout + 3);
+                            }
                         }
-                    }
-                }
-                terminate(reason) {
-                    if (!this.available)
-                        return false;
-                    void this.destructor(reason);
-                    void this[coroutine_1.Coroutine.exit](void 0);
-                    return true;
-                }
-                [coroutine_1.Coroutine.terminate](reason) {
-                    void this.terminate(reason);
-                }
-                schedule() {
-                    if (!this.available || this.scheduled || this.messages.length === 0)
-                        return;
-                    const p = new future_1.AtomicFuture(false);
-                    void p.finally(() => {
-                        this.scheduled = false;
-                        void this.deliver();
-                    });
-                    void clock_1.tick(() => {
-                        void this.settings.scheduler.call(void 0, p.bind);
-                        this.settings.scheduler === requestAnimationFrame && void global_1.setTimeout(p.bind, 1000);
-                    });
-                    this.scheduled = true;
-                }
-                deliver() {
-                    var _b;
-                    if (!this.available)
-                        return;
-                    const since = Date.now();
-                    for (let i = 0, len = this.messages.length; this.available && i < len; ++i) {
-                        if (this.settings.resource - (Date.now() - since) <= 0)
-                            return void this.schedule();
-                        const [names, param, callback, expiry] = this.messages[i];
-                        let result;
-                        let name;
-                        for (name of typeof names === 'string' ? [names] : names) {
-                            if (result = (_b = this.workers.get(name)) === null || _b === void 0 ? void 0 : _b.call([
-                                    param,
-                                    expiry
-                                ]))
-                                break;
-                        }
-                        if (result === void 0 && Date.now() < expiry)
-                            continue;
-                        void array_1.splice(this.messages, i, 1);
-                        void --i;
-                        void --len;
-                        if (result === void 0) {
+                        cast(name, param, timeout = this.settings.timeout) {
+                            var _b;
+                            void this.throwErrorIfNotAvailable();
+                            let result;
+                            for (name of typeof name === 'string' ? [name] : new NamePool(this.workers, name)) {
+                                if (result = (_b = this.workers.get(name)) === null || _b === void 0 ? void 0 : _b.call([
+                                        param,
+                                        Date.now() + timeout
+                                    ]))
+                                    break;
+                            }
+                            name = name;
+                            if (result)
+                                return true;
                             void this.events_.loss.emit([name], [
                                 name,
                                 param
                             ]);
+                            return false;
+                        }
+                        refs(name) {
+                            return name === void 0 ? [...this.workers.values()].map(convert) : this.workers.has(name) ? [convert(this.workers.get(name))] : [];
+                            function convert(worker) {
+                                return [
+                                    worker.name,
+                                    worker.process,
+                                    worker.state,
+                                    worker.terminate
+                                ];
+                            }
+                        }
+                        kill(name, reason) {
+                            if (!this.available)
+                                return false;
+                            return this.workers.has(name) ? this.workers.get(name).terminate(reason) : false;
+                        }
+                        clear(reason) {
+                            while (this.workers.size > 0) {
+                                for (const worker of this.workers.values()) {
+                                    void worker.terminate(reason);
+                                }
+                            }
+                        }
+                        terminate(reason) {
+                            if (!this.available)
+                                return false;
+                            void this.destructor(reason);
+                            void this[coroutine_1.Coroutine.exit](void 0);
+                            return true;
+                        }
+                        [coroutine_1.Coroutine.terminate](reason) {
+                            void this.terminate(reason);
+                        }
+                        schedule() {
+                            if (!this.available || this.scheduled || this.messages.length === 0)
+                                return;
+                            const p = new future_1.AtomicFuture(false);
+                            void p.finally(() => {
+                                this.scheduled = false;
+                                void this.deliver();
+                            });
+                            void this.settings.scheduler.call(void 0, p.bind);
+                            this.settings.scheduler === global.requestAnimationFrame && void global_1.setTimeout(p.bind, 1000);
+                            this.scheduled = true;
+                        }
+                        deliver() {
+                            var _b;
+                            if (!this.available)
+                                return;
+                            const since = Date.now();
+                            for (let i = 0, len = this.messages.length; this.available && i < len; ++i) {
+                                if (this.settings.resource - (Date.now() - since) <= 0)
+                                    return void this.schedule();
+                                const [names, param, callback, expiry] = this.messages[i];
+                                let result;
+                                let name;
+                                for (name of typeof names === 'string' ? [names] : names) {
+                                    if (result = (_b = this.workers.get(name)) === null || _b === void 0 ? void 0 : _b.call([
+                                            param,
+                                            expiry
+                                        ]))
+                                        break;
+                                }
+                                if (result === void 0 && Date.now() < expiry)
+                                    continue;
+                                void array_1.splice(this.messages, i, 1);
+                                void --i;
+                                void --len;
+                                if (result === void 0) {
+                                    void this.events_.loss.emit([name], [
+                                        name,
+                                        param
+                                    ]);
+                                    try {
+                                        void callback(void 0, new global_1.Error(`Spica: Supervisor: A process has failed.`));
+                                    } catch (reason) {
+                                        void exception_1.causeAsyncException(reason);
+                                    }
+                                } else {
+                                    void result.then(reply => void callback(reply), () => void callback(void 0, new global_1.Error(`Spica: Supervisor: A process has failed.`)));
+                                }
+                            }
+                        }
+                    }
+                    exports.Supervisor = Supervisor;
+                    _a = coroutine_1.Coroutine.port;
+                    Supervisor.standalone = new global_1.WeakSet();
+                    class NamePool {
+                        constructor(workers, selector = ns => ns) {
+                            this.workers = workers;
+                            this.selector = selector;
+                        }
+                        *[Symbol.iterator]() {
+                            let cnt = 0;
+                            for (const name of this.selector(this.workers.keys())) {
+                                void ++cnt;
+                                yield name;
+                            }
+                            if (cnt === 0) {
+                                yield '';
+                            }
+                            return;
+                        }
+                    }
+                    class Worker {
+                        constructor(name, process, state, sv, schedule, initiated, events, destructor_) {
+                            this.name = name;
+                            this.process = process;
+                            this.state = state;
+                            this.sv = sv;
+                            this.schedule = schedule;
+                            this.events = events;
+                            this.destructor_ = destructor_;
+                            this.alive = true;
+                            this.available = true;
+                            this.initiated = false;
+                            this.terminate = reason => {
+                                if (!this.alive)
+                                    return false;
+                                void this.destructor(reason);
+                                return true;
+                            };
+                            initiated && void this.init();
+                        }
+                        destructor(reason) {
+                            this.alive = false;
+                            this.available = false;
+                            void alias_1.ObjectFreeze(this);
                             try {
-                                void callback(void 0, new global_1.Error(`Spica: Supervisor: A process has failed.`));
+                                void this.destructor_();
                             } catch (reason) {
                                 void exception_1.causeAsyncException(reason);
                             }
-                        } else {
-                            void result.then(reply => void callback(reply), () => void callback(void 0, new global_1.Error(`Spica: Supervisor: A process has failed.`)));
+                            if (this.initiated) {
+                                void this.exit(reason);
+                            }
+                        }
+                        init() {
+                            this.initiated = true;
+                            void this.events.init.emit([this.name], [
+                                this.name,
+                                this.process,
+                                this.state
+                            ]);
+                            this.state = this.process.init(this.state, this.terminate);
+                        }
+                        exit(reason) {
+                            try {
+                                void this.process.exit(reason, this.state);
+                                void this.events.exit.emit([this.name], [
+                                    this.name,
+                                    this.process,
+                                    this.state,
+                                    reason
+                                ]);
+                            } catch (reason_) {
+                                void this.events.exit.emit([this.name], [
+                                    this.name,
+                                    this.process,
+                                    this.state,
+                                    reason
+                                ]);
+                                void this.sv.terminate(reason_);
+                            }
+                        }
+                        call([param, expiry]) {
+                            const now = Date.now();
+                            if (!this.available || now > expiry)
+                                return;
+                            return new promise_1.AtomicPromise((resolve, reject) => {
+                                alias_1.isFinite(expiry) && void global_1.setTimeout(() => void reject(new global_1.Error()), expiry - now);
+                                this.available = false;
+                                if (!this.initiated) {
+                                    void this.init();
+                                    if (!this.alive)
+                                        return void reject();
+                                }
+                                void promise_1.AtomicPromise.resolve(this.process.main(param, this.state, this.terminate)).then(resolve, reject);
+                            }).then(([reply, state]) => {
+                                if (this.alive) {
+                                    void this.schedule();
+                                    this.state = state;
+                                    this.available = true;
+                                }
+                                return reply;
+                            }).catch(reason => {
+                                void this.schedule();
+                                void this.terminate(reason);
+                                throw reason;
+                            });
                         }
                     }
-                }
-            }
-            exports.Supervisor = Supervisor;
-            _a = coroutine_1.Coroutine.port;
-            Supervisor.standalone = new global_1.WeakSet();
-            class NamePool {
-                constructor(workers, selector = ns => ns) {
-                    this.workers = workers;
-                    this.selector = selector;
-                }
-                *[Symbol.iterator]() {
-                    let cnt = 0;
-                    for (const name of this.selector(this.workers.keys())) {
-                        void ++cnt;
-                        yield name;
-                    }
-                    if (cnt === 0) {
-                        yield '';
-                    }
-                    return;
-                }
-            }
-            class Worker {
-                constructor(name, process, state, sv, schedule, initiated, events, destructor_) {
-                    this.name = name;
-                    this.process = process;
-                    this.state = state;
-                    this.sv = sv;
-                    this.schedule = schedule;
-                    this.events = events;
-                    this.destructor_ = destructor_;
-                    this.alive = true;
-                    this.available = true;
-                    this.initiated = false;
-                    this.terminate = reason => {
-                        if (!this.alive)
-                            return false;
-                        void this.destructor(reason);
-                        return true;
-                    };
-                    initiated && void this.init();
-                }
-                destructor(reason) {
-                    this.alive = false;
-                    this.available = false;
-                    void alias_1.ObjectFreeze(this);
-                    try {
-                        void this.destructor_();
-                    } catch (reason) {
-                        void exception_1.causeAsyncException(reason);
-                    }
-                    if (this.initiated) {
-                        void this.exit(reason);
-                    }
-                }
-                init() {
-                    this.initiated = true;
-                    void this.events.init.emit([this.name], [
-                        this.name,
-                        this.process,
-                        this.state
-                    ]);
-                    this.state = this.process.init(this.state, this.terminate);
-                }
-                exit(reason) {
-                    try {
-                        void this.process.exit(reason, this.state);
-                        void this.events.exit.emit([this.name], [
-                            this.name,
-                            this.process,
-                            this.state,
-                            reason
-                        ]);
-                    } catch (reason_) {
-                        void this.events.exit.emit([this.name], [
-                            this.name,
-                            this.process,
-                            this.state,
-                            reason
-                        ]);
-                        void this.sv.terminate(reason_);
-                    }
-                }
-                call([param, expiry]) {
-                    const now = Date.now();
-                    if (!this.available || now > expiry)
-                        return;
-                    return new promise_1.AtomicPromise((resolve, reject) => {
-                        alias_1.isFinite(expiry) && void global_1.setTimeout(() => void reject(new global_1.Error()), expiry - now);
-                        this.available = false;
-                        if (!this.initiated) {
-                            void this.init();
-                            if (!this.alive)
-                                return void reject();
-                        }
-                        void promise_1.AtomicPromise.resolve(this.process.main(param, this.state, this.terminate)).then(resolve, reject);
-                    }).then(([reply, state]) => {
-                        if (this.alive) {
-                            void this.schedule();
-                            this.state = state;
-                            this.available = true;
-                        }
-                        return reply;
-                    }).catch(reason => {
-                        void this.schedule();
-                        void this.terminate(reason);
-                        throw reason;
-                    });
-                }
-            }
+                }.call(this));
+            }.call(this, typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : typeof window !== 'undefined' ? window : {}));
         },
         {
             './alias': 4,
@@ -4645,7 +4724,9 @@ require = function () {
                     return this[internal].url.fragment;
                 }
                 get searchParams() {
-                    return this[internal].searchParams === global_1.undefined ? this[internal].searchParams = new global_1.URLSearchParams(this.search) : this[internal].searchParams;
+                    var _a;
+                    var _b;
+                    return (_a = (_b = this[internal]).searchParams) !== null && _a !== void 0 ? _a : _b.searchParams = new global_1.URLSearchParams(this.search);
                 }
                 toString() {
                     return this.href;
@@ -4701,52 +4782,84 @@ require = function () {
                     };
                 }
                 get href() {
-                    return this[internal].share.href === global_1.undefined ? this[internal].share.href = this[internal].share.url.href : this[internal].share.href;
+                    var _a;
+                    var _b;
+                    return (_a = (_b = this[internal].share).href) !== null && _a !== void 0 ? _a : _b.href = this[internal].share.url.href;
                 }
                 get resource() {
-                    return this[internal].share.resource === global_1.undefined ? this[internal].share.resource = this.href.slice(0, -this.fragment.length - this.query.length || this.href.length) + this.search : this[internal].share.resource;
+                    var _a;
+                    var _b;
+                    return (_a = (_b = this[internal].share).resource) !== null && _a !== void 0 ? _a : _b.resource = this.href.slice(0, -this.fragment.length - this.query.length || this.href.length) + this.search;
                 }
                 get origin() {
-                    return this[internal].share.origin === global_1.undefined ? this[internal].share.origin = this[internal].share.url.origin : this[internal].share.origin;
+                    var _a;
+                    var _b;
+                    return (_a = (_b = this[internal].share).origin) !== null && _a !== void 0 ? _a : _b.origin = this[internal].share.url.origin;
                 }
                 get protocol() {
-                    return this[internal].share.protocol === global_1.undefined ? this[internal].share.protocol = this[internal].share.url.protocol : this[internal].share.protocol;
+                    var _a;
+                    var _b;
+                    return (_a = (_b = this[internal].share).protocol) !== null && _a !== void 0 ? _a : _b.protocol = this[internal].share.url.protocol;
                 }
                 get username() {
-                    return this[internal].share.username === global_1.undefined ? this[internal].share.username = this[internal].share.url.username : this[internal].share.username;
+                    var _a;
+                    var _b;
+                    return (_a = (_b = this[internal].share).username) !== null && _a !== void 0 ? _a : _b.username = this[internal].share.url.username;
                 }
                 get password() {
-                    return this[internal].share.password === global_1.undefined ? this[internal].share.password = this[internal].share.url.password : this[internal].share.password;
+                    var _a;
+                    var _b;
+                    return (_a = (_b = this[internal].share).password) !== null && _a !== void 0 ? _a : _b.password = this[internal].share.url.password;
                 }
                 get host() {
-                    return this[internal].share.host === global_1.undefined ? this[internal].share.host = this[internal].share.url.host : this[internal].share.host;
+                    var _a;
+                    var _b;
+                    return (_a = (_b = this[internal].share).host) !== null && _a !== void 0 ? _a : _b.host = this[internal].share.url.host;
                 }
                 get hostname() {
-                    return this[internal].share.hostname === global_1.undefined ? this[internal].share.hostname = this[internal].share.url.hostname : this[internal].share.hostname;
+                    var _a;
+                    var _b;
+                    return (_a = (_b = this[internal].share).hostname) !== null && _a !== void 0 ? _a : _b.hostname = this[internal].share.url.hostname;
                 }
                 get port() {
-                    return this[internal].share.port === global_1.undefined ? this[internal].share.port = this[internal].share.url.port : this[internal].share.port;
+                    var _a;
+                    var _b;
+                    return (_a = (_b = this[internal].share).port) !== null && _a !== void 0 ? _a : _b.port = this[internal].share.url.port;
                 }
                 get path() {
-                    return this[internal].share.path === global_1.undefined ? this[internal].share.path = `${ this.pathname }${ this.search }` : this[internal].share.path;
+                    var _a;
+                    var _b;
+                    return (_a = (_b = this[internal].share).path) !== null && _a !== void 0 ? _a : _b.path = `${ this.pathname }${ this.search }`;
                 }
                 get pathname() {
-                    return this[internal].share.pathname === global_1.undefined ? this[internal].share.pathname = this[internal].share.url.pathname : this[internal].share.pathname;
+                    var _a;
+                    var _b;
+                    return (_a = (_b = this[internal].share).pathname) !== null && _a !== void 0 ? _a : _b.pathname = this[internal].share.url.pathname;
                 }
                 get search() {
-                    return this[internal].share.search === global_1.undefined ? this[internal].share.search = this[internal].share.url.search : this[internal].share.search;
+                    var _a;
+                    var _b;
+                    return (_a = (_b = this[internal].share).search) !== null && _a !== void 0 ? _a : _b.search = this[internal].share.url.search;
                 }
                 get query() {
-                    return this[internal].share.query === global_1.undefined ? this[internal].share.query = this.search || this.href[this.href.length - this.fragment.length - 1] === '?' && '?' || '' : this[internal].share.query;
+                    var _a;
+                    var _b;
+                    return (_a = (_b = this[internal].share).query) !== null && _a !== void 0 ? _a : _b.query = this.search || this.href[this.href.length - this.fragment.length - 1] === '?' && '?' || '';
                 }
                 get hash() {
-                    return this[internal].share.hash === global_1.undefined ? this[internal].share.hash = this[internal].share.url.hash : this[internal].share.hash;
+                    var _a;
+                    var _b;
+                    return (_a = (_b = this[internal].share).hash) !== null && _a !== void 0 ? _a : _b.hash = this[internal].share.url.hash;
                 }
                 get fragment() {
-                    return this[internal].share.fragment === global_1.undefined ? this[internal].share.fragment = this.hash || this.href[this.href.length - 1] === '#' && '#' || '' : this[internal].share.fragment;
+                    var _a;
+                    var _b;
+                    return (_a = (_b = this[internal].share).fragment) !== null && _a !== void 0 ? _a : _b.fragment = this.hash || this.href[this.href.length - 1] === '#' && '#' || '';
                 }
                 get searchParams() {
-                    return this[internal].searchParams === global_1.undefined ? this[internal].searchParams = new global_1.URLSearchParams(this.search) : this[internal].searchParams;
+                    var _a;
+                    var _b;
+                    return (_a = (_b = this[internal]).searchParams) !== null && _a !== void 0 ? _a : _b.searchParams = new global_1.URLSearchParams(this.search);
                 }
                 toString() {
                     return this.href;
@@ -4787,7 +4900,7 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            exports.identity = exports.apply = exports.currentTarget = exports.wait = exports.once = exports.bind = exports.delegate = exports.listen = exports.define = exports.element = exports.text = exports.svg = exports.html = exports.frag = exports.shadow = exports.proxy = exports.API = exports.SVG = exports.HTML = exports.Shadow = void 0;
+            exports.identity = exports.apply = exports.currentTarget = exports.wait = exports.once = exports.bind = exports.delegate = exports.listen = exports.defrag = exports.define = exports.element = exports.text = exports.svg = exports.html = exports.frag = exports.shadow = exports.proxy = exports.API = exports.SVG = exports.HTML = exports.Shadow = void 0;
             _dereq_('spica/global');
             var builder_1 = _dereq_('./src/builder');
             Object.defineProperty(exports, 'Shadow', {
@@ -4862,6 +4975,12 @@ require = function () {
                 enumerable: true,
                 get: function () {
                     return dom_1.define;
+                }
+            });
+            Object.defineProperty(exports, 'defrag', {
+                enumerable: true,
+                get: function () {
+                    return dom_1.defrag;
                 }
             });
             var listener_1 = _dereq_('./src/util/listener');
@@ -4955,33 +5074,26 @@ require = function () {
                             return build(global_1.undefined, global_1.undefined, attrs);
                         if (typeof children === 'function')
                             return build(attrs, global_1.undefined, children);
-                        if (attrs !== global_1.undefined && isChildren(attrs))
+                        if (attrs !== global_1.undefined && isElChildren(attrs))
                             return build(global_1.undefined, attrs, factory);
-                        const node = formatter(elem(factory || defaultFactory, attrs, children));
+                        const node = formatter(elem(factory, attrs, children));
                         return node.nodeType === 1 ? new proxy_1.Elem(node, children) : new proxy_1.Elem(node.host, children, node);
                     };
-                    function isChildren(children) {
-                        return typeof children !== 'object' || alias_1.ObjectValues(children).slice(-1).every(val => typeof val === 'object');
+                    function isElChildren(children) {
+                        if (typeof children !== 'object')
+                            return true;
+                        for (const i in children) {
+                            if (!alias_1.hasOwnProperty(children, i))
+                                continue;
+                            return typeof children[i] === 'object';
+                        }
+                        return true;
                     }
                     function elem(factory, attrs, children) {
-                        const el = factory(baseFactory, tag, attrs || {}, children);
+                        const el = factory ? dom_1.define(factory(baseFactory, tag, attrs || {}, children), attrs) : baseFactory(tag, attrs);
                         if (tag !== el.tagName.toLowerCase())
                             throw new Error(`TypedDOM: Expected tag name is "${ tag }" but actually "${ el.tagName.toLowerCase() }".`);
-                        if (factory !== defaultFactory) {
-                            if (attrs)
-                                for (let i = 0, names = alias_1.ObjectKeys(attrs); i < names.length; ++i) {
-                                    const name = names[i];
-                                    const value = attrs[name];
-                                    if (typeof value !== 'function')
-                                        continue;
-                                    el.removeEventListener(name, value);
-                                }
-                            dom_1.define(el, attrs);
-                        }
                         return el;
-                    }
-                    function defaultFactory(factory, tag, attrs) {
-                        return factory(tag, attrs);
                     }
                 }
             }
@@ -5089,6 +5201,26 @@ require = function () {
                         return this.query_ = `.${ this.id }`;
                     }
                 }
+                scope(child) {
+                    const style = child.element;
+                    switch (false) {
+                    case 'type' in style:
+                    case 'media' in style:
+                    case style.tagName === 'STYLE':
+                        return;
+                    }
+                    const target = /(^|[,}])(\s*)\$scope(?![\w-])(?=[^;{}]*{)/g;
+                    const html = style.innerHTML;
+                    if (html.search(target) === -1)
+                        return;
+                    const query = this.query;
+                    style.innerHTML = html.replace(target, `$1$2${ query }`);
+                    if (!style.firstElementChild)
+                        return;
+                    for (let es = style.children, i = 0, len = es.length; i < len; ++i) {
+                        es[0].remove();
+                    }
+                }
                 observe(children) {
                     const descs = {};
                     for (const name of alias_1.ObjectKeys(children)) {
@@ -5128,26 +5260,6 @@ require = function () {
                     }
                     return alias_1.ObjectDefineProperties(children, descs);
                 }
-                scope(child) {
-                    const style = child.element;
-                    switch (false) {
-                    case 'type' in style:
-                    case 'media' in style:
-                    case style.tagName === 'STYLE':
-                        return;
-                    }
-                    const target = /(^|[,}])(\s*)\$scope(?![\w-])(?=[^;{}]*{)/g;
-                    const html = style.innerHTML;
-                    if (html.search(target) === -1)
-                        return;
-                    const query = this.query;
-                    style.innerHTML = html.replace(target, (_, frag, space) => `${ frag }${ space }${ query }`);
-                    if (!style.firstElementChild)
-                        return;
-                    for (let es = style.children, i = 0, len = es.length; i < len; ++i) {
-                        es[0].remove();
-                    }
-                }
                 get children() {
                     switch (this.type) {
                     case 1:
@@ -5169,7 +5281,7 @@ require = function () {
                 set children(children) {
                     const removedChildren = [];
                     const addedChildren = [];
-                    let isChanged = false;
+                    let isMutated = false;
                     switch (this.type) {
                     case 0:
                         return;
@@ -5182,7 +5294,7 @@ require = function () {
                             targetChildren.data = newText;
                             if (newText === oldText)
                                 return;
-                            this.element.dispatchEvent(new global_1.Event('change', {
+                            this.element.dispatchEvent(new global_1.Event('mutate', {
                                 bubbles: false,
                                 cancelable: true
                             }));
@@ -5205,7 +5317,7 @@ require = function () {
                                         addedChildren.push(newChild);
                                     }
                                     this.container.insertBefore(newChild.element, el);
-                                    isChanged = true;
+                                    isMutated = true;
                                 }
                                 targetChildren.push(newChild);
                             }
@@ -5214,7 +5326,7 @@ require = function () {
                                 if (!proxies.has(el))
                                     continue;
                                 removedChildren.push(proxy(this.container.removeChild(el)));
-                                isChanged = true;
+                                isMutated = true;
                             }
                             break;
                         }
@@ -5244,7 +5356,7 @@ require = function () {
                                 this.isPartialUpdate = true;
                                 targetChildren[name] = sourceChildren[name];
                                 this.isPartialUpdate = false;
-                                isChanged = true;
+                                isMutated = true;
                             }
                             break;
                         }
@@ -5267,8 +5379,8 @@ require = function () {
                             element.dispatchEvent(ev);
                         }
                     }
-                    if (isChanged) {
-                        this.element.dispatchEvent(new global_1.Event('change', {
+                    if (isMutated) {
+                        this.element.dispatchEvent(new global_1.Event('mutate', {
                             bubbles: false,
                             cancelable: true
                         }));
@@ -5294,7 +5406,7 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            exports.define = exports.element = exports.text = exports.svg = exports.html = exports.frag = exports.shadow = void 0;
+            exports.defrag = exports.isChildren = exports.define = exports.element = exports.text = exports.svg = exports.html = exports.frag = exports.shadow = void 0;
             const global_1 = _dereq_('spica/global');
             const alias_1 = _dereq_('spica/alias');
             const memoize_1 = _dereq_('spica/memoize');
@@ -5447,6 +5559,7 @@ require = function () {
             function isChildren(o) {
                 return !!(o === null || o === void 0 ? void 0 : o[global_1.Symbol.iterator]);
             }
+            exports.isChildren = isChildren;
             function equal(node, data) {
                 return typeof data === 'string' ? 'wholeText' in node && node.data === data : node === data;
             }
@@ -5456,6 +5569,17 @@ require = function () {
                 }
                 return node;
             }
+            function defrag(nodes) {
+                const acc = [];
+                for (let i = 0; i < nodes.length; ++i) {
+                    const node = nodes[i];
+                    if (node === '')
+                        continue;
+                    acc.length > 0 && typeof node === 'string' && typeof nodes[i - 1] === 'string' ? acc[acc.length - 1] += node : acc.push(node);
+                }
+                return acc;
+            }
+            exports.defrag = defrag;
         },
         {
             'spica/alias': 4,
@@ -5718,6 +5842,7 @@ require = function () {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.Config = exports.scope = void 0;
+            const alias_1 = _dereq_('spica/alias');
             const assign_1 = _dereq_('spica/assign');
             var scope_1 = _dereq_('./config/scope');
             Object.defineProperty(exports, 'scope', {
@@ -5728,6 +5853,7 @@ require = function () {
             });
             class Config {
                 constructor(option) {
+                    var _a;
                     this.areas = ['body'];
                     this.link = 'a, area';
                     this.form = 'form:not([method])';
@@ -5755,20 +5881,21 @@ require = function () {
                     this.sequence = new Sequence();
                     this.progressbar = 'display:none;position:absolute;bottom:0;left:0;width:0;height:2px;background:rgb(40, 105, 255);';
                     this.scope = {};
-                    void Object.defineProperties(this.update, {
+                    void alias_1.ObjectDefineProperties(this.update, {
                         ignore: {
                             enumerable: false,
                             set(value) {
                                 this.ignores['_'] = value;
                             },
                             get() {
-                                return Object.keys(this.ignores).map(i => this.ignores[i]).filter(s => s.trim().length > 0).join(',');
+                                return alias_1.ObjectKeys(this.ignores).map(i => this.ignores[i]).filter(s => s.trim().length > 0).join(',');
                             }
                         }
                     });
                     void assign_1.extend(this, option);
+                    void assign_1.overwrite(this.scope, (_a = option === null || option === void 0 ? void 0 : option.scope) !== null && _a !== void 0 ? _a : {});
                     this.fetch.headers = new Headers(this.fetch.headers);
-                    void Object.freeze(this);
+                    void alias_1.ObjectFreeze(this);
                     void this.fetch.headers.set('X-Requested-With', 'XMLHttpRequest');
                     void this.fetch.headers.set('X-Pjax', '1');
                 }
@@ -5808,6 +5935,7 @@ require = function () {
         },
         {
             './config/scope': 106,
+            'spica/alias': 4,
             'spica/assign': 6
         }
     ],
@@ -5816,23 +5944,26 @@ require = function () {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.scope = void 0;
+            const alias_1 = _dereq_('spica/alias');
             const router_1 = _dereq_('../../../../lib/router');
             const config_1 = _dereq_('../../../domain/data/config');
             const sequence_1 = _dereq_('spica/sequence');
             const maybe_1 = _dereq_('spica/maybe');
             const assign_1 = _dereq_('spica/assign');
             function scope(config, path) {
+                var _a;
                 const scope = {
                     '/': {},
                     ...config.scope
                 };
-                return sequence_1.Sequence.from(Object.keys(scope).sort().reverse()).dropWhile(pattern => !!!router_1.compare(pattern, path.orig) && !router_1.compare(pattern, path.dest)).take(1).filter(pattern => !!router_1.compare(pattern, path.orig) && router_1.compare(pattern, path.dest)).map(pattern => scope[pattern]).map(option => option ? maybe_1.Just(new config_1.Config(assign_1.extend({}, config, option))) : maybe_1.Nothing).extract().reduce((_, m) => m, maybe_1.Nothing);
+                return (_a = sequence_1.Sequence.from(alias_1.ObjectKeys(scope).sort().reverse()).dropWhile(pattern => !!!router_1.compare(pattern, path.orig) && !router_1.compare(pattern, path.dest)).take(1).filter(pattern => !!router_1.compare(pattern, path.orig) && router_1.compare(pattern, path.dest)).map(pattern => scope[pattern]).map(option => option ? maybe_1.Just(new config_1.Config(assign_1.extend({ scope: option.scope && assign_1.overwrite(config.scope, option.scope) }, config, option))) : maybe_1.Nothing).extract()[0]) !== null && _a !== void 0 ? _a : maybe_1.Nothing;
             }
             exports.scope = scope;
         },
         {
             '../../../../lib/router': 140,
             '../../../domain/data/config': 105,
+            'spica/alias': 4,
             'spica/assign': 6,
             'spica/maybe': 24,
             'spica/sequence': 86
@@ -5843,6 +5974,7 @@ require = function () {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.RouterEventLocation = exports.RouterEventRequest = exports.RouterEventMethod = exports.RouterEventType = exports.RouterEventSource = exports.RouterEvent = void 0;
+            const alias_1 = _dereq_('spica/alias');
             const dom_1 = _dereq_('../../../lib/dom');
             const url_1 = _dereq_('spica/url');
             const typed_dom_1 = _dereq_('typed-dom');
@@ -5853,7 +5985,7 @@ require = function () {
                     this.source = this.original[typed_dom_1.currentTarget];
                     this.request = new RouterEventRequest(this.source);
                     this.location = new RouterEventLocation(this.request.url);
-                    void Object.freeze(this);
+                    void alias_1.ObjectFreeze(this);
                 }
             }
             exports.RouterEvent = RouterEvent;
@@ -5903,7 +6035,7 @@ require = function () {
                         throw new TypeError();
                     })();
                     this.body = (() => this.source instanceof RouterEventSource.Form && this.method === RouterEventMethod.POST ? new FormData(this.source) : null)();
-                    void Object.freeze(this);
+                    void alias_1.ObjectFreeze(this);
                 }
             }
             exports.RouterEventRequest = RouterEventRequest;
@@ -5911,13 +6043,14 @@ require = function () {
                 constructor(dest) {
                     this.dest = dest;
                     this.orig = new url_1.URL(url_1.standardize(window.location.href));
-                    void Object.freeze(this);
+                    void alias_1.ObjectFreeze(this);
                 }
             }
             exports.RouterEventLocation = RouterEventLocation;
         },
         {
             '../../../lib/dom': 137,
+            'spica/alias': 4,
             'spica/url': 92,
             'typed-dom': 94
         }
@@ -5973,12 +6106,13 @@ require = function () {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.RouterEntityState = exports.RouterEntity = void 0;
+            const alias_1 = _dereq_('spica/alias');
             class RouterEntity {
                 constructor(config, event, state) {
                     this.config = config;
                     this.event = event;
                     this.state = state;
-                    void Object.freeze(this);
+                    void alias_1.ObjectFreeze(this);
                 }
             }
             exports.RouterEntity = RouterEntity;
@@ -5986,18 +6120,19 @@ require = function () {
                 constructor(process, scripts) {
                     this.process = process;
                     this.scripts = scripts;
-                    void Object.freeze(this);
+                    void alias_1.ObjectFreeze(this);
                 }
             }
             exports.RouterEntityState = RouterEntityState;
         },
-        {}
+        { 'spica/alias': 4 }
     ],
     110: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.FetchResponse = void 0;
+            const alias_1 = _dereq_('spica/alias');
             const html_1 = _dereq_('../../../../../../lib/html');
             const url_1 = _dereq_('spica/url');
             class FetchResponse {
@@ -6008,20 +6143,21 @@ require = function () {
                     this.document = this.xhr.responseXML.cloneNode(true);
                     if (url.origin !== new url_1.URL(xhr.responseURL, window.location.href).origin)
                         throw new Error(`Redirected to another origin.`);
-                    void Object.defineProperty(this.document, 'URL', {
+                    void alias_1.ObjectDefineProperty(this.document, 'URL', {
                         configurable: true,
                         enumerable: true,
                         value: url.href,
                         writable: false
                     });
                     void html_1.fix(this.document);
-                    void Object.freeze(this);
+                    void alias_1.ObjectFreeze(this);
                 }
             }
             exports.FetchResponse = FetchResponse;
         },
         {
             '../../../../../../lib/html': 139,
+            'spica/alias': 4,
             'spica/url': 92
         }
     ],
@@ -6429,6 +6565,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.escape = exports._evaluate = exports._fetch = exports.script = void 0;
             const global_1 = _dereq_('spica/global');
+            const alias_1 = _dereq_('spica/alias');
             const error_1 = _dereq_('../../../../../lib/error');
             const promise_1 = _dereq_('spica/promise');
             const either_1 = _dereq_('spica/either');
@@ -6544,12 +6681,13 @@ require = function () {
             function retry(script) {
                 if (new url_1.URL(url_1.standardize(script.src)).origin === new url_1.URL(url_1.standardize(window.location.href)).origin)
                     return promise_1.AtomicPromise.reject(new Error());
-                script = typed_dom_1.html('script', Object.values(script.attributes).reduce((o, {name, value}) => (o[name] = value, o), {}), [...script.childNodes]);
+                script = typed_dom_1.html('script', alias_1.ObjectValues(script.attributes).reduce((o, {name, value}) => (o[name] = value, o), {}), [...script.childNodes]);
                 return new promise_1.AtomicPromise((resolve, reject) => (void script.addEventListener('load', () => void resolve(global_1.undefined)), void script.addEventListener('error', reject), void document.body.appendChild(script), void script.remove()));
             }
         },
         {
             '../../../../../lib/error': 138,
+            'spica/alias': 4,
             'spica/array': 5,
             'spica/clock': 11,
             'spica/either': 15,
@@ -6875,7 +7013,7 @@ require = function () {
                     router: router_1.route
                 }) {
                     let result;
-                    void click(url, event => result = io.router(new router_1.Config(assign_1.extend({}, option, { replace: '*' })), new router_1.RouterEvent(event), process_1.process, io));
+                    void click(url, event => result = io.router(new router_1.Config(assign_1.assign({}, option, { replace: '*' })), new router_1.RouterEvent(event), process_1.process, io));
                     return result;
                 }
                 static sync(isPjaxPage) {
@@ -7341,6 +7479,7 @@ require = function () {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             exports._match = exports._expand = exports.compare = exports.router = void 0;
+            const alias_1 = _dereq_('spica/alias');
             const url_1 = _dereq_('spica/url');
             const sequence_1 = _dereq_('spica/sequence');
             const curry_1 = _dereq_('spica/curry');
@@ -7349,7 +7488,7 @@ require = function () {
             function router(config) {
                 return url => {
                     const {path, pathname} = new url_1.URL(url_1.standardize(url, window.location.href));
-                    return sequence_1.Sequence.from(Object.keys(config).filter(p => p[0] === '/').sort().reverse()).filter(curry_1.curry(flip_1.flip(compare))(pathname)).map(pattern => config[pattern]).take(1).extract().pop().call(config, path);
+                    return sequence_1.Sequence.from(alias_1.ObjectKeys(config).filter(p => p[0] === '/').sort().reverse()).filter(curry_1.curry(flip_1.flip(compare))(pathname)).map(pattern => config[pattern]).take(1).extract().pop().call(config, path);
                 };
             }
             exports.router = router;
@@ -7394,6 +7533,7 @@ require = function () {
             exports._match = match;
         },
         {
+            'spica/alias': 4,
             'spica/curry': 14,
             'spica/flip': 17,
             'spica/memoize': 25,
