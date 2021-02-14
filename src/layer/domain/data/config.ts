@@ -1,5 +1,6 @@
-import { Config as Option, Sequence as ISequence } from '../../../../';
 import { DeepRequired } from 'spica/type';
+import { ObjectDefineProperties, ObjectFreeze, ObjectKeys } from 'spica/alias';
+import { Config as Option, Sequence as ISequence } from '../../../../';
 import { URL, StandardURL } from 'spica/url';
 import { extend } from 'spica/assign';
 
@@ -7,14 +8,14 @@ export { scope } from './config/scope';
 
 export class Config implements DeepRequired<Option, Config['scope']> {
   constructor(option: Option) {
-    void Object.defineProperties(this.update, {
+    void ObjectDefineProperties(this.update, {
       ignore: {
         enumerable: false,
         set(this: Config['update'], value: string) {
           this.ignores['_'] = value;
         },
         get(this: Config['update']): string {
-          return Object.keys(this.ignores)
+          return ObjectKeys(this.ignores)
             .map(i => this.ignores[i])
             .filter(s => s.trim().length > 0)
             .join(',');
@@ -23,7 +24,7 @@ export class Config implements DeepRequired<Option, Config['scope']> {
     });
     void extend(this, option);
     this.fetch.headers = new Headers(this.fetch.headers);
-    void Object.freeze(this);
+    void ObjectFreeze(this);
     void this.fetch.headers.set('X-Requested-With', 'XMLHttpRequest');
     void this.fetch.headers.set('X-Pjax', '1');
   }

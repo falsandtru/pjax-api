@@ -1,3 +1,4 @@
+import { ObjectKeys } from 'spica/alias';
 import { URL, StandardURL, standardize } from 'spica/url';
 import { Sequence } from 'spica/sequence';
 import { curry } from 'spica/curry';
@@ -7,7 +8,7 @@ import { memoize } from 'spica/memoize';
 export function router<T>(config: Record<string, (path: string) => T>): (url: string) => T {
   return (url: string) => {
     const { path, pathname } = new URL(standardize(url, window.location.href));
-    return Sequence.from(Object.keys(config).filter(p => p[0] === '/').sort().reverse())
+    return Sequence.from(ObjectKeys(config).filter(p => p[0] === '/').sort().reverse())
       .filter(curry(flip(compare))(pathname))
       .map(pattern => config[pattern])
       .take(1)

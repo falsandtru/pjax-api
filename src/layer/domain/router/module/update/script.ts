@@ -1,4 +1,5 @@
 import { undefined } from 'spica/global';
+import { ObjectValues } from 'spica/alias';
 import { FatalError } from '../../../../../lib/error';
 import { AtomicPromise } from 'spica/promise';
 import { Cancellee } from 'spica/cancellation';
@@ -214,7 +215,7 @@ export function escape(script: HTMLScriptElement): () => undefined {
 
 function retry(script: HTMLScriptElement): AtomicPromise<undefined> {
   if (new URL(standardize(script.src)).origin === new URL(standardize(window.location.href)).origin) return AtomicPromise.reject(new Error());
-  script = html('script', Object.values(script.attributes).reduce((o, { name, value }) => (o[name] = value, o), {}), [...script.childNodes]);
+  script = html('script', ObjectValues(script.attributes).reduce((o, { name, value }) => (o[name] = value, o), {}), [...script.childNodes]);
   return new AtomicPromise((resolve, reject) => (
     void script.addEventListener('load', () => void resolve(undefined)),
     void script.addEventListener('error', reject),

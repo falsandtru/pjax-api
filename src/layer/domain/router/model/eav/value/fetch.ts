@@ -1,3 +1,4 @@
+import { ObjectDefineProperty, ObjectFreeze } from 'spica/alias';
 import { fix } from '../../../../../../lib/html';
 import { URL, StandardURL } from 'spica/url';
 
@@ -10,7 +11,7 @@ export class FetchResponse {
     assert([...this.document.querySelectorAll('link')].every(el => !el.href.startsWith('about:')));
     assert([...this.document.querySelectorAll('script')].every(el => !el.src.startsWith('about:')));
     if (url.origin !== new URL(xhr.responseURL, window.location.href).origin) throw new Error(`Redirected to another origin.`);
-    void Object.defineProperty(this.document, 'URL', {
+    void ObjectDefineProperty(this.document, 'URL', {
       configurable: true,
       enumerable: true,
       value: url.href,
@@ -18,7 +19,7 @@ export class FetchResponse {
     });
     void fix(this.document);
     assert(this.document.URL === url.href);
-    void Object.freeze(this);
+    void ObjectFreeze(this);
   }
   public readonly header: (name: string) => string | null =
     name => this.xhr.getResponseHeader(name);

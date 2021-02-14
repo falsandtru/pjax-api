@@ -1,3 +1,4 @@
+import { ObjectKeys } from 'spica/alias';
 import { Config as Option } from '../../../../../';
 import { compare } from '../../../../lib/router';
 import { Config } from '../../../domain/data/config';
@@ -14,7 +15,7 @@ export function scope(
   }
 ): Maybe<Config> {
   const scope = { '/': {}, ...config.scope };
-  return Sequence.from(Object.keys(scope).sort().reverse())
+  return Sequence.from(ObjectKeys(scope).sort().reverse())
     .dropWhile(pattern =>
       !! !compare(pattern, path.orig)
       && !compare(pattern, path.dest))
