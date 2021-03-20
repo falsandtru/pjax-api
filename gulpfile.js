@@ -1,5 +1,5 @@
 const gulp = require('gulp');
-const { series, parallel } = gulp;
+const { series } = gulp;
 const glob = require('glob');
 const shell = cmd => require('child_process').execSync(cmd, { stdio: [0, 1, 2] });
 const del = require('del');
@@ -64,28 +64,28 @@ const config = {
   ]
 };
 
+function parallel(...tasks) {
+  return () =>
+    shell(`concurrently ${tasks.map(task => `"gulp ${task}"`).join(' ')}`);
+}
+
 function compile(src, watch = false) {
   let done = true;
-  const b = browserify(Object.values(src).map(p => glob.sync(p)), {
-    cache: {},
-    packageCache: {},
-  })
+  return browserify(
+    Object.values(src).map(p => glob.sync(p)),
+    {
+      cache: {},
+      packageCache: {},
+    })
     .require(`./index.ts`, { expose: pkg.name })
-    .plugin(tsify, { global: true, ...require('./tsconfig.json').compilerOptions });
-  return bundle();
-
-  function bundle() {
-    console.time('bundle');
-    return b
-      .bundle()
-      .on("error", err => done = console.log(err + '') || watch)
-      .pipe(source(`${pkg.name}.js`))
-      .pipe(buffer())
-      .pipe($.derequire())
-      .once('finish', () => console.timeEnd('bundle'))
-      .once("finish", () => done || process.exit(1))
-      .pipe($.footer(config.module));
-  }
+    .plugin(tsify, { global: true, ...require('./tsconfig.json').compilerOptions })
+    .bundle()
+    .on("error", err => done = console.log(err + '') || watch)
+    .pipe(source(`${pkg.name}.js`))
+    .pipe(buffer())
+    .pipe($.derequire())
+    .once("finish", () => done || process.exit(1))
+    .pipe($.footer(config.module));
 }
 
 gulp.task('ts:dev', () =>
