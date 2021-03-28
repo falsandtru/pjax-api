@@ -8,7 +8,7 @@ import { URL, StandardURL, standardize } from 'spica/url';
 import { Supervisor } from 'spica/supervisor';
 import { Cancellation } from 'spica/cancellation';
 import { Just } from 'spica/maybe';
-import { never } from 'spica/clock';
+import { never } from 'spica/promise';
 import { bind } from 'typed-dom';
 
 void bind(window, 'pjax:unload', () =>
