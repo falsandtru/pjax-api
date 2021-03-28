@@ -103,9 +103,7 @@ gulp.task('ts:dist', () =>
   compile(config.ts.dist.src)
     .pipe($.unassert())
     .pipe($.header(config.banner))
-    .pipe(gulp.dest(config.ts.dist.dest))
     .pipe(gulp.dest(config.site.js))
-    .pipe($.minify({ output: { comments: /^!/ }, ext: { min: '.min.js' } }))
     .pipe(gulp.dest(config.ts.dist.dest)));
 
 gulp.task('ts:view', () =>
