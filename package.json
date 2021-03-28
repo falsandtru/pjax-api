@@ -32,6 +32,7 @@
     "browserify": "^17.0.0",
     "concurrently": "^6.0.0",
     "del": "4.1.0",
+    "espurify": "~2.0.1",
     "gulp": "^4.0.2",
     "gulp-derequire": "^3.0.0",
     "gulp-footer": "^2.0.2",
