@@ -560,9 +560,7 @@ require = function () {
                             ]
                         };
                     }
-                    if (LRU[1] + LFU[1] === 0)
-                        return;
-                    if ((LRU[0] + LFU[0]) % this.frequency)
+                    if ((LRU[0] + LFU[0]) % this.frequency || LRU[1] + LFU[1] === 0)
                         return;
                     const rateR = rate(window, LRU[0], LRU[0] + LFU[0], LRU[1], LRU[1] + LFU[1]);
                     const rateF = rate(window, LFU[0], LRU[0] + LFU[0], LFU[1], LRU[1] + LFU[1]) * indexes.LRU.length / indexes.LFU.length | 0;
@@ -6071,7 +6069,7 @@ require = function () {
                 return typeof data === 'string' ? 'wholeText' in node && node.data === data : node === data;
             }
             function append(node, children, i = 0) {
-                for (let len = children.length; i < len; ++i) {
+                for (const len = children.length; i < len; ++i) {
                     node.append(children[i]);
                 }
                 return node;
