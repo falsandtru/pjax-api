@@ -8,6 +8,7 @@
     "strictFunctionTypes": false,
     "noUnusedParameters": true,
     "noUnusedLocals": true,
+    "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
     "suppressImplicitAnyIndexErrors": true,
     "noFallthroughCasesInSwitch": true,
