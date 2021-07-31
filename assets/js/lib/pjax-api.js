@@ -216,13 +216,13 @@ require = function () {
             const array_1 = _dereq_('./array');
             exports.assign = template((prop, target, source) => target[prop] = source[prop]);
             exports.clone = template((prop, target, source) => {
-                switch ((0, type_1.type)(source[prop])) {
+                switch (type_1.type(source[prop])) {
                 case 'Array':
                     return target[prop] = source[prop].slice();
                 case 'Object':
-                    switch ((0, type_1.type)(target[prop])) {
+                    switch (type_1.type(target[prop])) {
                     case 'Object':
-                        return target[prop] = (0, exports.clone)(empty(source[prop]), source[prop]);
+                        return target[prop] = exports.clone(empty(source[prop]), source[prop]);
                     default:
                         return target[prop] = source[prop];
                     }
@@ -231,71 +231,71 @@ require = function () {
                 }
             });
             exports.extend = template((prop, target, source) => {
-                switch ((0, type_1.type)(source[prop])) {
+                switch (type_1.type(source[prop])) {
                 case 'undefined':
                     return;
                 case 'Array':
                     return target[prop] = source[prop];
                 case 'Object':
-                    switch ((0, type_1.type)(target[prop])) {
+                    switch (type_1.type(target[prop])) {
                     case 'Object':
-                        return target[prop] = (0, exports.extend)(target[prop], source[prop]);
+                        return target[prop] = exports.extend(target[prop], source[prop]);
                     default:
-                        return target[prop] = (0, exports.extend)(empty(source[prop]), source[prop]);
+                        return target[prop] = exports.extend(empty(source[prop]), source[prop]);
                     }
                 default:
                     return target[prop] = source[prop];
                 }
             });
             exports.merge = template((prop, target, source) => {
-                switch ((0, type_1.type)(source[prop])) {
+                switch (type_1.type(source[prop])) {
                 case 'undefined':
                     return;
                 case 'Array':
-                    switch ((0, type_1.type)(target[prop])) {
+                    switch (type_1.type(target[prop])) {
                     case 'Array':
-                        return target[prop] = (0, array_1.push)(target[prop], source[prop]);
+                        return target[prop] = array_1.push(target[prop], source[prop]);
                     default:
                         return target[prop] = source[prop].slice();
                     }
                 case 'Object':
-                    switch ((0, type_1.type)(target[prop])) {
+                    switch (type_1.type(target[prop])) {
                     case 'Object':
-                        return target[prop] = (0, exports.merge)(target[prop], source[prop]);
+                        return target[prop] = exports.merge(target[prop], source[prop]);
                     default:
-                        return target[prop] = (0, exports.merge)(empty(source[prop]), source[prop]);
+                        return target[prop] = exports.merge(empty(source[prop]), source[prop]);
                     }
                 default:
                     return target[prop] = source[prop];
                 }
             });
             exports.inherit = template((prop, target, source) => {
-                switch ((0, type_1.type)(source[prop])) {
+                switch (type_1.type(source[prop])) {
                 case 'undefined':
                     return;
                 case 'Array':
                     return target[prop] = source[prop].slice();
                 case 'Object':
-                    switch ((0, type_1.type)(target[prop])) {
+                    switch (type_1.type(target[prop])) {
                     case 'Object':
-                        return target[prop] = (0, alias_1.hasOwnProperty)(target, prop) ? (0, exports.inherit)(target[prop], source[prop]) : (0, exports.inherit)((0, alias_1.ObjectCreate)(target[prop]), source[prop]);
+                        return target[prop] = alias_1.hasOwnProperty(target, prop) ? exports.inherit(target[prop], source[prop]) : exports.inherit(alias_1.ObjectCreate(target[prop]), source[prop]);
                     default:
-                        return target[prop] = (0, alias_1.ObjectCreate)(source[prop]);
+                        return target[prop] = alias_1.ObjectCreate(source[prop]);
                     }
                 default:
                     return target[prop] = source[prop];
                 }
             });
             exports.overwrite = template((prop, target, source) => {
-                switch ((0, type_1.type)(source[prop])) {
+                switch (type_1.type(source[prop])) {
                 case 'Array':
                     return target[prop] = source[prop];
                 case 'Object':
-                    switch ((0, type_1.type)(target[prop])) {
+                    switch (type_1.type(target[prop])) {
                     case 'Object':
-                        return target[prop] = (0, exports.overwrite)(target[prop], source[prop]);
+                        return target[prop] = exports.overwrite(target[prop], source[prop]);
                     default:
-                        return target[prop] = (0, exports.overwrite)(empty(source[prop]), source[prop]);
+                        return target[prop] = exports.overwrite(empty(source[prop]), source[prop]);
                     }
                 default:
                     return target[prop] = source[prop];
@@ -304,15 +304,15 @@ require = function () {
             function template(strategy) {
                 return walk;
                 function walk(target, ...sources) {
-                    if ((0, type_1.isPrimitive)(target))
+                    if (type_1.isPrimitive(target))
                         return target;
                     for (let i = 0; i < sources.length; ++i) {
                         const source = sources[i];
                         if (source === target)
                             continue;
-                        if ((0, type_1.isPrimitive)(source))
+                        if (type_1.isPrimitive(source))
                             continue;
-                        const keys = (0, alias_1.ObjectKeys)(source);
+                        const keys = alias_1.ObjectKeys(source);
                         for (let i = 0; i < keys.length; ++i) {
                             strategy(keys[i], target, source);
                         }
@@ -322,11 +322,11 @@ require = function () {
             }
             exports.template = template;
             function empty(source) {
-                switch ((0, type_1.type)(source)) {
+                switch (type_1.type(source)) {
                 case 'Array':
                     return [];
                 case 'Object':
-                    return source instanceof global_1.Object ? {} : (0, alias_1.ObjectCreate)(null);
+                    return source instanceof global_1.Object ? {} : alias_1.ObjectCreate(null);
                 default:
                     return source;
                 }
@@ -373,14 +373,14 @@ require = function () {
                     };
                     this.stack = new stack_1.Stack();
                     this.stats = {
-                        LRU: (0, tuple_1.tuple)(0, 0),
-                        LFU: (0, tuple_1.tuple)(0, 0)
+                        LRU: tuple_1.tuple(0, 0),
+                        LFU: tuple_1.tuple(0, 0)
                     };
                     this.ratio = 50;
-                    this.frequency = (0, alias_1.max)(this.capacity / 100 | 0, 1);
+                    this.frequency = alias_1.max(this.capacity / 100 | 0, 1);
                     if (capacity < 1)
                         throw new Error(`Spica: Cache: Capacity must be 1 or more.`);
-                    (0, assign_1.extend)(this.settings, opts);
+                    assign_1.extend(this.settings, opts);
                     this.space = this.settings.space;
                 }
                 get length() {
@@ -415,9 +415,9 @@ require = function () {
                     let miss = arguments.length < 2 ? false : void 0;
                     let restore;
                     while (this.length === this.capacity || this.size + margin > this.space) {
-                        const list = false || LRU.length === +(restore === LRU) || LFU.length > this.capacity * this.ratio / 100 || LFU.length > this.capacity / 2 && LFU.last.value.clock < this.clock - this.capacity * 8 || LFU.last && LFU.last.value.expiry < (0, clock_1.now)() ? LFU : LRU;
+                        const list = false || LRU.length === +(restore === LRU) || LFU.length > this.capacity * this.ratio / 100 || LFU.length > this.capacity / 2 && LFU.last.value.clock < this.clock - this.capacity * 8 || LFU.last && LFU.last.value.expiry < clock_1.now() ? LFU : LRU;
                         const index = list.last.value;
-                        if (miss !== null && miss !== void 0 ? miss : (0, compare_1.equal)(index.key, key)) {
+                        if (miss !== null && miss !== void 0 ? miss : compare_1.equal(index.key, key)) {
                             miss = false;
                             restore = list;
                             restore.head = restore.last;
@@ -444,7 +444,7 @@ require = function () {
                         (_b = (_a = this.settings).disposer) === null || _b === void 0 ? void 0 : _b.call(_a, value, key);
                         return false;
                     }
-                    const expiry = age === global_1.Infinity ? global_1.Infinity : (0, clock_1.now)() + age;
+                    const expiry = age === global_1.Infinity ? global_1.Infinity : clock_1.now() + age;
                     const record = this.memory.get(key);
                     if (record) {
                         this.settings.disposer && this.stack.push({
@@ -483,7 +483,7 @@ require = function () {
                     if (!record)
                         return;
                     const expiry = record.index.value.expiry;
-                    if (expiry !== global_1.Infinity && expiry <= (0, clock_1.now)()) {
+                    if (expiry !== global_1.Infinity && expiry <= clock_1.now()) {
                         this.dispose(record, true);
                         return;
                     }
@@ -498,7 +498,7 @@ require = function () {
                     if (!record)
                         return false;
                     const expiry = record.index.value.expiry;
-                    if (expiry !== global_1.Infinity && expiry <= (0, clock_1.now)()) {
+                    if (expiry !== global_1.Infinity && expiry <= clock_1.now()) {
                         this.dispose(record, true);
                         return false;
                     }
@@ -602,9 +602,9 @@ require = function () {
             }
             exports.Cache = Cache;
             function rate(window, currHits, currTotal, prevHits, prevTotal) {
-                window = (0, alias_1.min)(currTotal + prevTotal, window);
+                window = alias_1.min(currTotal + prevTotal, window);
                 const currRate = currHits * 100 / currTotal | 0;
-                const currRatio = (0, alias_1.min)(currTotal * 100 / window | 0, 100);
+                const currRatio = alias_1.min(currTotal * 100 / window | 0, 100);
                 const prevRate = prevHits * 100 / prevTotal | 0;
                 const prevRatio = 100 - currRatio;
                 return currRate * currRatio + prevRate * prevRatio | 0;
@@ -685,12 +685,12 @@ require = function () {
                         return noop_1.noop;
                     }
                     this.listeners.add(handler);
-                    return (0, function_1.once)(() => void this.listeners.delete(handler));
+                    return function_1.once(() => void this.listeners.delete(handler));
                     function handler(reason) {
                         try {
                             listener(reason);
                         } catch (reason) {
-                            (0, exception_1.causeAsyncException)(reason);
+                            exception_1.causeAsyncException(reason);
                         }
                     }
                 }
@@ -716,10 +716,10 @@ require = function () {
                     return this.cancelled ? promise_1.AtomicPromise.reject(this.reason) : promise_1.AtomicPromise.resolve(val);
                 }
                 maybe(val) {
-                    return (0, maybe_1.Just)(val).bind(val => this.cancelled ? maybe_1.Nothing : (0, maybe_1.Just)(val));
+                    return maybe_1.Just(val).bind(val => this.cancelled ? maybe_1.Nothing : maybe_1.Just(val));
                 }
                 either(val) {
-                    return (0, either_1.Right)(val).bind(val => this.cancelled ? (0, either_1.Left)(this.reason) : (0, either_1.Right)(val));
+                    return either_1.Right(val).bind(val => this.cancelled ? either_1.Left(this.reason) : either_1.Right(val));
                 }
             }
         },
@@ -849,7 +849,7 @@ require = function () {
             exports.now = now;
             exports.clock = Promise.resolve(undefined);
             function wait(ms) {
-                return ms === 0 ? promise_1.AtomicPromise.resolve(exports.clock) : new promise_1.AtomicPromise(resolve => void (0, global_1.setTimeout)(resolve, ms));
+                return ms === 0 ? promise_1.AtomicPromise.resolve(exports.clock) : new promise_1.AtomicPromise(resolve => void global_1.setTimeout(resolve, ms));
             }
             exports.wait = wait;
             let queue = [];
@@ -873,10 +873,10 @@ require = function () {
                         jobs[i]();
                         jobs[i] = void 0;
                     } catch (reason) {
-                        (0, exception_1.causeAsyncException)(reason);
+                        exception_1.causeAsyncException(reason);
                     }
                 }
-                jobs.length > 1000 && count < jobs.length * 0.5 && jobs.splice((0, alias_1.floor)(jobs.length * 0.9), jobs.length);
+                jobs.length > 1000 && count < jobs.length * 0.5 && jobs.splice(alias_1.floor(jobs.length * 0.9), jobs.length);
             }
         },
         {
@@ -930,9 +930,9 @@ require = function () {
             }
             exports.Copropagator = Copropagator;
             function all(sources, memory) {
-                const before = (0, alias_1.isArray)(sources) ? sources : [...sources];
+                const before = alias_1.isArray(sources) ? sources : [...sources];
                 return promise_1.AtomicPromise.all(before).then(values => {
-                    const after = (0, alias_1.isArray)(sources) ? sources : [...sources];
+                    const after = alias_1.isArray(sources) ? sources : [...sources];
                     const same = after.length === before.length && after.every((_, i) => after[i] === before[i]);
                     if (!memory && same)
                         return values;
@@ -999,7 +999,7 @@ require = function () {
                                     ] : core.sendBuffer.take(),
                                     global_1.Promise.all([
                                         core.settings.resume(),
-                                        core.settings.interval > 0 ? (0, clock_1.wait)(core.settings.interval) : void 0
+                                        core.settings.interval > 0 ? clock_1.wait(core.settings.interval) : void 0
                                     ])
                                 ]);
                                 reply = rpy;
@@ -1027,11 +1027,11 @@ require = function () {
                     const core = this[internal];
                     res(core.result.then(({value}) => value));
                     if (core.settings.trigger !== void 0) {
-                        for (const prop of (0, global_1.Array)().concat(core.settings.trigger)) {
+                        for (const prop of global_1.Array().concat(core.settings.trigger)) {
                             if (prop in this && this.hasOwnProperty(prop))
                                 continue;
                             if (prop in this) {
-                                (0, alias_1.ObjectDefineProperty)(this, prop, {
+                                alias_1.ObjectDefineProperty(this, prop, {
                                     set(value) {
                                         delete this[prop];
                                         this[prop] = value;
@@ -1046,15 +1046,15 @@ require = function () {
                                     configurable: true
                                 });
                             } else {
-                                const desc = (0, alias_1.ObjectGetOwnPropertyDescriptor)(this, prop) || {
+                                const desc = alias_1.ObjectGetOwnPropertyDescriptor(this, prop) || {
                                     value: this[prop],
                                     enumerable: true,
                                     configurable: true,
                                     writable: true
                                 };
-                                (0, alias_1.ObjectDefineProperty)(this, prop, {
+                                alias_1.ObjectDefineProperty(this, prop, {
                                     set(value) {
-                                        (0, alias_1.ObjectDefineProperty)(this, prop, {
+                                        alias_1.ObjectDefineProperty(this, prop, {
                                             ...desc,
                                             value
                                         });
@@ -1070,7 +1070,7 @@ require = function () {
                         }
                     }
                     if (this[internal].settings.run) {
-                        this[internal].settings.delay ? (0, clock_1.tick)(this[Coroutine.init]) : this[Coroutine.init]();
+                        this[internal].settings.delay ? clock_1.tick(this[Coroutine.init]) : this[Coroutine.init]();
                     }
                 }
                 get [alive]() {
@@ -1126,7 +1126,7 @@ require = function () {
             class Internal {
                 constructor(opts) {
                     this.opts = opts;
-                    this.settings = (0, assign_1.extend)({
+                    this.settings = assign_1.extend({
                         run: true,
                         delay: true,
                         capacity: -1,
@@ -1147,7 +1147,7 @@ require = function () {
                                 try {
                                     reply(promise_1.AtomicPromise.reject(new global_1.Error(`Spica: Coroutine: Canceled.`)));
                                 } catch (reason) {
-                                    (0, exception_1.causeAsyncException)(reason);
+                                    exception_1.causeAsyncException(reason);
                                 }
                             }
                         });
@@ -1301,7 +1301,7 @@ require = function () {
             exports.uncurry = uncurry;
             function uncurry_(f) {
                 const arity = f.length;
-                return (...xs) => arity === 0 || xs.length < 2 || xs.length <= arity ? f(...xs) : uncurry_(f(...(0, array_1.shift)(xs, arity)[0]))(...xs);
+                return (...xs) => arity === 0 || xs.length < 2 || xs.length <= arity ? f(...xs) : uncurry_(f(...array_1.shift(xs, arity)[0]))(...xs);
             }
         },
         { './array': 5 }
@@ -1362,9 +1362,20 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            exports.run = exports.once = exports.clear = exports.mapReturn = exports.mapParameters = void 0;
+            exports.run = exports.clear = exports.mapReturn = exports.mapParameters = exports.once = void 0;
             const global_1 = _dereq_('./global');
             const noop_1 = _dereq_('./noop');
+            function once(f) {
+                let result;
+                return function (...as) {
+                    if (f === noop_1.noop)
+                        return result;
+                    result = f.call(this, ...as);
+                    f = noop_1.noop;
+                    return result;
+                };
+            }
+            exports.once = once;
             function mapParameters(f, g) {
                 return (...as) => f(...g(...as));
             }
@@ -1377,18 +1388,8 @@ require = function () {
                 return (...as) => void f(...as);
             }
             exports.clear = clear;
-            function once(f) {
-                return (...as) => {
-                    if (f === noop_1.noop)
-                        return;
-                    f(...as);
-                    f = noop_1.noop;
-                    as = [];
-                };
-            }
-            exports.once = once;
             function run(fs) {
-                const gs = (0, global_1.Array)(fs.length);
+                const gs = global_1.Array(fs.length);
                 try {
                     for (let i = 0; i < fs.length; ++i) {
                         gs[i] = fs[i]();
@@ -1637,7 +1638,7 @@ require = function () {
                     return this.tuple().reverse();
                 }
                 tuple() {
-                    return (0, array_1.unshift)([this.head], this.tail.tuple());
+                    return array_1.unshift([this.head], this.tail.tuple());
                 }
             }
         },
@@ -1887,7 +1888,7 @@ require = function () {
                     } else {
                         const node = nodes[head.prev];
                         const index = this.HEAD = this.CURSOR = node.index;
-                        if (this.index && !(0, compare_1.equal)(node.key, key)) {
+                        if (this.index && !compare_1.equal(node.key, key)) {
                             this.index.delete(node.key, index);
                             this.index.set(key, index);
                         }
@@ -1912,7 +1913,7 @@ require = function () {
                     const nodes = this.nodes;
                     let node;
                     node = nodes[cursor];
-                    if (node && (0, compare_1.equal)(node.key, key))
+                    if (node && compare_1.equal(node.key, key))
                         return this.CURSOR = cursor, node;
                     if (!this.index)
                         throw new Error(`Spica: IxList: Invalid index.`);
@@ -1973,7 +1974,7 @@ require = function () {
                     if (this.length === 0)
                         return this.unshift(key, value);
                     const node = this.last;
-                    if (this.index && !(0, compare_1.equal)(node.key, key)) {
+                    if (this.index && !compare_1.equal(node.key, key)) {
                         this.index.delete(node.key, node.index);
                         this.index.set(key, node.index);
                     }
@@ -1994,7 +1995,7 @@ require = function () {
                     if (this.length === 0)
                         return this.push(key, value);
                     const node = this.head;
-                    if (this.index && !(0, compare_1.equal)(node.key, key)) {
+                    if (this.index && !compare_1.equal(node.key, key)) {
                         this.index.delete(node.key, node.index);
                         this.index.set(key, node.index);
                     }
@@ -2012,7 +2013,7 @@ require = function () {
                     const node = this.nodes[index];
                     if (!node)
                         return;
-                    if (this.index && !(0, compare_1.equal)(node.key, key)) {
+                    if (this.index && !compare_1.equal(node.key, key)) {
                         this.index.delete(node.key, index);
                         this.index.set(key, index);
                     }
@@ -2158,7 +2159,7 @@ require = function () {
                 let val = [];
                 return (...as) => {
                     const b = identify(...as);
-                    if (!(0, compare_1.equal)(key, b)) {
+                    if (!compare_1.equal(key, b)) {
                         key = b;
                         val = f(...as);
                     }
@@ -2184,7 +2185,7 @@ require = function () {
             exports.Applicative = Applicative;
             (function (Applicative) {
                 function ap(af, aa) {
-                    return aa ? af.bind(f => aa.fmap((0, curry_1.curry)(f))) : aa => ap(af, aa);
+                    return aa ? af.bind(f => aa.fmap(curry_1.curry(f))) : aa => ap(af, aa);
                 }
                 Applicative.ap = ap;
             }(Applicative = exports.Applicative || (exports.Applicative = {})));
@@ -2830,7 +2831,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 ap(a) {
                     return core_1.Sequence.ap(this, a);
                 }
@@ -2847,7 +2848,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 bind(f) {
                     return core_1.Sequence.concat(this.fmap(f));
                 }
@@ -2864,7 +2865,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 drop(n) {
                     return new core_1.Sequence((iter = () => this.iterate(), cons) => core_1.Sequence.Iterator.when(iter(), () => cons(), (thunk, recur) => core_1.Sequence.Thunk.index(thunk) < n ? recur() : cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk))));
                 }
@@ -2881,7 +2882,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 dropUntil(f) {
                     return new core_1.Sequence((iter = () => this.iterate(), cons) => core_1.Sequence.Iterator.when(iter(), () => cons(), (thunk, recur) => f(core_1.Sequence.Thunk.value(thunk)) ? recur() : cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk))));
                 }
@@ -2898,7 +2899,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 dropWhile(f) {
                     return new core_1.Sequence((iter = () => this.iterate(), cons) => core_1.Sequence.Iterator.when(iter(), () => cons(), (thunk, recur) => f(core_1.Sequence.Thunk.value(thunk)) ? recur() : cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk))));
                 }
@@ -2915,7 +2916,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 extract() {
                     const acc = [];
                     let iter = () => this.iterate();
@@ -2940,7 +2941,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 filter(f) {
                     return new core_1.Sequence((iter = () => this.iterate(), cons) => core_1.Sequence.Iterator.when(iter(), () => cons(), (thunk, recur) => f(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.index(thunk)) ? cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk)) : recur()));
                 }
@@ -2957,7 +2958,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 filterM(f) {
                     return core_1.Sequence.from([0]).bind(() => {
                         const xs = this.extract();
@@ -2987,7 +2988,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 fmap(f) {
                     return new core_1.Sequence((iter = () => this.iterate()) => core_1.Sequence.Iterator.when(iter(), () => core_1.Sequence.Data.cons(), thunk => core_1.Sequence.Data.cons(f(core_1.Sequence.Thunk.value(thunk)), core_1.Sequence.Thunk.iterator(thunk))));
                 }
@@ -3004,7 +3005,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 foldr(f, z) {
                     return new core_1.Sequence((iter = () => this.reduce().iterate()) => core_1.Sequence.Iterator.when(iter(), () => core_1.Sequence.Data.cons(z), thunk => core_1.Sequence.Data.cons(f(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.resume(core_1.Sequence.Thunk.iterator(thunk)).foldr(f, z))))).bind(s => s);
                 }
@@ -3021,7 +3022,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 group(f) {
                     return new core_1.Sequence(([iter, acc] = [
                         () => this.iterate(),
@@ -3044,7 +3045,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 inits() {
                     return core_1.Sequence.mappend(core_1.Sequence.from([[]]), this.scanl((b, a) => [
                         ...b,
@@ -3064,7 +3065,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 iterate() {
                     return this.iterate_();
                 }
@@ -3106,7 +3107,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 join() {
                     return core_1.Sequence.concat(this);
                 }
@@ -3123,7 +3124,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 map(f) {
                     return new core_1.Sequence((iter = () => this.iterate()) => core_1.Sequence.Iterator.when(iter(), () => core_1.Sequence.Data.cons(), thunk => core_1.Sequence.Data.cons(f(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.index(thunk)), core_1.Sequence.Thunk.iterator(thunk))));
                 }
@@ -3140,7 +3141,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 mapM(f) {
                     return core_1.Sequence.from([0]).bind(() => {
                         const xs = this.extract();
@@ -3172,8 +3173,8 @@ require = function () {
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
             const memoize_1 = _dereq_('../../../../memoize');
-            const memory = (0, memoize_1.memoize)(_ => new global_1.Map());
-            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
+            const memory = memoize_1.memoize(_ => new global_1.Map());
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 memoize() {
                     return new core_1.Sequence(([i, memo] = [
                         0,
@@ -3198,7 +3199,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 permutations() {
                     return core_1.Sequence.from([0]).bind(() => {
                         const xs = this.extract();
@@ -3242,7 +3243,7 @@ require = function () {
             const global_1 = _dereq_('../../../../global');
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 reduce() {
                     return new core_1.Sequence(([i, memo] = [
                         0,
@@ -3266,7 +3267,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 scanl(f, z) {
                     return new core_1.Sequence(([prev, iter, i] = [
                         z,
@@ -3291,7 +3292,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 segs() {
                     return core_1.Sequence.mappend(this.foldr((a, bs) => bs.take(1).bind(b => core_1.Sequence.mappend(core_1.Sequence.from([core_1.Sequence.mappend(core_1.Sequence.from([[a]]), core_1.Sequence.from(b).map(c => [
                             a,
@@ -3311,7 +3312,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 sort(cmp) {
                     return core_1.Sequence.from(this.extract().sort(cmp));
                 }
@@ -3328,7 +3329,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 subsequences() {
                     return core_1.Sequence.mappend(core_1.Sequence.from([[]]), core_1.Sequence.from([0]).bind(() => nonEmptySubsequences(this)));
                 }
@@ -3351,7 +3352,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 tails() {
                     return core_1.Sequence.mappend(core_1.Sequence.from(this.extract().map((_, i, as) => as.slice(i))), core_1.Sequence.from([[]]));
                 }
@@ -3368,7 +3369,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 take(n) {
                     return new core_1.Sequence((iter = () => this.iterate(), cons) => core_1.Sequence.Iterator.when(n > 0 ? iter() : core_1.Sequence.Iterator.done(), () => cons(), thunk => core_1.Sequence.Thunk.index(thunk) + 1 < n ? cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk)) : cons(core_1.Sequence.Thunk.value(thunk))));
                 }
@@ -3385,7 +3386,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 takeUntil(f) {
                     return new core_1.Sequence((iter = () => this.iterate(), cons) => core_1.Sequence.Iterator.when(iter(), () => cons(), thunk => f(core_1.Sequence.Thunk.value(thunk)) ? cons(core_1.Sequence.Thunk.value(thunk)) : cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk))));
                 }
@@ -3402,7 +3403,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 takeWhile(f) {
                     return new core_1.Sequence((iter = () => this.iterate(), cons) => core_1.Sequence.Iterator.when(iter(), () => cons(), thunk => f(core_1.Sequence.Thunk.value(thunk)) ? cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk)) : cons()));
                 }
@@ -3419,7 +3420,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 unique() {
                     const memory = new Set();
                     return this.filter(a => !memory.has(a) && !!memory.add(a));
@@ -3437,7 +3438,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 static concat(as) {
                     return new core_1.Sequence(([ai, bi] = [
                         () => as.iterate(),
@@ -3460,7 +3461,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 static cycle(as) {
                     return new core_1.Sequence(function cycle([iter, i] = [
                         as[Symbol.iterator](),
@@ -3489,7 +3490,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 static difference(a, b, cmp) {
                     return new core_1.Sequence(([ai, bi] = [
                         () => a.iterate(),
@@ -3528,7 +3529,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 static from(as) {
                     return new core_1.Sequence(([iter, i] = [
                         as[Symbol.iterator](),
@@ -3554,7 +3555,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 static intersect(a, b, cmp) {
                     return new core_1.Sequence(([ai, bi] = [
                         () => a.iterate(),
@@ -3584,7 +3585,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 static mappend(l, r) {
                     return core_1.Sequence.mconcat([
                         l,
@@ -3604,7 +3605,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 static mconcat(as) {
                     return [...as].reduce((a, b) => mconcat(a, b), core_1.Sequence.mempty);
                 }
@@ -3634,7 +3635,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            (0, compose_1.compose)(core_1.Sequence, (_a = class extends core_1.Sequence {
+            compose_1.compose(core_1.Sequence, (_a = class extends core_1.Sequence {
             }, _a.mempty = new core_1.Sequence((_, cons) => cons()), _a));
         },
         {
@@ -3649,7 +3650,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            (0, compose_1.compose)(core_1.Sequence, (_a = class extends core_1.Sequence {
+            compose_1.compose(core_1.Sequence, (_a = class extends core_1.Sequence {
             }, _a.mplus = core_1.Sequence.mappend, _a));
         },
         {
@@ -3664,7 +3665,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            (0, compose_1.compose)(core_1.Sequence, (_a = class extends core_1.Sequence {
+            compose_1.compose(core_1.Sequence, (_a = class extends core_1.Sequence {
             }, _a.mzero = core_1.Sequence.mempty, _a));
         },
         {
@@ -3678,7 +3679,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 static pure(a) {
                     return new core_1.Sequence((_, cons) => cons(a));
                 }
@@ -3696,9 +3697,9 @@ require = function () {
             const alias_1 = _dereq_('../../../../alias');
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
-                static random(p = () => (0, alias_1.random)()) {
-                    return typeof p === 'function' ? core_1.Sequence.from(new core_1.Sequence((_, cons) => cons(p(), _))) : this.random().map(r => p[(0, alias_1.floor)(r * p.length)]);
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
+                static random(p = () => alias_1.random()) {
+                    return typeof p === 'function' ? core_1.Sequence.from(new core_1.Sequence((_, cons) => cons(p(), _))) : this.random().map(r => p[alias_1.floor(r * p.length)]);
                 }
             });
         },
@@ -3714,7 +3715,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 static resume(iterator) {
                     return new core_1.Sequence((iter = iterator, cons) => core_1.Sequence.Iterator.when(iter(), () => cons(), thunk => cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk))));
                 }
@@ -3731,7 +3732,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 static Return(a) {
                     return new core_1.Sequence((_, cons) => cons(a));
                 }
@@ -3748,7 +3749,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 static sequence(ms) {
                     return ms.reduce((acc, m) => acc.fmap(bs => core_1.Sequence.mappend(bs, m)), core_1.Sequence.Return(core_1.Sequence.from([])));
                 }
@@ -3765,7 +3766,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 static union(a, b, cmp) {
                     return new core_1.Sequence(([ai, bi] = [
                         () => a.iterate(),
@@ -3807,7 +3808,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
+            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
                 static zip(a, b) {
                     return new core_1.Sequence(([ai, bi] = [
                         () => a.iterate(),
@@ -3867,7 +3868,7 @@ require = function () {
                         cleanup: false
                     };
                     this.relaies = new global_1.WeakSet();
-                    (0, assign_1.extend)(this.settings, opts);
+                    assign_1.extend(this.settings, opts);
                 }
                 monitor(namespace, monitor, options = {}) {
                     if (typeof monitor !== 'function')
@@ -3885,7 +3886,7 @@ require = function () {
                         options
                     };
                     monitors.push(item);
-                    return (0, function_1.once)(() => void this.off(namespace, item));
+                    return function_1.once(() => void this.off(namespace, item));
                 }
                 on(namespace, subscriber, options = {}) {
                     if (typeof subscriber !== 'function')
@@ -3903,7 +3904,7 @@ require = function () {
                         options
                     };
                     subscribers.push(item);
-                    return (0, function_1.once)(() => void this.off(namespace, item));
+                    return function_1.once(() => void this.off(namespace, item));
                 }
                 once(namespace, subscriber) {
                     return this.on(namespace, subscriber, { once: true });
@@ -3917,11 +3918,11 @@ require = function () {
                             const items = subscriber.type === 0 ? node.monitors : node.subscribers;
                             if (items.length === 0 || subscriber.id < items[0].id || subscriber.id > items[items.length - 1].id)
                                 return;
-                            return void (0, array_1.splice)(items, items.indexOf(subscriber), 1);
+                            return void array_1.splice(items, items.indexOf(subscriber), 1);
                         }
                     case 'function': {
                             const items = node.subscribers;
-                            return void (0, array_1.splice)(items, items.findIndex(item => item.listener === subscriber), 1);
+                            return void array_1.splice(items, items.findIndex(item => item.listener === subscriber), 1);
                         }
                     case 'undefined':
                         return void clear(node);
@@ -3945,7 +3946,7 @@ require = function () {
                     const node = this.seekNode(namespace, 1);
                     if (!node)
                         return [];
-                    return (0, array_1.push)(this.refsBelow(node, 0), this.refsBelow(node, 1)).reduce((acc, rs) => (0, array_1.push)(acc, rs), []);
+                    return array_1.push(this.refsBelow(node, 0), this.refsBelow(node, 1)).reduce((acc, rs) => array_1.push(acc, rs), []);
                 }
                 drain(namespace, data, tracker) {
                     const node = this.seekNode(namespace, 1);
@@ -3964,7 +3965,7 @@ require = function () {
                                 const result = item.listener(data, namespace);
                                 tracker && results.push(result);
                             } catch (reason) {
-                                (0, exception_1.causeAsyncException)(reason);
+                                exception_1.causeAsyncException(reason);
                             }
                             i = i < items.length ? i : items.length - 1;
                             for (; i >= 0 && items[i].id > item.id; --i);
@@ -3983,7 +3984,7 @@ require = function () {
                             try {
                                 item.listener(data, namespace);
                             } catch (reason) {
-                                (0, exception_1.causeAsyncException)(reason);
+                                exception_1.causeAsyncException(reason);
                             }
                             i = i < items.length ? i : items.length - 1;
                             for (; i >= 0 && items[i].id > item.id; --i);
@@ -3993,7 +3994,7 @@ require = function () {
                         try {
                             tracker(data, results);
                         } catch (reason) {
-                            (0, exception_1.causeAsyncException)(reason);
+                            exception_1.causeAsyncException(reason);
                         }
                     }
                 }
@@ -4057,7 +4058,7 @@ require = function () {
                         break;
                     --i;
                 }
-                (0, array_1.splice)(subscribers, 0);
+                array_1.splice(subscribers, 0);
                 return monitors.length === 0;
             }
         },
@@ -4095,8 +4096,8 @@ require = function () {
                 }
                 static all(vs) {
                     return new AtomicPromise((resolve, reject) => {
-                        const values = (0, alias_1.isArray)(vs) ? vs : [...vs];
-                        const results = (0, global_1.Array)(values.length);
+                        const values = alias_1.isArray(vs) ? vs : [...vs];
+                        const results = global_1.Array(values.length);
                         let count = 0;
                         for (let i = 0; i < values.length; ++i) {
                             const value = values[i];
@@ -4132,7 +4133,7 @@ require = function () {
                 }
                 static race(vs) {
                     return new AtomicPromise((resolve, reject) => {
-                        const values = (0, alias_1.isArray)(vs) ? vs : [...vs];
+                        const values = alias_1.isArray(vs) ? vs : [...vs];
                         for (let i = 0; i < values.length; ++i) {
                             const value = values[i];
                             if (!isPromiseLike(value)) {
@@ -4165,8 +4166,8 @@ require = function () {
                 }
                 static allSettled(vs) {
                     return new AtomicPromise(resolve => {
-                        const values = (0, alias_1.isArray)(vs) ? vs : [...vs];
-                        const results = (0, global_1.Array)(values.length);
+                        const values = alias_1.isArray(vs) ? vs : [...vs];
+                        const results = global_1.Array(values.length);
                         let count = 0;
                         for (let i = 0; i < values.length; ++i) {
                             const value = values[i];
@@ -4606,7 +4607,7 @@ require = function () {
                                 return this.state;
                             }, { delay: false });
                             this.state = new future_1.AtomicFuture();
-                            this.id = (0, sqid_1.sqid)();
+                            this.id = sqid_1.sqid();
                             this.settings = {
                                 name: '',
                                 capacity: global_1.Infinity,
@@ -4634,7 +4635,7 @@ require = function () {
                             };
                             this.scheduled = false;
                             this.messages = [];
-                            void (0, assign_1.extend)(this.settings, opts);
+                            void assign_1.extend(this.settings, opts);
                             this.name = this.settings.name;
                             if (this.constructor === Supervisor)
                                 throw new global_1.Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: Cannot instantiate abstract classes.`);
@@ -4667,11 +4668,11 @@ require = function () {
                             var _b;
                             this.available = false;
                             void this.clear(reason);
-                            void (0, alias_1.ObjectFreeze)(this.workers);
+                            void alias_1.ObjectFreeze(this.workers);
                             while (this.messages.length > 0) {
                                 const [names, param, , , timer] = this.messages.shift();
                                 const name = typeof names === 'string' ? names : names[Symbol.iterator]().next().value;
-                                timer && void (0, global_1.clearTimeout)(timer);
+                                timer && void global_1.clearTimeout(timer);
                                 void ((_b = this.events_) === null || _b === void 0 ? void 0 : _b.loss.emit([name], [
                                     name,
                                     param
@@ -4679,7 +4680,7 @@ require = function () {
                             }
                             this.alive = false;
                             void this.constructor.instances.delete(this);
-                            void (0, alias_1.ObjectFreeze)(this);
+                            void alias_1.ObjectFreeze(this);
                             void this.settings.destructor(reason);
                             void this.state.bind(reason === void 0 ? void 0 : promise_1.AtomicPromise.reject(reason));
                         }
@@ -4698,7 +4699,7 @@ require = function () {
                         register(name, process, state) {
                             state = state;
                             void this.throwErrorIfNotAvailable();
-                            if ((0, coroutine_1.isCoroutine)(process)) {
+                            if (coroutine_1.isCoroutine(process)) {
                                 const port = process[process.constructor.port];
                                 const proc = {
                                     init: state => state,
@@ -4782,7 +4783,7 @@ require = function () {
                             ]);
                             while (this.messages.length > (this.available ? this.settings.capacity : 0)) {
                                 const [names, param, callback, , timer] = this.messages.shift();
-                                timer && void (0, global_1.clearTimeout)(timer);
+                                timer && void global_1.clearTimeout(timer);
                                 const name = typeof names === 'string' ? names : names[Symbol.iterator]().next().value;
                                 void ((_b = this.events_) === null || _b === void 0 ? void 0 : _b.loss.emit([name], [
                                     name,
@@ -4791,7 +4792,7 @@ require = function () {
                                 try {
                                     void callback(void 0, new global_1.Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: A message overflowed.`));
                                 } catch (reason) {
-                                    void (0, exception_1.causeAsyncException)(reason);
+                                    void exception_1.causeAsyncException(reason);
                                 }
                             }
                             if (this.messages.length === 0)
@@ -4799,7 +4800,7 @@ require = function () {
                             void this.throwErrorIfNotAvailable();
                             void this.schedule();
                             if (timeout > 0 && timeout !== global_1.Infinity) {
-                                this.messages[this.messages.length - 1][4] = (0, global_1.setTimeout)(() => void this.schedule(), timeout + 3);
+                                this.messages[this.messages.length - 1][4] = global_1.setTimeout(() => void this.schedule(), timeout + 3);
                             }
                         }
                         cast(name, param, timeout = this.settings.timeout) {
@@ -4865,7 +4866,7 @@ require = function () {
                                 void this.deliver();
                             });
                             void this.settings.scheduler.call(void 0, p.bind);
-                            this.settings.scheduler === global.requestAnimationFrame && void (0, global_1.setTimeout)(p.bind, 1000);
+                            this.settings.scheduler === global.requestAnimationFrame && void global_1.setTimeout(p.bind, 1000);
                         }
                         deliver() {
                             var _b, _c;
@@ -4887,10 +4888,10 @@ require = function () {
                                 }
                                 if (result === void 0 && Date.now() < expiry)
                                     continue;
-                                void (0, array_1.splice)(this.messages, i, 1);
+                                void array_1.splice(this.messages, i, 1);
                                 void --i;
                                 void --len;
-                                timer && void (0, global_1.clearTimeout)(timer);
+                                timer && void global_1.clearTimeout(timer);
                                 if (result === void 0) {
                                     void ((_c = this.events_) === null || _c === void 0 ? void 0 : _c.loss.emit([name], [
                                         name,
@@ -4899,7 +4900,7 @@ require = function () {
                                     try {
                                         void callback(void 0, new global_1.Error(`Spica: Supervisor: A process has failed.`));
                                     } catch (reason) {
-                                        void (0, exception_1.causeAsyncException)(reason);
+                                        void exception_1.causeAsyncException(reason);
                                     }
                                 } else {
                                     void result.then(reply => void callback(reply), () => void callback(void 0, new global_1.Error(`Spica: Supervisor: A process has failed.`)));
@@ -4950,11 +4951,11 @@ require = function () {
                         destructor(reason) {
                             this.alive = false;
                             this.available = false;
-                            void (0, alias_1.ObjectFreeze)(this);
+                            void alias_1.ObjectFreeze(this);
                             try {
                                 void this.destructor_();
                             } catch (reason) {
-                                void (0, exception_1.causeAsyncException)(reason);
+                                void exception_1.causeAsyncException(reason);
                             }
                             if (this.initiated) {
                                 void this.exit(reason);
@@ -4995,7 +4996,7 @@ require = function () {
                             if (!this.available || now > expiry)
                                 return;
                             return new promise_1.AtomicPromise((resolve, reject) => {
-                                (0, alias_1.isFinite)(expiry) && void (0, global_1.setTimeout)(() => void reject(new global_1.Error()), expiry - now);
+                                alias_1.isFinite(expiry) && void global_1.setTimeout(() => void reject(new global_1.Error()), expiry - now);
                                 this.available = false;
                                 if (!this.initiated) {
                                     void this.init();
@@ -5041,10 +5042,11 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.debounce = exports.throttle = void 0;
             const global_1 = _dereq_('./global');
+            const exception_1 = _dereq_('./exception');
             function throttle(interval, callback, capacity = 1) {
                 let timer = 0;
                 let buffer = [];
-                return data => {
+                return function self(data) {
                     if (capacity === 1) {
                         buffer = [data];
                     } else {
@@ -5053,11 +5055,16 @@ require = function () {
                     }
                     if (timer !== 0)
                         return;
-                    timer = (0, global_1.setTimeout)(() => {
-                        timer = 0;
+                    timer = global_1.setTimeout(async () => {
                         const buf = buffer;
                         buffer = [];
-                        void callback(buf[0], buf);
+                        try {
+                            await callback.call(this, buf[0], buf);
+                        } catch (reason) {
+                            exception_1.causeAsyncException(reason);
+                        }
+                        timer = 0;
+                        buffer.length > 0 && self.call(this, buffer.shift());
                     }, interval);
                 };
             }
@@ -5065,7 +5072,8 @@ require = function () {
             function debounce(delay, callback, capacity = 1) {
                 let timer = 0;
                 let buffer = [];
-                return data => {
+                let callable = true;
+                return function self(data) {
                     if (capacity === 1) {
                         buffer = [data];
                     } else {
@@ -5074,21 +5082,33 @@ require = function () {
                     }
                     if (timer !== 0)
                         return;
-                    timer = (0, global_1.setTimeout)(() => {
+                    timer = global_1.setTimeout(() => {
                         timer = 0;
-                        void (0, global_1.setTimeout)(() => {
+                        void global_1.setTimeout(async () => {
                             if (timer !== 0)
+                                return;
+                            if (!callable)
                                 return;
                             const buf = buffer;
                             buffer = [];
-                            void callback(buf[0], buf);
-                        }, buffer.length > 1 ? delay : 0);
+                            callable = false;
+                            try {
+                                await callback.call(this, buf[0], buf);
+                            } catch (reason) {
+                                exception_1.causeAsyncException(reason);
+                            }
+                            callable = true;
+                            timer === 0 && buffer.length > 0 && self.call(this, buffer.shift());
+                        }, delay);
                     }, delay);
                 };
             }
             exports.debounce = debounce;
         },
-        { './global': 20 }
+        {
+            './exception': 16,
+            './global': 20
+        }
     ],
     95: [
         function (_dereq_, module, exports) {
@@ -5118,7 +5138,7 @@ require = function () {
                     return 'null';
                 const type = typeof value;
                 if (type === 'object') {
-                    const proto = (0, alias_1.ObjectGetPrototypeOf)(value);
+                    const proto = alias_1.ObjectGetPrototypeOf(value);
                     if (proto === ObjectPrototype || proto === null)
                         return 'Object';
                     if (proto === ArrayPrototype)
@@ -5266,7 +5286,7 @@ require = function () {
             }
             exports.standardize = standardize;
             function encode(url) {
-                return url.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]?|[\uDC00-\uDFFF]/g, str => str.length === 2 ? str : '').replace(/%(?![0-9A-F]{2})|[^%\[\]]+/ig, global_1.encodeURI).replace(/\?[^#]+/, query => '?' + query.slice(1).replace(/%[0-9A-F]{2}|%|[^=&]+/ig, str => str[0] === '%' && str.length === 3 ? str : (0, global_1.encodeURIComponent)(str))).replace(/%[0-9A-F]{2}/ig, str => str.toUpperCase()).replace(/#.+/, url.slice(url.indexOf('#')));
+                return url.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]?|[\uDC00-\uDFFF]/g, str => str.length === 2 ? str : '').replace(/%(?![0-9A-F]{2})|[^%\[\]]+/ig, global_1.encodeURI).replace(/\?[^#]+/, query => '?' + query.slice(1).replace(/%[0-9A-F]{2}|%|[^=&]+/ig, str => str[0] === '%' && str.length === 3 ? str : global_1.encodeURIComponent(str))).replace(/%[0-9A-F]{2}/ig, str => str.toUpperCase()).replace(/#.+/, url.slice(url.indexOf('#')));
             }
             exports._encode = encode;
             const internal = Symbol.for('spica/url::internal');
@@ -5376,7 +5396,7 @@ require = function () {
                 }
             }
             exports.ReadonlyURL = ReadonlyURL;
-            ReadonlyURL.get = (0, flip_1.flip)((0, curry_1.uncurry)((0, memoize_1.memoize)(base => (0, memoize_1.memoize)(url => ({
+            ReadonlyURL.get = flip_1.flip(curry_1.uncurry(memoize_1.memoize(base => memoize_1.memoize(url => ({
                 url: new global_1.global.URL(url, base),
                 href: void 0,
                 resource: void 0,
@@ -5589,14 +5609,14 @@ require = function () {
                         if (typeof children !== 'object')
                             return true;
                         for (const i in children) {
-                            if (!(0, alias_1.hasOwnProperty)(children, i))
+                            if (!alias_1.hasOwnProperty(children, i))
                                 continue;
                             return typeof children[i] === 'object';
                         }
                         return true;
                     }
                     function elem(factory, attrs, children) {
-                        const el = factory ? (0, dom_1.define)(factory(baseFactory, tag, attrs || {}, children), attrs) : baseFactory(tag, attrs);
+                        const el = factory ? dom_1.define(factory(baseFactory, tag, attrs || {}, children), attrs) : baseFactory(tag, attrs);
                         if (tag !== el.tagName.toLowerCase())
                             throw new Error(`TypedDOM: Expected tag name is "${ tag }" but actually "${ el.tagName.toLowerCase() }".`);
                         return el;
@@ -5629,7 +5649,7 @@ require = function () {
             }
             exports.proxy = proxy;
             const tag = Symbol.for('typed-dom::tag');
-            const id = (0, identity_1.identity)();
+            const id = identity_1.identity();
             let counter = 0;
             class Elem {
                 constructor(element, children_, container = element) {
@@ -5647,14 +5667,14 @@ require = function () {
                     case typeof children_ === 'string':
                         this.type = 1;
                         break;
-                    case (0, alias_1.isArray)(children_):
+                    case alias_1.isArray(children_):
                         this.type = 2;
                         break;
                     case children_ && typeof children_ === 'object':
                         this.type = 3;
                         break;
                     default:
-                        throw new Error(`TypedDOM: Invalid type children.`);
+                        throw new Error(`TypedDOM: Invalid children type.`);
                     }
                     throwErrorIfNotUsable(this);
                     proxies.set(this.element, this);
@@ -5663,19 +5683,19 @@ require = function () {
                         this.isInit = false;
                         return;
                     case 1:
-                        (0, dom_1.define)(this.container, []);
-                        this.children_ = this.container.appendChild((0, dom_1.text)(''));
+                        dom_1.define(this.container, []);
+                        this.children_ = this.container.appendChild(dom_1.text(''));
                         this.children = children_;
                         this.isInit = false;
                         return;
                     case 2:
-                        (0, dom_1.define)(this.container, []);
+                        dom_1.define(this.container, []);
                         this.children_ = [];
                         this.children = children_;
                         this.isInit = false;
                         return;
                     case 3:
-                        (0, dom_1.define)(this.container, []);
+                        dom_1.define(this.container, []);
                         this.children_ = this.observe({ ...children_ });
                         this.children = children_;
                         this.isInit = false;
@@ -5728,12 +5748,16 @@ require = function () {
                 }
                 observe(children) {
                     const descs = {};
-                    for (const name of (0, alias_1.ObjectKeys)(children)) {
+                    let i = -1;
+                    for (const name of alias_1.ObjectKeys(children)) {
                         if (name in {})
-                            continue;
+                            throw new Error(`TypedDOM: Child names must be different from the object property names.`);
+                        ++i;
                         let child = children[name];
                         throwErrorIfNotUsable(child);
-                        this.container.appendChild(child.element);
+                        if (child.element !== this.container.children[i]) {
+                            this.container.appendChild(child.element);
+                        }
                         descs[name] = {
                             configurable: true,
                             enumerable: true,
@@ -5763,7 +5787,7 @@ require = function () {
                             }
                         };
                     }
-                    return (0, alias_1.ObjectDefineProperties)(children, descs);
+                    return alias_1.ObjectDefineProperties(children, descs);
                 }
                 get children() {
                     switch (this.type) {
@@ -5838,7 +5862,7 @@ require = function () {
                     case 3: {
                             const sourceChildren = children;
                             const targetChildren = this.children_;
-                            for (const name of (0, alias_1.ObjectKeys)(targetChildren)) {
+                            for (const name of alias_1.ObjectKeys(targetChildren)) {
                                 const oldChild = targetChildren[name];
                                 const newChild = sourceChildren[name];
                                 if (!this.isInit && newChild === oldChild)
@@ -5852,10 +5876,10 @@ require = function () {
                                     if (!this.isInit) {
                                         let i = 0;
                                         i = removedChildren.lastIndexOf(newChild);
-                                        i > -1 && (0, array_1.splice)(removedChildren, i, 1);
+                                        i > -1 && array_1.splice(removedChildren, i, 1);
                                         removedChildren.push(oldChild);
                                         i = addedChildren.lastIndexOf(oldChild);
-                                        i > -1 && (0, array_1.splice)(addedChildren, i, 1);
+                                        i > -1 && array_1.splice(addedChildren, i, 1);
                                     }
                                 }
                                 this.isPartialUpdate = true;
@@ -5923,7 +5947,7 @@ require = function () {
             }(caches || (caches = {})));
             function shadow(el, children, opts) {
                 if (typeof el === 'string')
-                    return shadow((0, exports.html)(el), children, opts);
+                    return shadow(exports.html(el), children, opts);
                 if (children && !isChildren(children))
                     return shadow(el, void 0, children);
                 const root = opts === void 0 ? el.shadowRoot || caches.shadows.get(el) : opts.mode === 'open' ? el.shadowRoot || void 0 : caches.shadows.get(el);
@@ -5941,7 +5965,7 @@ require = function () {
             }
             exports.text = text;
             function element(context, ns) {
-                const cache = (0, memoize_1.memoize)(elem, (_, ns, tag) => `${ ns }:${ tag }`);
+                const cache = memoize_1.memoize(elem, (_, ns, tag) => `${ ns }:${ tag }`);
                 return (tag, attrs, children) => {
                     const el = tag.includes('-') ? elem(context, ns, tag) : cache(context, ns, tag).cloneNode(true);
                     return isChildren(attrs) ? defineChildren(el, attrs) : defineChildren(defineAttrs(el, attrs), children);
@@ -5965,7 +5989,7 @@ require = function () {
             function defineAttrs(el, attrs) {
                 if (!attrs)
                     return el;
-                for (let i = 0, names = (0, alias_1.ObjectKeys)(attrs); i < names.length; ++i) {
+                for (let i = 0, names = alias_1.ObjectKeys(attrs); i < names.length; ++i) {
                     const name = names[i];
                     const value = attrs[name];
                     switch (typeof value) {
@@ -6006,15 +6030,15 @@ require = function () {
                 }
                 if (!('length' in children)) {
                     if (node.firstChild)
-                        return defineChildren(node, (0, array_1.push)([], children));
+                        return defineChildren(node, array_1.push([], children));
                     for (const child of children) {
                         node.append(child);
                     }
                     return node;
                 }
-                if (!(0, alias_1.isArray)(children)) {
+                if (!alias_1.isArray(children)) {
                     if (node.firstChild)
-                        return defineChildren(node, (0, array_1.push)([], children));
+                        return defineChildren(node, array_1.push([], children));
                     for (let i = children.length; i--;) {
                         node.prepend(children[i]);
                     }
@@ -6102,7 +6126,7 @@ require = function () {
             const global_1 = _dereq_('spica/global');
             const random_1 = _dereq_('spica/random');
             const ids = Symbol.for('typed-dom::ids');
-            exports.identity = (0, random_1.unique)(random_1.rnd0Z, 2, (_a = global_1.global[ids]) !== null && _a !== void 0 ? _a : global_1.global[ids] = new global_1.Set());
+            exports.identity = random_1.unique(random_1.rnd0Z, 2, (_a = global_1.global[ids]) !== null && _a !== void 0 ? _a : global_1.global[ids] = new global_1.Set());
         },
         {
             'spica/global': 20,
@@ -6151,7 +6175,7 @@ require = function () {
             exports.delegate = delegate;
             function bind(target, type, listener, option = false) {
                 target.addEventListener(type, handler, option);
-                return (0, function_1.once)(() => void target.removeEventListener(type, handler, option));
+                return function_1.once(() => void target.removeEventListener(type, handler, option));
                 function handler(ev) {
                     return exports.currentTarget in ev && !ev[exports.currentTarget] ? void 0 : ev[exports.currentTarget] = ev.currentTarget, listener(ev);
                 }
@@ -6173,7 +6197,7 @@ require = function () {
             function apply(node, selector, attrs) {
                 const ns = node.querySelectorAll(selector);
                 for (let i = 0, len = ns.length; i < len; ++i) {
-                    (0, dom_1.define)(ns[i], attrs);
+                    dom_1.define(ns[i], attrs);
                 }
                 return ns;
             }
@@ -6251,7 +6275,7 @@ require = function () {
                 }
             });
             function route(config, event, state, io) {
-                return (0, api_1.route)(new api_1.RouterEntity(config, event, new api_1.RouterEntityState(state.process, state.scripts)), io);
+                return api_1.route(new api_1.RouterEntity(config, event, new api_1.RouterEntityState(state.process, state.scripts)), io);
             }
             exports.route = route;
         },
@@ -6384,21 +6408,21 @@ require = function () {
                     this.sequence = new Sequence();
                     this.progressbar = 'display:none;position:absolute;bottom:0;left:0;width:0;height:2px;background:rgb(40, 105, 255);';
                     this.scope = {};
-                    void (0, alias_1.ObjectDefineProperties)(this.update, {
+                    void alias_1.ObjectDefineProperties(this.update, {
                         ignore: {
                             enumerable: false,
                             set(value) {
                                 this.ignores['_'] = value;
                             },
                             get() {
-                                return (0, alias_1.ObjectKeys)(this.ignores).map(i => this.ignores[i]).filter(s => s.trim().length > 0).join(',');
+                                return alias_1.ObjectKeys(this.ignores).map(i => this.ignores[i]).filter(s => s.trim().length > 0).join(',');
                             }
                         }
                     });
-                    void (0, assign_1.extend)(this, option);
-                    void (0, assign_1.overwrite)(this.scope, (_a = option === null || option === void 0 ? void 0 : option.scope) !== null && _a !== void 0 ? _a : {});
+                    void assign_1.extend(this, option);
+                    void assign_1.overwrite(this.scope, (_a = option === null || option === void 0 ? void 0 : option.scope) !== null && _a !== void 0 ? _a : {});
                     this.fetch.headers = new Headers(this.fetch.headers);
-                    void (0, alias_1.ObjectFreeze)(this);
+                    void alias_1.ObjectFreeze(this);
                     void this.fetch.headers.set('X-Requested-With', 'XMLHttpRequest');
                     void this.fetch.headers.set('X-Pjax', '1');
                 }
@@ -6459,7 +6483,7 @@ require = function () {
                     '/': {},
                     ...config.scope
                 };
-                return (_a = sequence_1.Sequence.from((0, alias_1.ObjectKeys)(scope).sort().reverse()).dropWhile(pattern => !!!(0, router_1.compare)(pattern, path.orig) && !(0, router_1.compare)(pattern, path.dest)).take(1).filter(pattern => !!(0, router_1.compare)(pattern, path.orig) && (0, router_1.compare)(pattern, path.dest)).map(pattern => scope[pattern]).map(option => option ? (0, maybe_1.Just)(new config_1.Config((0, assign_1.extend)({ scope: option.scope && (0, assign_1.overwrite)(config.scope, option.scope) }, config, option))) : maybe_1.Nothing).extract()[0]) !== null && _a !== void 0 ? _a : maybe_1.Nothing;
+                return (_a = sequence_1.Sequence.from(alias_1.ObjectKeys(scope).sort().reverse()).dropWhile(pattern => !!!router_1.compare(pattern, path.orig) && !router_1.compare(pattern, path.dest)).take(1).filter(pattern => !!router_1.compare(pattern, path.orig) && router_1.compare(pattern, path.dest)).map(pattern => scope[pattern]).map(option => option ? maybe_1.Just(new config_1.Config(assign_1.extend({ scope: option.scope && assign_1.overwrite(config.scope, option.scope) }, config, option))) : maybe_1.Nothing).extract()[0]) !== null && _a !== void 0 ? _a : maybe_1.Nothing;
             }
             exports.scope = scope;
         },
@@ -6488,7 +6512,7 @@ require = function () {
                     this.source = this.original[typed_dom_1.currentTarget];
                     this.request = new RouterEventRequest(this.source);
                     this.location = new RouterEventLocation(this.request.url);
-                    void (0, alias_1.ObjectFreeze)(this);
+                    void alias_1.ObjectFreeze(this);
                 }
             }
             exports.RouterEvent = RouterEvent;
@@ -6527,26 +6551,26 @@ require = function () {
                     })();
                     this.url = (() => {
                         if (this.source instanceof RouterEventSource.Anchor || this.source instanceof RouterEventSource.Area) {
-                            return new url_1.URL((0, url_1.standardize)(this.source.href, window.location.href));
+                            return new url_1.URL(url_1.standardize(this.source.href, window.location.href));
                         }
                         if (this.source instanceof RouterEventSource.Form) {
-                            return this.source.method.toUpperCase() === RouterEventMethod.GET ? new url_1.URL((0, url_1.standardize)(this.source.action.split(/[?#]/)[0] + `?${ (0, dom_1.serialize)(this.source) }`, window.location.href)) : new url_1.URL((0, url_1.standardize)(this.source.action.split(/[?#]/)[0], window.location.href));
+                            return this.source.method.toUpperCase() === RouterEventMethod.GET ? new url_1.URL(url_1.standardize(this.source.action.split(/[?#]/)[0] + `?${ dom_1.serialize(this.source) }`, window.location.href)) : new url_1.URL(url_1.standardize(this.source.action.split(/[?#]/)[0], window.location.href));
                         }
                         if (this.source instanceof RouterEventSource.Window) {
-                            return new url_1.URL((0, url_1.standardize)(window.location.href));
+                            return new url_1.URL(url_1.standardize(window.location.href));
                         }
                         throw new TypeError();
                     })();
                     this.body = (() => this.source instanceof RouterEventSource.Form && this.method === RouterEventMethod.POST ? new FormData(this.source) : null)();
-                    void (0, alias_1.ObjectFreeze)(this);
+                    void alias_1.ObjectFreeze(this);
                 }
             }
             exports.RouterEventRequest = RouterEventRequest;
             class RouterEventLocation {
                 constructor(dest) {
                     this.dest = dest;
-                    this.orig = new url_1.URL((0, url_1.standardize)(window.location.href));
-                    void (0, alias_1.ObjectFreeze)(this);
+                    this.orig = new url_1.URL(url_1.standardize(window.location.href));
+                    void alias_1.ObjectFreeze(this);
                 }
             }
             exports.RouterEventLocation = RouterEventLocation;
@@ -6582,12 +6606,12 @@ require = function () {
                 }
             });
             async function route(entity, io) {
-                return (0, either_1.Right)(void 0).bind(entity.state.process.either).bind(() => match(io.document, entity.config.areas) ? (0, either_1.Right)(void 0) : (0, either_1.Left)(new Error(`Failed to match areas.`))).fmap(() => (0, fetch_1.fetch)(entity.event.request, entity.config, entity.state.process)).fmap(async p => (await p).fmap(([res, seq]) => (0, update_1.update)(entity, res, seq, {
+                return either_1.Right(void 0).bind(entity.state.process.either).bind(() => match(io.document, entity.config.areas) ? either_1.Right(void 0) : either_1.Left(new Error(`Failed to match areas.`))).fmap(() => fetch_1.fetch(entity.event.request, entity.config, entity.state.process)).fmap(async p => (await p).fmap(([res, seq]) => update_1.update(entity, res, seq, {
                     document: io.document,
                     position: path_1.loadPosition
                 })).extract(either_1.Left)).extract(either_1.Left);
                 function match(document, areas) {
-                    return (0, content_1.separate)({
+                    return content_1.separate({
                         src: document,
                         dst: document
                     }, areas).extract(() => false, () => true);
@@ -6615,7 +6639,7 @@ require = function () {
                     this.config = config;
                     this.event = event;
                     this.state = state;
-                    void (0, alias_1.ObjectFreeze)(this);
+                    void alias_1.ObjectFreeze(this);
                 }
             }
             exports.RouterEntity = RouterEntity;
@@ -6623,7 +6647,7 @@ require = function () {
                 constructor(process, scripts) {
                     this.process = process;
                     this.scripts = scripts;
-                    void (0, alias_1.ObjectFreeze)(this);
+                    void alias_1.ObjectFreeze(this);
                 }
             }
             exports.RouterEntityState = RouterEntityState;
@@ -6646,14 +6670,14 @@ require = function () {
                     this.document = this.xhr.responseXML.cloneNode(true);
                     if (url.origin !== new url_1.URL(xhr.responseURL, window.location.href).origin)
                         throw new Error(`Redirected to another origin.`);
-                    void (0, alias_1.ObjectDefineProperty)(this.document, 'URL', {
+                    void alias_1.ObjectDefineProperty(this.document, 'URL', {
                         configurable: true,
                         enumerable: true,
                         value: url.href,
                         writable: false
                     });
-                    void (0, html_1.fix)(this.document);
-                    void (0, alias_1.ObjectFreeze)(this);
+                    void html_1.fix(this.document);
+                    void alias_1.ObjectFreeze(this);
                 }
             }
             exports.FetchResponse = FetchResponse;
@@ -6683,8 +6707,8 @@ require = function () {
                         headers,
                         body
                     }),
-                    (0, xhr_1.xhr)(method, url, headers, body, timeout, rewrite, cache, process),
-                    (0, clock_1.wait)(wait)
+                    xhr_1.xhr(method, url, headers, body, timeout, rewrite, cache, process),
+                    clock_1.wait(wait)
                 ]);
                 return res.bind(process.either).fmap(res => [
                     res,
@@ -6714,14 +6738,14 @@ require = function () {
             function xhr(method, displayURL, headers, body, timeout, rewrite, cache, cancellation) {
                 headers = new Headers(headers);
                 void headers.set('Accept', headers.get('Accept') || 'text/html');
-                const requestURL = new url_1.URL((0, url_1.standardize)(rewrite(displayURL.path), window.location.href));
+                const requestURL = new url_1.URL(url_1.standardize(rewrite(displayURL.path), window.location.href));
                 if (method === 'GET' && caches.has(requestURL.path) && Date.now() > caches.get(requestURL.path).expiry) {
                     void headers.set('If-None-Match', headers.get('If-None-Match') || caches.get(requestURL.path).etag);
                 }
                 const key = method === 'GET' ? cache(requestURL.path, headers) || void 0 : void 0;
                 return new promise_1.AtomicPromise(resolve => {
                     if (key && memory.has(key))
-                        return resolve((0, either_1.Right)(memory.get(key)(displayURL, requestURL)));
+                        return resolve(either_1.Right(memory.get(key)(displayURL, requestURL)));
                     const xhr = new XMLHttpRequest();
                     void xhr.open(method, requestURL.path, true);
                     for (const [name, value] of headers) {
@@ -6730,11 +6754,11 @@ require = function () {
                     xhr.responseType = 'document';
                     xhr.timeout = timeout;
                     void xhr.send(body);
-                    void xhr.addEventListener('abort', () => void resolve((0, either_1.Left)(new Error(`Failed to request a page by abort.`))));
-                    void xhr.addEventListener('error', () => void resolve((0, either_1.Left)(new Error(`Failed to request a page by error.`))));
-                    void xhr.addEventListener('timeout', () => void resolve((0, either_1.Left)(new Error(`Failed to request a page by timeout.`))));
+                    void xhr.addEventListener('abort', () => void resolve(either_1.Left(new Error(`Failed to request a page by abort.`))));
+                    void xhr.addEventListener('error', () => void resolve(either_1.Left(new Error(`Failed to request a page by error.`))));
+                    void xhr.addEventListener('timeout', () => void resolve(either_1.Left(new Error(`Failed to request a page by timeout.`))));
                     void xhr.addEventListener('load', () => void verify(xhr, method).fmap(xhr => {
-                        const responseURL = new url_1.URL((0, url_1.standardize)(xhr.responseURL, window.location.href));
+                        const responseURL = new url_1.URL(url_1.standardize(xhr.responseURL, window.location.href));
                         if (method === 'GET') {
                             const cc = new Map(xhr.getResponseHeader('Cache-Control') ? xhr.getResponseHeader('Cache-Control').trim().split(/\s*,\s*/).filter(v => v.length > 0).map(v => v.split('=').concat('')) : []);
                             for (const path of new Set([
@@ -6758,27 +6782,27 @@ require = function () {
                             void memory.set(key, f);
                         }
                         return f(displayURL, requestURL);
-                    }).extract(err => void resolve((0, either_1.Left)(err)), res => void resolve((0, either_1.Right)(res))));
+                    }).extract(err => void resolve(either_1.Left(err)), res => void resolve(either_1.Right(res))));
                     void cancellation.register(() => void xhr.abort());
                 });
             }
             exports.xhr = xhr;
             function verify(xhr, method) {
-                return (0, either_1.Right)(xhr).bind(xhr => {
-                    const url = new url_1.URL((0, url_1.standardize)(xhr.responseURL, window.location.href));
+                return either_1.Right(xhr).bind(xhr => {
+                    const url = new url_1.URL(url_1.standardize(xhr.responseURL, window.location.href));
                     switch (true) {
                     case !xhr.responseURL:
-                        return (0, either_1.Left)(new Error(`Failed to get the response URL.`));
+                        return either_1.Left(new Error(`Failed to get the response URL.`));
                     case url.origin !== new url_1.URL('', window.location.origin).origin:
-                        return (0, either_1.Left)(new Error(`Redirected to another origin.`));
+                        return either_1.Left(new Error(`Redirected to another origin.`));
                     case !/2..|304/.test(`${ xhr.status }`):
-                        return (0, either_1.Left)(new Error(`Failed to validate the status of response.`));
+                        return either_1.Left(new Error(`Failed to validate the status of response.`));
                     case !xhr.response:
-                        return method === 'GET' && xhr.status === 304 && caches.has(url.path) ? (0, either_1.Right)(caches.get(url.path).xhr) : (0, either_1.Left)(new Error(`Failed to get the response body.`));
+                        return method === 'GET' && xhr.status === 304 && caches.has(url.path) ? either_1.Right(caches.get(url.path).xhr) : either_1.Left(new Error(`Failed to get the response body.`));
                     case !match(xhr.getResponseHeader('Content-Type'), 'text/html'):
-                        return (0, either_1.Left)(new Error(`Failed to validate the content type of response.`));
+                        return either_1.Left(new Error(`Failed to validate the content type of response.`));
                     default:
-                        return (0, either_1.Right)(xhr);
+                        return either_1.Right(xhr);
                     }
                 });
             }
@@ -6824,32 +6848,32 @@ require = function () {
                     src: response.document,
                     dst: io.document
                 };
-                return promise_1.AtomicPromise.resolve(seq).then(process.either).then(m => m.bind(() => (0, content_1.separate)(documents, config.areas).extract(() => (0, either_1.Left)(new Error(`Failed to separate the areas.`)), () => m)).fmap(seqA => (void window.dispatchEvent(new Event('pjax:unload')), config.sequence.unload(seqA, {
+                return promise_1.AtomicPromise.resolve(seq).then(process.either).then(m => m.bind(() => content_1.separate(documents, config.areas).extract(() => either_1.Left(new Error(`Failed to separate the areas.`)), () => m)).fmap(seqA => (void window.dispatchEvent(new Event('pjax:unload')), config.sequence.unload(seqA, {
                     ...response,
                     url: response.url.href
-                })))).then(m => either_1.Either.sequence(m)).then(process.promise).then(m => m.bind(seqB => (0, content_1.separate)(documents, config.areas).fmap(([area]) => [
+                })))).then(m => either_1.Either.sequence(m)).then(process.promise).then(m => m.bind(seqB => content_1.separate(documents, config.areas).fmap(([area]) => [
                     seqB,
                     area
-                ]).extract(() => (0, either_1.Left)(new Error(`Failed to separate the areas.`)), process.either)).bind(([seqB, area]) => (void config.update.rewrite(documents.src, area), (0, content_1.separate)(documents, config.areas).fmap(([, areas]) => [
+                ]).extract(() => either_1.Left(new Error(`Failed to separate the areas.`)), process.either)).bind(([seqB, area]) => (void config.update.rewrite(documents.src, area), content_1.separate(documents, config.areas).fmap(([, areas]) => [
                     seqB,
                     areas
-                ]).extract(() => (0, either_1.Left)(new Error(`Failed to separate the areas.`)), process.either)))).then(process.promise).then(m => m.fmap(([seqB, areas]) => (0, hlist_1.HList)().unfold(() => (void (0, blur_1.blur)(documents.dst), void (0, path_1.savePjax)(), void (0, url_1.url)(new router_1.RouterEventLocation(response.url), documents.src.title, event.type, event.source, config.replace), void (0, path_1.savePjax)(), void (0, title_1.title)(documents), void (0, path_1.saveTitle)(), void (0, head_1.head)(documents, config.update.head, config.update.ignore), process.either((0, content_1.content)(documents, areas)).fmap(([as, ps]) => [
+                ]).extract(() => either_1.Left(new Error(`Failed to separate the areas.`)), process.either)))).then(process.promise).then(m => m.fmap(([seqB, areas]) => hlist_1.HList().unfold(() => (void blur_1.blur(documents.dst), void path_1.savePjax(), void url_1.url(new router_1.RouterEventLocation(response.url), documents.src.title, event.type, event.source, config.replace), void path_1.savePjax(), void title_1.title(documents), void path_1.saveTitle(), void head_1.head(documents, config.update.head, config.update.ignore), process.either(content_1.content(documents, areas)).fmap(([as, ps]) => [
                     as,
                     promise_1.AtomicPromise.all(ps)
                 ]))).unfold(async p => (await p).fmap(async ([areas]) => {
-                    config.update.css ? void (0, css_1.css)(documents, config.update.ignore) : void 0;
+                    config.update.css ? void css_1.css(documents, config.update.ignore) : void 0;
                     void io.document.dispatchEvent(new Event('pjax:content'));
                     const seqC = await config.sequence.content(seqB, areas);
-                    const ssm = config.update.script ? await (0, script_1.script)(documents, state.scripts, config.update, Math.max(config.fetch.timeout, 1000) * 10, process) : await process.either([
+                    const ssm = config.update.script ? await script_1.script(documents, state.scripts, config.update, Math.max(config.fetch.timeout, 1000) * 10, process) : await process.either([
                         [],
                         promise_1.AtomicPromise.resolve(process.either([]))
                     ]);
-                    void (0, focus_1.focus)(event.type, documents.dst);
-                    void (0, scroll_1.scroll)(event.type, documents.dst, {
+                    void focus_1.focus(event.type, documents.dst);
+                    void scroll_1.scroll(event.type, documents.dst, {
                         hash: event.location.dest.fragment,
                         position: io.position
                     });
-                    void (0, path_1.savePosition)();
+                    void path_1.savePosition();
                     void io.document.dispatchEvent(new Event('pjax:ready'));
                     return [
                         ssm.fmap(([ss, ap]) => [
@@ -6861,7 +6885,7 @@ require = function () {
                 }).fmap(p => p.then(([m, seqD]) => m.fmap(sst => [
                     sst,
                     seqD
-                ]))).extract(err => promise_1.AtomicPromise.resolve((0, either_1.Left)(err)))).reverse())).then(process.promise).then(m => m.fmap(([p1, p2]) => (void promise_1.AtomicPromise.all([
+                ]))).extract(err => promise_1.AtomicPromise.resolve(either_1.Left(err)))).reverse())).then(process.promise).then(m => m.fmap(([p1, p2]) => (void promise_1.AtomicPromise.all([
                     p1,
                     p2
                 ]).then(([m1, m2]) => m1.bind(([, cp]) => m2.fmap(([[, sp], seqD]) => void promise_1.AtomicPromise.all([
@@ -6942,20 +6966,20 @@ require = function () {
                             src: [...documents.src.querySelectorAll(area)],
                             dst: [...documents.dst.querySelectorAll(area)]
                         };
-                        return record.src.length > 0 && record.src.length === record.dst.length ? (0, maybe_1.Just)((0, array_1.push)(acc, [record])) : maybe_1.Nothing;
-                    }), (0, maybe_1.Just)([])));
+                        return record.src.length > 0 && record.src.length === record.dst.length ? maybe_1.Just(array_1.push(acc, [record])) : maybe_1.Nothing;
+                    }), maybe_1.Just([])));
                 }
             }
             exports.separate = separate;
             function split(area) {
-                return (area.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g) || []).map(area => area.trim()).reduce((m, area) => area ? m.fmap(acc => (0, array_1.push)(acc, [area])) : maybe_1.Nothing, (0, maybe_1.Just)([]));
+                return (area.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g) || []).map(area => area.trim()).reduce((m, area) => area ? m.fmap(acc => array_1.push(acc, [area])) : maybe_1.Nothing, maybe_1.Just([]));
             }
             exports._split = split;
             function wait(el) {
                 return promise_1.AtomicPromise.race([
-                    new promise_1.AtomicPromise(resolve => void (0, typed_dom_1.once)(el, 'load', resolve)),
-                    new promise_1.AtomicPromise(resolve => void (0, typed_dom_1.once)(el, 'abort', resolve)),
-                    new promise_1.AtomicPromise(resolve => void (0, typed_dom_1.once)(el, 'error', resolve))
+                    new promise_1.AtomicPromise(resolve => void typed_dom_1.once(el, 'load', resolve)),
+                    new promise_1.AtomicPromise(resolve => void typed_dom_1.once(el, 'abort', resolve)),
+                    new promise_1.AtomicPromise(resolve => void typed_dom_1.once(el, 'error', resolve))
                 ]);
             }
             exports._wait = wait;
@@ -6982,7 +7006,7 @@ require = function () {
                 ].map(query => [
                     documents.src.querySelector(query),
                     documents.dst.querySelector(query)
-                ]).forEach(([src, dst]) => void (0, sync_1.sync)((0, sync_1.pair)(list(src), list(dst), (a, b) => a.outerHTML === b.outerHTML), dst));
+                ]).forEach(([src, dst]) => void sync_1.sync(sync_1.pair(list(src), list(dst), (a, b) => a.outerHTML === b.outerHTML), dst));
                 function list(source) {
                     return [...source.querySelectorAll(selector)].filter(el => !ignore || !el.matches(ignore));
                 }
@@ -7020,7 +7044,7 @@ require = function () {
             const sync_1 = _dereq_('./sync');
             function head(documents, selector, ignore) {
                 ignore += selector.includes('link') ? ', link[rel~="stylesheet"]' : '';
-                return void (0, sync_1.sync)((0, sync_1.pair)(list(documents.src.head), list(documents.dst.head), (a, b) => a.outerHTML === b.outerHTML), documents.dst.head);
+                return void sync_1.sync(sync_1.pair(list(documents.src.head), list(documents.dst.head), (a, b) => a.outerHTML === b.outerHTML), documents.dst.head);
                 function list(source) {
                     return [...source.querySelectorAll(selector)].filter(el => !ignore || !el.matches(ignore));
                 }
@@ -7081,7 +7105,7 @@ require = function () {
                 fetch,
                 evaluate
             }) {
-                const scripts = [...documents.src.querySelectorAll('script')].filter(el => !el.type || /(?:application|text)\/(?:java|ecma)script|module/i.test(el.type)).filter(el => !el.matches(selector.ignore.trim() || '_')).filter(el => el.hasAttribute('src') ? !skip.has(new url_1.URL((0, url_1.standardize)(el.src)).href) || el.matches(selector.reload.trim() || '_') : true);
+                const scripts = [...documents.src.querySelectorAll('script')].filter(el => !el.type || /(?:application|text)\/(?:java|ecma)script|module/i.test(el.type)).filter(el => !el.matches(selector.ignore.trim() || '_')).filter(el => el.hasAttribute('src') ? !skip.has(new url_1.URL(url_1.standardize(el.src)).href) || el.matches(selector.reload.trim() || '_') : true);
                 const {ss, as} = scripts.reduce((o, script) => {
                     switch (true) {
                     case script.matches('[src][async], [src][defer]'):
@@ -7102,29 +7126,29 @@ require = function () {
                     ss1,
                     ap1.then(async as1 => am.fmap(async p => (await p).fmap(([ss2, ap2]) => promise_1.AtomicPromise.all([
                         as1,
-                        (0, either_1.Right)(ss2),
+                        either_1.Right(ss2),
                         ap2
-                    ]).then(sst => sst.reduce((m1, m2) => m1.bind(s1 => m2.fmap(s2 => (0, array_1.push)(s1, s2)))))).extract(either_1.Left)).extract(either_1.Left))
+                    ]).then(sst => sst.reduce((m1, m2) => m1.bind(s1 => m2.fmap(s2 => array_1.push(s1, s2)))))).extract(either_1.Left)).extract(either_1.Left))
                 ])).extract(either_1.Left));
                 function request(scripts) {
                     return scripts.map(script => io.fetch(script, timeout));
                 }
                 function run(responses) {
-                    return responses.reduce((results, m) => m.bind(() => results), responses.reduce((results, m) => results.bind(cancellation.either).bind(([sp, ap]) => m.fmap(([script, code]) => io.evaluate(script, code, selector.logger, skip, promise_1.AtomicPromise.all(sp), cancellation)).bind(m => m.extract(p => (0, either_1.Right)((0, tuple_1.tuple)((0, array_1.push)(sp, [p]), ap)), p => (0, either_1.Right)((0, tuple_1.tuple)(sp, (0, array_1.push)(ap, [p])))))), (0, either_1.Right)([
+                    return responses.reduce((results, m) => m.bind(() => results), responses.reduce((results, m) => results.bind(cancellation.either).bind(([sp, ap]) => m.fmap(([script, code]) => io.evaluate(script, code, selector.logger, skip, promise_1.AtomicPromise.all(sp), cancellation)).bind(m => m.extract(p => either_1.Right(tuple_1.tuple(array_1.push(sp, [p]), ap)), p => either_1.Right(tuple_1.tuple(sp, array_1.push(ap, [p])))))), either_1.Right([
                         [],
                         []
-                    ]))).fmap(([sp, ap]) => promise_1.AtomicPromise.all(sp).then(m => either_1.Either.sequence(m)).then(sm => sm.fmap(ss => (0, tuple_1.tuple)(ss, Promise.all(ap).then(m => either_1.Either.sequence(m))))));
+                    ]))).fmap(([sp, ap]) => promise_1.AtomicPromise.all(sp).then(m => either_1.Either.sequence(m)).then(sm => sm.fmap(ss => tuple_1.tuple(ss, Promise.all(ap).then(m => either_1.Either.sequence(m))))));
                 }
             }
             exports.script = script;
             async function fetch(script, timeout) {
                 if (!script.hasAttribute('src'))
-                    return (0, either_1.Right)([
+                    return either_1.Right([
                         script,
                         script.text
                     ]);
                 if (script.type.toLowerCase() === 'module')
-                    return (0, either_1.Right)([
+                    return either_1.Right([
                         script,
                         ''
                     ]);
@@ -7133,14 +7157,14 @@ require = function () {
                         headers: new Headers({ Accept: 'application/javascript' }),
                         integrity: script.integrity
                     }),
-                    (0, clock_1.wait)(timeout).then(() => promise_1.AtomicPromise.reject(new Error(`${ script.src }: Timeout.`)))
-                ]).then(async res => res.ok ? (0, either_1.Right)([
+                    clock_1.wait(timeout).then(() => promise_1.AtomicPromise.reject(new Error(`${ script.src }: Timeout.`)))
+                ]).then(async res => res.ok ? either_1.Right([
                     script,
                     await res.text()
-                ]) : script.matches('[src][async]') ? retry(script).then(() => (0, either_1.Right)([
+                ]) : script.matches('[src][async]') ? retry(script).then(() => either_1.Right([
                     script,
                     ''
-                ]), () => (0, either_1.Left)(new Error(`${ script.src }: ${ res.statusText }`))) : (0, either_1.Left)(new Error(res.statusText)), error => (0, either_1.Left)(error));
+                ]), () => either_1.Left(new Error(`${ script.src }: ${ res.statusText }`))) : either_1.Left(new Error(res.statusText)), error => either_1.Left(error));
             }
             exports._fetch = fetch;
             function evaluate(script, code, logger, skip, wait, cancellation) {
@@ -7152,22 +7176,22 @@ require = function () {
                 void unescape();
                 !logging && void script.remove();
                 const result = promise_1.AtomicPromise.resolve(wait).then(evaluate);
-                return script.matches('[src][async]') ? (0, either_1.Right)(result) : (0, either_1.Left)(result);
+                return script.matches('[src][async]') ? either_1.Right(result) : either_1.Left(result);
                 function evaluate() {
                     if (!cancellation.alive)
                         throw new error_1.FatalError('Expired.');
                     if (script.matches('[type="module"][src]')) {
-                        return promise_1.AtomicPromise.resolve(Promise.resolve().then(() => __importStar(_dereq_(script.src)))).catch(reason => reason.message.startsWith('Failed to load ') && script.matches('[src][async]') ? retry(script).catch(() => promise_1.AtomicPromise.reject(reason)) : promise_1.AtomicPromise.reject(reason)).then(() => (void script.dispatchEvent(new Event('load')), (0, either_1.Right)(script)), reason => (void script.dispatchEvent(new Event('error')), (0, either_1.Left)(new error_1.FatalError(reason instanceof Error ? reason.message : reason + ''))));
+                        return promise_1.AtomicPromise.resolve(Promise.resolve().then(() => __importStar(_dereq_(script.src)))).catch(reason => reason.message.startsWith('Failed to load ') && script.matches('[src][async]') ? retry(script).catch(() => promise_1.AtomicPromise.reject(reason)) : promise_1.AtomicPromise.reject(reason)).then(() => (void script.dispatchEvent(new Event('load')), either_1.Right(script)), reason => (void script.dispatchEvent(new Event('error')), either_1.Left(new error_1.FatalError(reason instanceof Error ? reason.message : reason + ''))));
                     } else {
                         try {
-                            if (skip.has(new url_1.URL((0, url_1.standardize)(window.location.href)).href))
+                            if (skip.has(new url_1.URL(url_1.standardize(window.location.href)).href))
                                 throw new error_1.FatalError('Expired.');
                             void (0, eval)(code);
                             script.hasAttribute('src') && void script.dispatchEvent(new Event('load'));
-                            return promise_1.AtomicPromise.resolve((0, either_1.Right)(script));
+                            return promise_1.AtomicPromise.resolve(either_1.Right(script));
                         } catch (reason) {
                             script.hasAttribute('src') && void script.dispatchEvent(new Event('error'));
-                            return promise_1.AtomicPromise.resolve((0, either_1.Left)(new error_1.FatalError(reason instanceof Error ? reason.message : reason + '')));
+                            return promise_1.AtomicPromise.resolve(either_1.Left(new error_1.FatalError(reason instanceof Error ? reason.message : reason + '')));
                         }
                     }
                 }
@@ -7182,9 +7206,9 @@ require = function () {
             }
             exports.escape = escape;
             function retry(script) {
-                if (new url_1.URL((0, url_1.standardize)(script.src)).origin === new url_1.URL((0, url_1.standardize)(window.location.href)).origin)
+                if (new url_1.URL(url_1.standardize(script.src)).origin === new url_1.URL(url_1.standardize(window.location.href)).origin)
                     return promise_1.AtomicPromise.reject(new Error());
-                script = (0, typed_dom_1.html)('script', (0, alias_1.ObjectValues)(script.attributes).reduce((o, {name, value}) => (o[name] = value, o), {}), [...script.childNodes]);
+                script = typed_dom_1.html('script', alias_1.ObjectValues(script.attributes).reduce((o, {name, value}) => (o[name] = value, o), {}), [...script.childNodes]);
                 return new promise_1.AtomicPromise((resolve, reject) => (void script.addEventListener('load', () => void resolve(global_1.undefined)), void script.addEventListener('error', reject), void document.body.appendChild(script), void script.remove()));
             }
         },
@@ -7271,7 +7295,7 @@ require = function () {
                     dst
                 ]);
                 function bind(srcs, dsts, compare) {
-                    return srcs.reduce((link, src) => dsts.length === 0 ? link.set(null, (0, array_1.push)(link.get(null) || [], [src])) : dsts.reduce((m, dst) => m.bind(link => !link.has(dst) && compare(src, dst) ? (void link.set(dst, (0, array_1.push)(link.get(null) || [], [src])), void link.delete(null), (0, either_1.Left)(link)) : (0, either_1.Right)(link)), (0, either_1.Right)(link)).fmap(link => link.set(null, (0, array_1.push)(link.get(null) || [], [src]))).extract(link => link), new Map());
+                    return srcs.reduce((link, src) => dsts.length === 0 ? link.set(null, array_1.push(link.get(null) || [], [src])) : dsts.reduce((m, dst) => m.bind(link => !link.has(dst) && compare(src, dst) ? (void link.set(dst, array_1.push(link.get(null) || [], [src])), void link.delete(null), either_1.Left(link)) : either_1.Right(link)), either_1.Right(link)).fmap(link => link.set(null, array_1.push(link.get(null) || [], [src]))).extract(link => link), new Map());
                 }
             }
             exports.pair = pair;
@@ -7306,7 +7330,7 @@ require = function () {
             exports._isReplaceable = exports._isRegisterable = exports.url = void 0;
             const router_1 = _dereq_('../../../event/router');
             const typed_dom_1 = _dereq_('typed-dom');
-            void (0, typed_dom_1.bind)(document, 'pjax:ready', () => void window.history.replaceState(window.history.state, window.document.title));
+            void typed_dom_1.bind(document, 'pjax:ready', () => void window.history.replaceState(window.history.state, window.document.title));
             function url(location, title, type, source, replaceable) {
                 switch (true) {
                 case isReplaceable(type, source, replaceable):
@@ -7387,7 +7411,7 @@ require = function () {
             class ClickView extends coroutine_1.Coroutine {
                 constructor(document, selector, listener) {
                     super(async function* () {
-                        return this.finally((0, typed_dom_1.delegate)(document, selector, 'click', ev => {
+                        return this.finally(typed_dom_1.delegate(document, selector, 'click', ev => {
                             if (!(ev.currentTarget instanceof HTMLAnchorElement || ev.currentTarget instanceof HTMLAreaElement))
                                 return;
                             void listener(ev);
@@ -7415,10 +7439,10 @@ require = function () {
             class NavigationView extends coroutine_1.Coroutine {
                 constructor(window, listener) {
                     super(async function* () {
-                        return this.finally((0, typed_dom_1.bind)(window, 'popstate', ev => {
-                            if (!(0, state_1.isTransitable)(page_1.page.state) || !(0, state_1.isTransitable)(window.history.state))
+                        return this.finally(typed_dom_1.bind(window, 'popstate', ev => {
+                            if (!state_1.isTransitable(page_1.page.state) || !state_1.isTransitable(window.history.state))
                                 return;
-                            if ((0, url_1.standardize)(window.location.href) === page_1.page.href)
+                            if (url_1.standardize(window.location.href) === page_1.page.href)
                                 return;
                             void listener(ev);
                         }));
@@ -7448,8 +7472,8 @@ require = function () {
             class ScrollView extends coroutine_1.Coroutine {
                 constructor(window, listener) {
                     super(async function* () {
-                        return this.finally((0, typed_dom_1.bind)(window, 'scroll', (0, throttle_1.debounce)(100, ev => {
-                            if ((0, url_1.standardize)(window.location.href) !== page_1.page.href)
+                        return this.finally(typed_dom_1.bind(window, 'scroll', throttle_1.debounce(100, ev => {
+                            if (url_1.standardize(window.location.href) !== page_1.page.href)
                                 return;
                             void listener(ev);
                         }), { passive: true }));
@@ -7476,7 +7500,7 @@ require = function () {
             class SubmitView extends coroutine_1.Coroutine {
                 constructor(document, selector, listener) {
                     super(async function* () {
-                        return this.finally((0, typed_dom_1.delegate)(document, selector, 'submit', ev => {
+                        return this.finally(typed_dom_1.delegate(document, selector, 'submit', ev => {
                             if (!(ev.currentTarget instanceof HTMLFormElement))
                                 return;
                             void listener(ev);
@@ -7516,20 +7540,20 @@ require = function () {
                     router: router_1.route
                 }) {
                     let result;
-                    void click(url, event => result = io.router(new router_1.Config((0, assign_1.assign)({}, option, { replace: '*' })), new router_1.RouterEvent(event), process_1.process, io));
+                    void click(url, event => result = io.router(new router_1.Config(assign_1.assign({}, option, { replace: '*' })), new router_1.RouterEvent(event), process_1.process, io));
                     return result;
                 }
                 static sync(isPjaxPage) {
-                    isPjaxPage && void (0, state_1.savePjax)();
+                    isPjaxPage && void state_1.savePjax();
                     void process_1.process.cast('', new Error(`Canceled.`));
-                    void (0, router_1.sync)();
+                    void router_1.sync();
                 }
                 static pushURL(url, title, state = null) {
                     void window.history.pushState(state, title, url);
                     void this.sync();
                 }
                 static replaceURL(url, title, state = window.history.state) {
-                    const isPjaxPage = (0, state_1.isTransitable)(window.history.state);
+                    const isPjaxPage = state_1.isTransitable(window.history.state);
                     void window.history.replaceState(state, title, url);
                     void this.sync(isPjaxPage);
                 }
@@ -7538,9 +7562,9 @@ require = function () {
             function click(url, callback) {
                 const el = document.createElement('a');
                 el.href = url;
-                void (0, html_1.parse)('').extract().body.appendChild(el);
-                void (0, typed_dom_1.once)(el, 'click', callback);
-                void (0, typed_dom_1.once)(el, 'click', ev => void ev.preventDefault());
+                void html_1.parse('').extract().body.appendChild(el);
+                void typed_dom_1.once(el, 'click', callback);
+                void typed_dom_1.once(el, 'click', ev => void ev.preventDefault());
                 void el.click();
             }
         },
@@ -7651,18 +7675,18 @@ require = function () {
             const maybe_1 = _dereq_('spica/maybe');
             const promise_1 = _dereq_('spica/promise');
             const typed_dom_1 = _dereq_('typed-dom');
-            void (0, typed_dom_1.bind)(window, 'pjax:unload', () => window.history.scrollRestoration = 'auto', true);
+            void typed_dom_1.bind(window, 'pjax:unload', () => window.history.scrollRestoration = 'auto', true);
             function route(config, event, process, io) {
                 switch (event.type) {
                 case router_1.RouterEventType.Click:
                 case router_1.RouterEventType.Submit:
-                    void (0, store_1.savePosition)();
+                    void store_1.savePosition();
                     break;
                 case router_1.RouterEventType.Popstate:
-                    io.document.title = (0, store_1.loadTitle)();
+                    io.document.title = store_1.loadTitle();
                     break;
                 }
-                return (0, maybe_1.Just)(0).guard(validate(event.request.url, config, event)).bind(() => (0, router_1.scope)(config, (({orig, dest}) => ({
+                return maybe_1.Just(0).guard(validate(event.request.url, config, event)).bind(() => router_1.scope(config, (({orig, dest}) => ({
                     orig: orig.pathname,
                     dest: dest.pathname
                 }))(event.location))).fmap(async config => {
@@ -7676,10 +7700,10 @@ require = function () {
                     });
                     const [scripts] = await env_1.env;
                     window.history.scrollRestoration = 'manual';
-                    return (0, router_1.route)(config, event, {
+                    return router_1.route(config, event, {
                         process: cancellation,
                         scripts
-                    }, io).then(m => m.fmap(async ([ss, p]) => (void kill(), void page_1.page.sync(), void ss.filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_1.URL((0, url_1.standardize)(s.src)).href)), void (await p).filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_1.URL((0, url_1.standardize)(s.src)).href)))).extract()).catch(reason => (void kill(), void page_1.page.sync(), window.history.scrollRestoration = 'auto', cancellation.alive || reason instanceof error_1.FatalError ? void config.fallback(event.source, reason) : void 0));
+                    }, io).then(m => m.fmap(async ([ss, p]) => (void kill(), void page_1.page.sync(), void ss.filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_1.URL(url_1.standardize(s.src)).href)), void (await p).filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_1.URL(url_1.standardize(s.src)).href)))).extract()).catch(reason => (void kill(), void page_1.page.sync(), window.history.scrollRestoration = 'auto', cancellation.alive || reason instanceof error_1.FatalError ? void config.fallback(event.source, reason) : void 0));
                 }).extract(() => {
                     switch (event.type) {
                     case router_1.RouterEventType.Click:
@@ -7776,11 +7800,11 @@ require = function () {
             const state_1 = _dereq_('../../../data/store/state');
             const url_1 = _dereq_('spica/url');
             const typed_dom_1 = _dereq_('typed-dom');
-            void (0, typed_dom_1.bind)(global_1.window, 'hashchange', () => void exports.page.sync());
-            void (0, typed_dom_1.bind)(global_1.window, 'popstate', () => (0, state_1.isTransitable)(exports.page.state) && (0, state_1.isTransitable)(global_1.window.history.state) || void exports.page.sync());
+            void typed_dom_1.bind(global_1.window, 'hashchange', () => void exports.page.sync());
+            void typed_dom_1.bind(global_1.window, 'popstate', () => state_1.isTransitable(exports.page.state) && state_1.isTransitable(global_1.window.history.state) || void exports.page.sync());
             exports.page = new class {
                 constructor() {
-                    this.url = (0, url_1.standardize)(global_1.window.location.href);
+                    this.url = url_1.standardize(global_1.window.location.href);
                     this.state_ = global_1.window.history.state;
                 }
                 get href() {
@@ -7790,7 +7814,7 @@ require = function () {
                     return this.state_;
                 }
                 sync() {
-                    this.url = (0, url_1.standardize)(global_1.window.location.href);
+                    this.url = url_1.standardize(global_1.window.location.href);
                     this.state_ = global_1.window.history.state;
                 }
             }();
@@ -7821,7 +7845,7 @@ require = function () {
             const url_1 = _dereq_('spica/url');
             const typed_dom_1 = _dereq_('typed-dom');
             exports.scripts = new Set();
-            void (0, typed_dom_1.bind)(window, 'pjax:unload', () => void document.querySelectorAll('script[src]').forEach(script => void exports.scripts.add(new url_1.URL((0, url_1.standardize)(script.src)).href)));
+            void typed_dom_1.bind(window, 'pjax:unload', () => void document.querySelectorAll('script[src]').forEach(script => void exports.scripts.add(new url_1.URL(url_1.standardize(script.src)).href)));
         },
         {
             'spica/url': 97,
@@ -7833,7 +7857,7 @@ require = function () {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const typed_dom_1 = _dereq_('typed-dom');
-            void (0, typed_dom_1.bind)(window, 'unload', () => window.history.scrollRestoration = 'auto', false);
+            void typed_dom_1.bind(window, 'unload', () => window.history.scrollRestoration = 'auto', false);
         },
         { 'typed-dom': 99 }
     ],
@@ -7907,7 +7931,7 @@ require = function () {
             exports.parse = [
                 parseByDOM,
                 parseByDoc
-            ].reduce((m, f) => m.bind(() => test(f) ? (0, either_1.Left)(f) : m), (0, either_1.Right)(() => maybe_1.Nothing)).extract(f => html => (0, maybe_1.Just)(f(html)));
+            ].reduce((m, f) => m.bind(() => test(f) ? either_1.Left(f) : m), either_1.Right(() => maybe_1.Nothing)).extract(f => html => maybe_1.Just(f(html)));
             function parseByDOM(html) {
                 const document = new DOMParser().parseFromString(html, 'text/html');
                 void fix(document);
@@ -7990,8 +8014,8 @@ require = function () {
             const memoize_1 = _dereq_('spica/memoize');
             function router(config) {
                 return url => {
-                    const {path, pathname} = new url_1.URL((0, url_1.standardize)(url, window.location.href));
-                    return sequence_1.Sequence.from((0, alias_1.ObjectKeys)(config).filter(p => p[0] === '/').sort().reverse()).filter((0, curry_1.curry)((0, flip_1.flip)(compare))(pathname)).map(pattern => config[pattern]).take(1).extract().pop().call(config, path);
+                    const {path, pathname} = new url_1.URL(url_1.standardize(url, window.location.href));
+                    return sequence_1.Sequence.from(alias_1.ObjectKeys(config).filter(p => p[0] === '/').sort().reverse()).filter(curry_1.curry(flip_1.flip(compare))(pathname)).map(pattern => config[pattern]).take(1).extract().pop().call(config, path);
                 };
             }
             exports.router = router;
@@ -8004,13 +8028,13 @@ require = function () {
                 ]).filter(([ps, ss]) => ps.length <= ss.length && sequence_1.Sequence.zip(sequence_1.Sequence.from(ps), sequence_1.Sequence.from(ss)).dropWhile(([a, b]) => match(a, b)).take(1).extract().length === 0).take(1).extract().length > 0;
             }
             exports.compare = compare;
-            const expand = (0, memoize_1.memoize)(pattern => {
+            const expand = memoize_1.memoize(pattern => {
                 if (pattern.match(/\*\*|[\[\]]/))
                     throw new Error(`Invalid pattern: ${ pattern }`);
                 return pattern === '' ? [pattern] : sequence_1.Sequence.from(pattern.match(/{[^{}]*}|.[^{]*/g)).map(p => p.match(/^{[^{}]*}$/) ? p.slice(1, -1).split(',') : [p]).mapM(sequence_1.Sequence.from).map(ps => ps.join('')).bind(p => p === pattern ? sequence_1.Sequence.from([p]) : sequence_1.Sequence.from(expand(p))).unique().extract();
             });
             exports._expand = expand;
-            const match = (0, memoize_1.memoize)((pattern, segment) => {
+            const match = memoize_1.memoize((pattern, segment) => {
                 if (segment[0] === '.' && [...'?*'].includes(pattern[0]))
                     return false;
                 return match(optimize(pattern), segment);
