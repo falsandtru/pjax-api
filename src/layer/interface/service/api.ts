@@ -26,11 +26,11 @@ export class API {
     void process.cast('', new Error(`Canceled.`));
     void sync();
   }
-  public static pushURL(url: string, title: string, state: any = null): void {
+  public static pushURL(url: string, title: string, state: unknown = null): void {
     void window.history.pushState(state, title, url);
     void this.sync();
   }
-  public static replaceURL(url: string, title: string, state: any = window.history.state): void {
+  public static replaceURL(url: string, title: string, state: unknown = window.history.state): void {
     const isPjaxPage = isTransitable(window.history.state);
     void window.history.replaceState(state, title, url);
     void this.sync(isPjaxPage);

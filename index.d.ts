@@ -37,7 +37,7 @@ export interface Config {
     readonly reload?: string;
     readonly logger?: string;
   };
-  readonly fallback?: (target: HTMLAnchorElement | HTMLAreaElement | HTMLFormElement | Window, reason: any) => void;
+  readonly fallback?: (target: HTMLAnchorElement | HTMLAreaElement | HTMLFormElement | Window, reason: unknown) => void;
   readonly sequence?: Sequence<any, any, any, any>;
   readonly scope?: Record<string, Config | undefined>;
 }

@@ -56,7 +56,7 @@ export class Config implements DeepRequired<Option, Config['scope']> {
     reload: '',
     logger: '',
   };
-  public fallback(target: HTMLAnchorElement | HTMLAreaElement | HTMLFormElement | Window, reason: any): void {
+  public fallback(target: HTMLAnchorElement | HTMLAreaElement | HTMLFormElement | Window, reason: unknown): void {
     if (target instanceof HTMLAnchorElement) {
       return void window.location.assign(target.href);
     }
