@@ -64,7 +64,7 @@ export class Config implements DeepRequired<Option, Config['scope']> {
       return void window.location.assign(target.action);
     }
     if (target instanceof Window) {
-      return void window.location.reload(true);
+      return void window.location.reload();
     }
     throw reason;
   }
