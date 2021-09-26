@@ -127,6 +127,25 @@ Control the page routing sequence.
 It can integrate and synchronize other async processes.
 All methods are required, not optional.
 
+```ts
+const sequence: Sequence<1, 2, 3, 4> = {
+  async fetch() {
+    return 1;
+  },
+  async unload() {
+    return 2;
+  },
+  async content() {
+    return 3;
+  },
+  async ready() {
+    return 4;
+  },
+  async load() {
+  }
+};
+```
+
 ### fetch: (result: void, request: { path: string; method: string; headers: Headers; body: FormData | null; }): Promise\<a>
 
 ### unload: (result: a, response: { url: string; header: (name: string) => string | null; document: Document; }): Promise\<b>
