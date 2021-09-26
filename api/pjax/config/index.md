@@ -101,13 +101,13 @@ Set reload targets for script.
 
 Set logging targets for script.
 
-## fallback: (target: HTMLAnchorElement | HTMLAreaElement | HTMLFormElement | Window, reason: any) => void = ...
+## fallback: (target: HTMLAnchorElement | HTMLAreaElement | HTMLFormElement | Window, reason: unknown) => void = ...
 
 Override a fallback processing.
 
 ```ts
   // default
-  public fallback(target: HTMLAnchorElement | HTMLAreaElement | HTMLFormElement | Window, reason: any): void {
+  public fallback(target: HTMLAnchorElement | HTMLAreaElement | HTMLFormElement | Window, reason: unknown): void {
     if (target instanceof HTMLAnchorElement || target instanceof HTMLAreaElement) {
       return void window.location.assign(target.href);
     }
@@ -115,7 +115,7 @@ Override a fallback processing.
       return void window.location.assign(target.action);
     }
     if (target instanceof Window) {
-      return void window.location.reload(true);
+      return void window.location.reload();
     }
     throw reason;
   }

@@ -216,13 +216,13 @@ require = function () {
             const array_1 = _dereq_('./array');
             exports.assign = template((prop, target, source) => target[prop] = source[prop]);
             exports.clone = template((prop, target, source) => {
-                switch (type_1.type(source[prop])) {
+                switch ((0, type_1.type)(source[prop])) {
                 case 'Array':
                     return target[prop] = source[prop].slice();
                 case 'Object':
-                    switch (type_1.type(target[prop])) {
+                    switch ((0, type_1.type)(target[prop])) {
                     case 'Object':
-                        return target[prop] = exports.clone(empty(source[prop]), source[prop]);
+                        return target[prop] = (0, exports.clone)(empty(source[prop]), source[prop]);
                     default:
                         return target[prop] = source[prop];
                     }
@@ -231,71 +231,71 @@ require = function () {
                 }
             });
             exports.extend = template((prop, target, source) => {
-                switch (type_1.type(source[prop])) {
+                switch ((0, type_1.type)(source[prop])) {
                 case 'undefined':
                     return;
                 case 'Array':
                     return target[prop] = source[prop];
                 case 'Object':
-                    switch (type_1.type(target[prop])) {
+                    switch ((0, type_1.type)(target[prop])) {
                     case 'Object':
-                        return target[prop] = exports.extend(target[prop], source[prop]);
+                        return target[prop] = (0, exports.extend)(target[prop], source[prop]);
                     default:
-                        return target[prop] = exports.extend(empty(source[prop]), source[prop]);
+                        return target[prop] = (0, exports.extend)(empty(source[prop]), source[prop]);
                     }
                 default:
                     return target[prop] = source[prop];
                 }
             });
             exports.merge = template((prop, target, source) => {
-                switch (type_1.type(source[prop])) {
+                switch ((0, type_1.type)(source[prop])) {
                 case 'undefined':
                     return;
                 case 'Array':
-                    switch (type_1.type(target[prop])) {
+                    switch ((0, type_1.type)(target[prop])) {
                     case 'Array':
-                        return target[prop] = array_1.push(target[prop], source[prop]);
+                        return target[prop] = (0, array_1.push)(target[prop], source[prop]);
                     default:
                         return target[prop] = source[prop].slice();
                     }
                 case 'Object':
-                    switch (type_1.type(target[prop])) {
+                    switch ((0, type_1.type)(target[prop])) {
                     case 'Object':
-                        return target[prop] = exports.merge(target[prop], source[prop]);
+                        return target[prop] = (0, exports.merge)(target[prop], source[prop]);
                     default:
-                        return target[prop] = exports.merge(empty(source[prop]), source[prop]);
+                        return target[prop] = (0, exports.merge)(empty(source[prop]), source[prop]);
                     }
                 default:
                     return target[prop] = source[prop];
                 }
             });
             exports.inherit = template((prop, target, source) => {
-                switch (type_1.type(source[prop])) {
+                switch ((0, type_1.type)(source[prop])) {
                 case 'undefined':
                     return;
                 case 'Array':
                     return target[prop] = source[prop].slice();
                 case 'Object':
-                    switch (type_1.type(target[prop])) {
+                    switch ((0, type_1.type)(target[prop])) {
                     case 'Object':
-                        return target[prop] = alias_1.hasOwnProperty(target, prop) ? exports.inherit(target[prop], source[prop]) : exports.inherit(alias_1.ObjectCreate(target[prop]), source[prop]);
+                        return target[prop] = (0, alias_1.hasOwnProperty)(target, prop) ? (0, exports.inherit)(target[prop], source[prop]) : (0, exports.inherit)((0, alias_1.ObjectCreate)(target[prop]), source[prop]);
                     default:
-                        return target[prop] = alias_1.ObjectCreate(source[prop]);
+                        return target[prop] = (0, alias_1.ObjectCreate)(source[prop]);
                     }
                 default:
                     return target[prop] = source[prop];
                 }
             });
             exports.overwrite = template((prop, target, source) => {
-                switch (type_1.type(source[prop])) {
+                switch ((0, type_1.type)(source[prop])) {
                 case 'Array':
                     return target[prop] = source[prop];
                 case 'Object':
-                    switch (type_1.type(target[prop])) {
+                    switch ((0, type_1.type)(target[prop])) {
                     case 'Object':
-                        return target[prop] = exports.overwrite(target[prop], source[prop]);
+                        return target[prop] = (0, exports.overwrite)(target[prop], source[prop]);
                     default:
-                        return target[prop] = exports.overwrite(empty(source[prop]), source[prop]);
+                        return target[prop] = (0, exports.overwrite)(empty(source[prop]), source[prop]);
                     }
                 default:
                     return target[prop] = source[prop];
@@ -304,15 +304,15 @@ require = function () {
             function template(strategy) {
                 return walk;
                 function walk(target, ...sources) {
-                    if (type_1.isPrimitive(target))
+                    if ((0, type_1.isPrimitive)(target))
                         return target;
                     for (let i = 0; i < sources.length; ++i) {
                         const source = sources[i];
                         if (source === target)
                             continue;
-                        if (type_1.isPrimitive(source))
+                        if ((0, type_1.isPrimitive)(source))
                             continue;
-                        const keys = alias_1.ObjectKeys(source);
+                        const keys = (0, alias_1.ObjectKeys)(source);
                         for (let i = 0; i < keys.length; ++i) {
                             strategy(keys[i], target, source);
                         }
@@ -322,11 +322,11 @@ require = function () {
             }
             exports.template = template;
             function empty(source) {
-                switch (type_1.type(source)) {
+                switch ((0, type_1.type)(source)) {
                 case 'Array':
                     return [];
                 case 'Object':
-                    return source instanceof global_1.Object ? {} : alias_1.ObjectCreate(null);
+                    return source instanceof global_1.Object ? {} : (0, alias_1.ObjectCreate)(null);
                 default:
                     return source;
                 }
@@ -336,7 +336,7 @@ require = function () {
             './alias': 4,
             './array': 5,
             './global': 20,
-            './type': 96
+            './type': 95
         }
     ],
     7: [
@@ -358,13 +358,14 @@ require = function () {
                     this.settings = {
                         space: global_1.Infinity,
                         age: global_1.Infinity,
+                        life: 16,
                         capture: {
                             delete: true,
                             clear: true
                         }
                     };
                     this.SIZE = 0;
-                    this.clock = 0;
+                    this.clockF = 0;
                     this.clockR = 0;
                     this.memory = new global_1.Map();
                     this.indexes = {
@@ -373,14 +374,14 @@ require = function () {
                     };
                     this.stack = new stack_1.Stack();
                     this.stats = {
-                        LRU: tuple_1.tuple(0, 0),
-                        LFU: tuple_1.tuple(0, 0)
+                        LRU: (0, tuple_1.tuple)(0, 0),
+                        LFU: (0, tuple_1.tuple)(0, 0)
                     };
                     this.ratio = 50;
-                    this.frequency = alias_1.max(this.capacity / 100 | 0, 1);
+                    this.frequency = (0, alias_1.max)(this.capacity / 100 | 0, 1);
                     if (capacity < 1)
                         throw new Error(`Spica: Cache: Capacity must be 1 or more.`);
-                    assign_1.extend(this.settings, opts);
+                    (0, assign_1.extend)(this.settings, opts);
                     this.space = this.settings.space;
                 }
                 get length() {
@@ -408,19 +409,19 @@ require = function () {
                     this.SIZE -= size;
                     callback && ((_b = (_a = this.settings).disposer) === null || _b === void 0 ? void 0 : _b.call(_a, value, index.value.key));
                 }
-                secure(margin, key) {
+                ensure(margin, key) {
                     if (margin <= 0)
                         return;
                     const {LRU, LFU} = this.indexes;
-                    let miss = arguments.length < 2 ? false : void 0;
-                    let restore;
+                    let check = arguments.length !== 1;
+                    let target;
                     while (this.length === this.capacity || this.size + margin > this.space) {
-                        const list = false || LRU.length === +(restore === LRU) || LFU.length > this.capacity * this.ratio / 100 || LFU.length > this.capacity / 2 && LFU.last.value.clock < this.clock - this.capacity * 8 || LFU.last && LFU.last.value.expiry < clock_1.now() ? LFU : LRU;
+                        const list = void 0 || LRU.length === +(target === LRU) || LFU.length > this.capacity * this.ratio / 100 || LFU.last && LFU.last.value.clock < this.clockF - this.capacity * this.settings.life || LFU.last && LFU.last.value.expiry !== global_1.Infinity && LFU.last.value.expiry < (0, clock_1.now)() ? LFU : LRU;
                         const index = list.last.value;
-                        if (miss !== null && miss !== void 0 ? miss : compare_1.equal(index.key, key)) {
-                            miss = false;
-                            restore = list;
-                            restore.head = restore.last;
+                        if (check && (0, compare_1.equal)(index.key, key)) {
+                            check = false;
+                            target = list;
+                            target.head = target.last;
                             continue;
                         }
                         const record = this.memory.get(index.key);
@@ -430,8 +431,8 @@ require = function () {
                             value: record.value
                         });
                     }
-                    if (restore) {
-                        restore.head = restore.tail;
+                    if (target) {
+                        target.head = target.tail;
                     }
                 }
                 put(key, value, size = 1, age = this.settings.age) {
@@ -444,14 +445,14 @@ require = function () {
                         (_b = (_a = this.settings).disposer) === null || _b === void 0 ? void 0 : _b.call(_a, value, key);
                         return false;
                     }
-                    const expiry = age === global_1.Infinity ? global_1.Infinity : clock_1.now() + age;
+                    const expiry = age === global_1.Infinity ? global_1.Infinity : (0, clock_1.now)() + age;
                     const record = this.memory.get(key);
                     if (record) {
                         this.settings.disposer && this.stack.push({
                             key,
                             value: record.value
                         });
-                        this.secure(size - record.size, key);
+                        this.ensure(size - record.size, key);
                         this.SIZE += size - record.size;
                         record.value = value;
                         record.size = size;
@@ -459,7 +460,7 @@ require = function () {
                         this.resume();
                         return true;
                     }
-                    this.secure(size);
+                    this.ensure(size);
                     const {LRU} = this.indexes;
                     this.SIZE += size;
                     this.memory.set(key, {
@@ -483,7 +484,7 @@ require = function () {
                     if (!record)
                         return;
                     const expiry = record.index.value.expiry;
-                    if (expiry !== global_1.Infinity && expiry <= clock_1.now()) {
+                    if (expiry !== global_1.Infinity && expiry <= (0, clock_1.now)()) {
                         this.dispose(record, true);
                         return;
                     }
@@ -498,7 +499,7 @@ require = function () {
                     if (!record)
                         return false;
                     const expiry = record.index.value.expiry;
-                    if (expiry !== global_1.Infinity && expiry <= clock_1.now()) {
+                    if (expiry !== global_1.Infinity && expiry <= (0, clock_1.now)()) {
                         this.dispose(record, true);
                         return false;
                     }
@@ -546,7 +547,7 @@ require = function () {
                 }
                 slide() {
                     const {LRU, LFU} = this.stats;
-                    const {capacity, ratio, indexes} = this;
+                    const {capacity, frequency, ratio, indexes} = this;
                     const window = capacity;
                     if (LRU[0] + LFU[0] === window) {
                         this.stats = {
@@ -560,13 +561,13 @@ require = function () {
                             ]
                         };
                     }
-                    if ((LRU[0] + LFU[0]) % this.frequency || LRU[1] + LFU[1] === 0)
+                    if ((LRU[0] + LFU[0]) % frequency || LRU[1] + LFU[1] === 0)
                         return;
                     const rateR = rate(window, LRU[0], LRU[0] + LFU[0], LRU[1], LRU[1] + LFU[1]);
                     const rateF = rate(window, LFU[0], LRU[0] + LFU[0], LFU[1], LRU[1] + LFU[1]) * indexes.LRU.length / indexes.LFU.length | 0;
-                    if (ratio < 100 && rateF > rateR && indexes.LFU.length >= capacity * ratio / 100) {
+                    if (ratio < 98 && rateF > rateR && indexes.LFU.length >= capacity * ratio / 100) {
                         ++this.ratio;
-                    } else if (ratio > 10 && rateR > rateF && indexes.LRU.length >= capacity * (100 - ratio) / 100) {
+                    } else if (ratio > 0 && rateR > rateF && indexes.LRU.length >= capacity * (100 - ratio) / 100) {
                         --this.ratio;
                     }
                 }
@@ -577,7 +578,7 @@ require = function () {
                     const index = record.index;
                     const {LRU, LFU} = this.indexes;
                     ++this.stats.LRU[0];
-                    ++this.clock;
+                    ++this.clockF;
                     ++this.clockR;
                     if (index.value.clock + LRU.length / 3 > this.clockR) {
                         index.value.clock = this.clockR;
@@ -585,7 +586,7 @@ require = function () {
                         return true;
                     }
                     index.delete();
-                    index.value.clock = this.clock;
+                    index.value.clock = this.clockF;
                     record.index = LFU.unshift(index.value);
                     return true;
                 }
@@ -594,20 +595,20 @@ require = function () {
                     if (index.list !== this.indexes.LFU)
                         return false;
                     ++this.stats.LFU[0];
-                    ++this.clock;
-                    index.value.clock = this.clock;
+                    ++this.clockF;
+                    index.value.clock = this.clockF;
                     index.moveToHead();
                     return true;
                 }
             }
             exports.Cache = Cache;
             function rate(window, currHits, currTotal, prevHits, prevTotal) {
-                window = alias_1.min(currTotal + prevTotal, window);
+                window = (0, alias_1.min)(currTotal + prevTotal, window);
                 const currRate = currHits * 100 / currTotal | 0;
-                const currRatio = alias_1.min(currTotal * 100 / window | 0, 100);
+                const currRatio = (0, alias_1.min)(currTotal * 100 / window | 0, 100);
                 const prevRate = prevHits * 100 / prevTotal | 0;
                 const prevRatio = 100 - currRatio;
-                return currRate * currRatio + prevRate * prevRatio | 0;
+                return currRate * currRatio + prevRate * prevRatio;
             }
         },
         {
@@ -617,8 +618,8 @@ require = function () {
             './compare': 11,
             './global': 20,
             './invlist': 23,
-            './stack': 92,
-            './tuple': 95
+            './stack': 91,
+            './tuple': 94
         }
     ],
     8: [
@@ -685,12 +686,12 @@ require = function () {
                         return noop_1.noop;
                     }
                     this.listeners.add(handler);
-                    return function_1.once(() => void this.listeners.delete(handler));
+                    return (0, function_1.once)(() => void this.listeners.delete(handler));
                     function handler(reason) {
                         try {
                             listener(reason);
                         } catch (reason) {
-                            exception_1.causeAsyncException(reason);
+                            (0, exception_1.causeAsyncException)(reason);
                         }
                     }
                 }
@@ -716,10 +717,10 @@ require = function () {
                     return this.cancelled ? promise_1.AtomicPromise.reject(this.reason) : promise_1.AtomicPromise.resolve(val);
                 }
                 maybe(val) {
-                    return maybe_1.Just(val).bind(val => this.cancelled ? maybe_1.Nothing : maybe_1.Just(val));
+                    return (0, maybe_1.Just)(val).bind(val => this.cancelled ? maybe_1.Nothing : (0, maybe_1.Just)(val));
                 }
                 either(val) {
-                    return either_1.Right(val).bind(val => this.cancelled ? either_1.Left(this.reason) : either_1.Right(val));
+                    return (0, either_1.Right)(val).bind(val => this.cancelled ? (0, either_1.Left)(this.reason) : (0, either_1.Right)(val));
                 }
             }
         },
@@ -847,9 +848,9 @@ require = function () {
                 return now_ = global_1.Date.now();
             }
             exports.now = now;
-            exports.clock = Promise.resolve(undefined);
+            exports.clock = Promise.resolve(void 0);
             function wait(ms) {
-                return ms === 0 ? promise_1.AtomicPromise.resolve(exports.clock) : new promise_1.AtomicPromise(resolve => void global_1.setTimeout(resolve, ms));
+                return ms === 0 ? promise_1.AtomicPromise.resolve(exports.clock) : new promise_1.AtomicPromise(resolve => void (0, global_1.setTimeout)(resolve, ms));
             }
             exports.wait = wait;
             let queue = [];
@@ -873,10 +874,10 @@ require = function () {
                         jobs[i]();
                         jobs[i] = void 0;
                     } catch (reason) {
-                        exception_1.causeAsyncException(reason);
+                        (0, exception_1.causeAsyncException)(reason);
                     }
                 }
-                jobs.length > 1000 && count < jobs.length * 0.5 && jobs.splice(alias_1.floor(jobs.length * 0.9), jobs.length);
+                jobs.length > 1000 && count < jobs.length * 0.5 && jobs.splice((0, alias_1.floor)(jobs.length * 0.9), jobs.length);
             }
         },
         {
@@ -930,9 +931,9 @@ require = function () {
             }
             exports.Copropagator = Copropagator;
             function all(sources, memory) {
-                const before = alias_1.isArray(sources) ? sources : [...sources];
+                const before = (0, alias_1.isArray)(sources) ? sources : [...sources];
                 return promise_1.AtomicPromise.all(before).then(values => {
-                    const after = alias_1.isArray(sources) ? sources : [...sources];
+                    const after = (0, alias_1.isArray)(sources) ? sources : [...sources];
                     const same = after.length === before.length && after.every((_, i) => after[i] === before[i]);
                     if (!memory && same)
                         return values;
@@ -999,7 +1000,7 @@ require = function () {
                                     ] : core.sendBuffer.take(),
                                     global_1.Promise.all([
                                         core.settings.resume(),
-                                        core.settings.interval > 0 ? clock_1.wait(core.settings.interval) : void 0
+                                        core.settings.interval > 0 ? (0, clock_1.wait)(core.settings.interval) : void 0
                                     ])
                                 ]);
                                 reply = rpy;
@@ -1027,11 +1028,11 @@ require = function () {
                     const core = this[internal];
                     res(core.result.then(({value}) => value));
                     if (core.settings.trigger !== void 0) {
-                        for (const prop of global_1.Array().concat(core.settings.trigger)) {
+                        for (const prop of (0, global_1.Array)().concat(core.settings.trigger)) {
                             if (prop in this && this.hasOwnProperty(prop))
                                 continue;
                             if (prop in this) {
-                                alias_1.ObjectDefineProperty(this, prop, {
+                                (0, alias_1.ObjectDefineProperty)(this, prop, {
                                     set(value) {
                                         delete this[prop];
                                         this[prop] = value;
@@ -1046,15 +1047,15 @@ require = function () {
                                     configurable: true
                                 });
                             } else {
-                                const desc = alias_1.ObjectGetOwnPropertyDescriptor(this, prop) || {
+                                const desc = (0, alias_1.ObjectGetOwnPropertyDescriptor)(this, prop) || {
                                     value: this[prop],
                                     enumerable: true,
                                     configurable: true,
                                     writable: true
                                 };
-                                alias_1.ObjectDefineProperty(this, prop, {
+                                (0, alias_1.ObjectDefineProperty)(this, prop, {
                                     set(value) {
-                                        alias_1.ObjectDefineProperty(this, prop, {
+                                        (0, alias_1.ObjectDefineProperty)(this, prop, {
                                             ...desc,
                                             value
                                         });
@@ -1070,7 +1071,7 @@ require = function () {
                         }
                     }
                     if (this[internal].settings.run) {
-                        this[internal].settings.delay ? clock_1.tick(this[Coroutine.init]) : this[Coroutine.init]();
+                        this[internal].settings.delay ? (0, clock_1.tick)(this[Coroutine.init]) : this[Coroutine.init]();
                     }
                 }
                 get [alive]() {
@@ -1126,7 +1127,7 @@ require = function () {
             class Internal {
                 constructor(opts) {
                     this.opts = opts;
-                    this.settings = assign_1.extend({
+                    this.settings = (0, assign_1.extend)({
                         run: true,
                         delay: true,
                         capacity: -1,
@@ -1147,7 +1148,7 @@ require = function () {
                                 try {
                                     reply(promise_1.AtomicPromise.reject(new global_1.Error(`Spica: Coroutine: Canceled.`)));
                                 } catch (reason) {
-                                    exception_1.causeAsyncException(reason);
+                                    (0, exception_1.causeAsyncException)(reason);
                                 }
                             }
                         });
@@ -1301,7 +1302,7 @@ require = function () {
             exports.uncurry = uncurry;
             function uncurry_(f) {
                 const arity = f.length;
-                return (...xs) => arity === 0 || xs.length < 2 || xs.length <= arity ? f(...xs) : uncurry_(f(...array_1.shift(xs, arity)[0]))(...xs);
+                return (...xs) => arity === 0 || xs.length < 2 || xs.length <= arity ? f(...xs) : uncurry_(f(...(0, array_1.shift)(xs, arity)[0]))(...xs);
             }
         },
         { './array': 5 }
@@ -1389,7 +1390,7 @@ require = function () {
             }
             exports.clear = clear;
             function run(fs) {
-                const gs = global_1.Array(fs.length);
+                const gs = (0, global_1.Array)(fs.length);
                 try {
                     for (let i = 0; i < fs.length; ++i) {
                         gs[i] = fs[i]();
@@ -1638,7 +1639,7 @@ require = function () {
                     return this.tuple().reverse();
                 }
                 tuple() {
-                    return array_1.unshift([this.head], this.tail.tuple());
+                    return (0, array_1.unshift)([this.head], this.tail.tuple());
                 }
             }
         },
@@ -1888,7 +1889,7 @@ require = function () {
                     } else {
                         const node = nodes[head.prev];
                         const index = this.HEAD = this.CURSOR = node.index;
-                        if (this.index && !compare_1.equal(node.key, key)) {
+                        if (this.index && !(0, compare_1.equal)(node.key, key)) {
                             this.index.delete(node.key, index);
                             this.index.set(key, index);
                         }
@@ -1913,7 +1914,7 @@ require = function () {
                     const nodes = this.nodes;
                     let node;
                     node = nodes[cursor];
-                    if (node && compare_1.equal(node.key, key))
+                    if (node && (0, compare_1.equal)(node.key, key))
                         return this.CURSOR = cursor, node;
                     if (!this.index)
                         throw new Error(`Spica: IxList: Invalid index.`);
@@ -1974,7 +1975,7 @@ require = function () {
                     if (this.length === 0)
                         return this.unshift(key, value);
                     const node = this.last;
-                    if (this.index && !compare_1.equal(node.key, key)) {
+                    if (this.index && !(0, compare_1.equal)(node.key, key)) {
                         this.index.delete(node.key, node.index);
                         this.index.set(key, node.index);
                     }
@@ -1995,7 +1996,7 @@ require = function () {
                     if (this.length === 0)
                         return this.push(key, value);
                     const node = this.head;
-                    if (this.index && !compare_1.equal(node.key, key)) {
+                    if (this.index && !(0, compare_1.equal)(node.key, key)) {
                         this.index.delete(node.key, node.index);
                         this.index.set(key, node.index);
                     }
@@ -2013,7 +2014,7 @@ require = function () {
                     const node = this.nodes[index];
                     if (!node)
                         return;
-                    if (this.index && !compare_1.equal(node.key, key)) {
+                    if (this.index && !(0, compare_1.equal)(node.key, key)) {
                         this.index.delete(node.key, index);
                         this.index.set(key, index);
                     }
@@ -2099,7 +2100,7 @@ require = function () {
         {
             '../compare': 11,
             '../global': 20,
-            '../stack': 92
+            '../stack': 91
         }
     ],
     28: [
@@ -2159,7 +2160,7 @@ require = function () {
                 let val = [];
                 return (...as) => {
                     const b = identify(...as);
-                    if (!compare_1.equal(key, b)) {
+                    if (!(0, compare_1.equal)(key, b)) {
                         key = b;
                         val = f(...as);
                     }
@@ -2185,7 +2186,7 @@ require = function () {
             exports.Applicative = Applicative;
             (function (Applicative) {
                 function ap(af, aa) {
-                    return aa ? af.bind(f => aa.fmap(curry_1.curry(f))) : aa => ap(af, aa);
+                    return aa ? af.bind(f => aa.fmap((0, curry_1.curry)(f))) : aa => ap(af, aa);
                 }
                 Applicative.ap = ap;
             }(Applicative = exports.Applicative || (exports.Applicative = {})));
@@ -2831,7 +2832,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
+            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
                 ap(a) {
                     return core_1.Sequence.ap(this, a);
                 }
@@ -2848,7 +2849,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
+            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
                 bind(f) {
                     return core_1.Sequence.concat(this.fmap(f));
                 }
@@ -2865,7 +2866,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
+            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
                 drop(n) {
                     return new core_1.Sequence((iter = () => this.iterate(), cons) => core_1.Sequence.Iterator.when(iter(), () => cons(), (thunk, recur) => core_1.Sequence.Thunk.index(thunk) < n ? recur() : cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk))));
                 }
@@ -2882,7 +2883,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
+            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
                 dropUntil(f) {
                     return new core_1.Sequence((iter = () => this.iterate(), cons) => core_1.Sequence.Iterator.when(iter(), () => cons(), (thunk, recur) => f(core_1.Sequence.Thunk.value(thunk)) ? recur() : cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk))));
                 }
@@ -2899,7 +2900,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
+            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
                 dropWhile(f) {
                     return new core_1.Sequence((iter = () => this.iterate(), cons) => core_1.Sequence.Iterator.when(iter(), () => cons(), (thunk, recur) => f(core_1.Sequence.Thunk.value(thunk)) ? recur() : cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk))));
                 }
@@ -2916,7 +2917,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
+            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
                 extract() {
                     const acc = [];
                     let iter = () => this.iterate();
@@ -2941,7 +2942,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
+            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
                 filter(f) {
                     return new core_1.Sequence((iter = () => this.iterate(), cons) => core_1.Sequence.Iterator.when(iter(), () => cons(), (thunk, recur) => f(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.index(thunk)) ? cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk)) : recur()));
                 }
@@ -2958,7 +2959,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
+            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
                 filterM(f) {
                     return core_1.Sequence.from([0]).bind(() => {
                         const xs = this.extract();
@@ -2988,7 +2989,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
+            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
                 fmap(f) {
                     return new core_1.Sequence((iter = () => this.iterate()) => core_1.Sequence.Iterator.when(iter(), () => core_1.Sequence.Data.cons(), thunk => core_1.Sequence.Data.cons(f(core_1.Sequence.Thunk.value(thunk)), core_1.Sequence.Thunk.iterator(thunk))));
                 }
@@ -3005,7 +3006,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
+            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
                 foldr(f, z) {
                     return new core_1.Sequence((iter = () => this.reduce().iterate()) => core_1.Sequence.Iterator.when(iter(), () => core_1.Sequence.Data.cons(z), thunk => core_1.Sequence.Data.cons(f(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.resume(core_1.Sequence.Thunk.iterator(thunk)).foldr(f, z))))).bind(s => s);
                 }
@@ -3022,7 +3023,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
+            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
                 group(f) {
                     return new core_1.Sequence(([iter, acc] = [
                         () => this.iterate(),
@@ -3045,7 +3046,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
+            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
                 inits() {
                     return core_1.Sequence.mappend(core_1.Sequence.from([[]]), this.scanl((b, a) => [
                         ...b,
@@ -3065,7 +3066,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
+            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
                 iterate() {
                     return this.iterate_();
                 }
@@ -3107,7 +3108,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
+            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
                 join() {
                     return core_1.Sequence.concat(this);
                 }
@@ -3124,7 +3125,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
+            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
                 map(f) {
                     return new core_1.Sequence((iter = () => this.iterate()) => core_1.Sequence.Iterator.when(iter(), () => core_1.Sequence.Data.cons(), thunk => core_1.Sequence.Data.cons(f(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.index(thunk)), core_1.Sequence.Thunk.iterator(thunk))));
                 }
@@ -3141,7 +3142,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
+            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
                 mapM(f) {
                     return core_1.Sequence.from([0]).bind(() => {
                         const xs = this.extract();
@@ -3173,8 +3174,8 @@ require = function () {
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
             const memoize_1 = _dereq_('../../../../memoize');
-            const memory = memoize_1.memoize(_ => new global_1.Map());
-            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
+            const memory = (0, memoize_1.memoize)(_ => new global_1.Map());
+            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
                 memoize() {
                     return new core_1.Sequence(([i, memo] = [
                         0,
@@ -3199,7 +3200,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
+            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
                 permutations() {
                     return core_1.Sequence.from([0]).bind(() => {
                         const xs = this.extract();
@@ -3243,7 +3244,7 @@ require = function () {
             const global_1 = _dereq_('../../../../global');
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
+            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
                 reduce() {
                     return new core_1.Sequence(([i, memo] = [
                         0,
@@ -3267,7 +3268,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
+            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
                 scanl(f, z) {
                     return new core_1.Sequence(([prev, iter, i] = [
                         z,
@@ -3292,7 +3293,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
+            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
                 segs() {
                     return core_1.Sequence.mappend(this.foldr((a, bs) => bs.take(1).bind(b => core_1.Sequence.mappend(core_1.Sequence.from([core_1.Sequence.mappend(core_1.Sequence.from([[a]]), core_1.Sequence.from(b).map(c => [
                             a,
@@ -3312,7 +3313,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
+            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
                 sort(cmp) {
                     return core_1.Sequence.from(this.extract().sort(cmp));
                 }
@@ -3329,7 +3330,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
+            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
                 subsequences() {
                     return core_1.Sequence.mappend(core_1.Sequence.from([[]]), core_1.Sequence.from([0]).bind(() => nonEmptySubsequences(this)));
                 }
@@ -3352,7 +3353,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
+            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
                 tails() {
                     return core_1.Sequence.mappend(core_1.Sequence.from(this.extract().map((_, i, as) => as.slice(i))), core_1.Sequence.from([[]]));
                 }
@@ -3369,7 +3370,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
+            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
                 take(n) {
                     return new core_1.Sequence((iter = () => this.iterate(), cons) => core_1.Sequence.Iterator.when(n > 0 ? iter() : core_1.Sequence.Iterator.done(), () => cons(), thunk => core_1.Sequence.Thunk.index(thunk) + 1 < n ? cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk)) : cons(core_1.Sequence.Thunk.value(thunk))));
                 }
@@ -3386,7 +3387,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
+            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
                 takeUntil(f) {
                     return new core_1.Sequence((iter = () => this.iterate(), cons) => core_1.Sequence.Iterator.when(iter(), () => cons(), thunk => f(core_1.Sequence.Thunk.value(thunk)) ? cons(core_1.Sequence.Thunk.value(thunk)) : cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk))));
                 }
@@ -3403,7 +3404,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
+            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
                 takeWhile(f) {
                     return new core_1.Sequence((iter = () => this.iterate(), cons) => core_1.Sequence.Iterator.when(iter(), () => cons(), thunk => f(core_1.Sequence.Thunk.value(thunk)) ? cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk)) : cons()));
                 }
@@ -3420,7 +3421,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
+            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
                 unique() {
                     const memory = new Set();
                     return this.filter(a => !memory.has(a) && !!memory.add(a));
@@ -3438,7 +3439,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
+            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
                 static concat(as) {
                     return new core_1.Sequence(([ai, bi] = [
                         () => as.iterate(),
@@ -3461,7 +3462,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
+            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
                 static cycle(as) {
                     return new core_1.Sequence(function cycle([iter, i] = [
                         as[Symbol.iterator](),
@@ -3490,7 +3491,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
+            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
                 static difference(a, b, cmp) {
                     return new core_1.Sequence(([ai, bi] = [
                         () => a.iterate(),
@@ -3529,7 +3530,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
+            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
                 static from(as) {
                     return new core_1.Sequence(([iter, i] = [
                         as[Symbol.iterator](),
@@ -3555,7 +3556,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
+            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
                 static intersect(a, b, cmp) {
                     return new core_1.Sequence(([ai, bi] = [
                         () => a.iterate(),
@@ -3585,7 +3586,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
+            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
                 static mappend(l, r) {
                     return core_1.Sequence.mconcat([
                         l,
@@ -3605,7 +3606,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
+            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
                 static mconcat(as) {
                     return [...as].reduce((a, b) => mconcat(a, b), core_1.Sequence.mempty);
                 }
@@ -3635,7 +3636,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            compose_1.compose(core_1.Sequence, (_a = class extends core_1.Sequence {
+            (0, compose_1.compose)(core_1.Sequence, (_a = class extends core_1.Sequence {
             }, _a.mempty = new core_1.Sequence((_, cons) => cons()), _a));
         },
         {
@@ -3650,7 +3651,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            compose_1.compose(core_1.Sequence, (_a = class extends core_1.Sequence {
+            (0, compose_1.compose)(core_1.Sequence, (_a = class extends core_1.Sequence {
             }, _a.mplus = core_1.Sequence.mappend, _a));
         },
         {
@@ -3665,7 +3666,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            compose_1.compose(core_1.Sequence, (_a = class extends core_1.Sequence {
+            (0, compose_1.compose)(core_1.Sequence, (_a = class extends core_1.Sequence {
             }, _a.mzero = core_1.Sequence.mempty, _a));
         },
         {
@@ -3679,7 +3680,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
+            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
                 static pure(a) {
                     return new core_1.Sequence((_, cons) => cons(a));
                 }
@@ -3697,9 +3698,9 @@ require = function () {
             const alias_1 = _dereq_('../../../../alias');
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
-                static random(p = () => alias_1.random()) {
-                    return typeof p === 'function' ? core_1.Sequence.from(new core_1.Sequence((_, cons) => cons(p(), _))) : this.random().map(r => p[alias_1.floor(r * p.length)]);
+            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
+                static random(p = () => (0, alias_1.random)()) {
+                    return typeof p === 'function' ? core_1.Sequence.from(new core_1.Sequence((_, cons) => cons(p(), _))) : this.random().map(r => p[(0, alias_1.floor)(r * p.length)]);
                 }
             });
         },
@@ -3715,7 +3716,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
+            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
                 static resume(iterator) {
                     return new core_1.Sequence((iter = iterator, cons) => core_1.Sequence.Iterator.when(iter(), () => cons(), thunk => cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk))));
                 }
@@ -3732,7 +3733,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
+            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
                 static Return(a) {
                     return new core_1.Sequence((_, cons) => cons(a));
                 }
@@ -3749,7 +3750,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
+            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
                 static sequence(ms) {
                     return ms.reduce((acc, m) => acc.fmap(bs => core_1.Sequence.mappend(bs, m)), core_1.Sequence.Return(core_1.Sequence.from([])));
                 }
@@ -3766,7 +3767,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
+            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
                 static union(a, b, cmp) {
                     return new core_1.Sequence(([ai, bi] = [
                         () => a.iterate(),
@@ -3808,7 +3809,7 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             const core_1 = _dereq_('../../core');
             const compose_1 = _dereq_('../../../../helper/compose');
-            compose_1.compose(core_1.Sequence, class extends core_1.Sequence {
+            (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
                 static zip(a, b) {
                     return new core_1.Sequence(([ai, bi] = [
                         () => a.iterate(),
@@ -3868,7 +3869,7 @@ require = function () {
                         cleanup: false
                     };
                     this.relaies = new global_1.WeakSet();
-                    assign_1.extend(this.settings, opts);
+                    (0, assign_1.extend)(this.settings, opts);
                 }
                 monitor(namespace, monitor, options = {}) {
                     if (typeof monitor !== 'function')
@@ -3886,7 +3887,7 @@ require = function () {
                         options
                     };
                     monitors.push(item);
-                    return function_1.once(() => void this.off(namespace, item));
+                    return (0, function_1.once)(() => void this.off(namespace, item));
                 }
                 on(namespace, subscriber, options = {}) {
                     if (typeof subscriber !== 'function')
@@ -3904,7 +3905,7 @@ require = function () {
                         options
                     };
                     subscribers.push(item);
-                    return function_1.once(() => void this.off(namespace, item));
+                    return (0, function_1.once)(() => void this.off(namespace, item));
                 }
                 once(namespace, subscriber) {
                     return this.on(namespace, subscriber, { once: true });
@@ -3918,11 +3919,11 @@ require = function () {
                             const items = subscriber.type === 0 ? node.monitors : node.subscribers;
                             if (items.length === 0 || subscriber.id < items[0].id || subscriber.id > items[items.length - 1].id)
                                 return;
-                            return void array_1.splice(items, items.indexOf(subscriber), 1);
+                            return void (0, array_1.splice)(items, items.indexOf(subscriber), 1);
                         }
                     case 'function': {
                             const items = node.subscribers;
-                            return void array_1.splice(items, items.findIndex(item => item.listener === subscriber), 1);
+                            return void (0, array_1.splice)(items, items.findIndex(item => item.listener === subscriber), 1);
                         }
                     case 'undefined':
                         return void clear(node);
@@ -3946,7 +3947,7 @@ require = function () {
                     const node = this.seekNode(namespace, 1);
                     if (!node)
                         return [];
-                    return array_1.push(this.refsBelow(node, 0), this.refsBelow(node, 1)).reduce((acc, rs) => array_1.push(acc, rs), []);
+                    return (0, array_1.push)(this.refsBelow(node, 0), this.refsBelow(node, 1)).reduce((acc, rs) => (0, array_1.push)(acc, rs), []);
                 }
                 drain(namespace, data, tracker) {
                     const node = this.seekNode(namespace, 1);
@@ -3965,7 +3966,7 @@ require = function () {
                                 const result = item.listener(data, namespace);
                                 tracker && results.push(result);
                             } catch (reason) {
-                                exception_1.causeAsyncException(reason);
+                                (0, exception_1.causeAsyncException)(reason);
                             }
                             i = i < items.length ? i : items.length - 1;
                             for (; i >= 0 && items[i].id > item.id; --i);
@@ -3984,7 +3985,7 @@ require = function () {
                             try {
                                 item.listener(data, namespace);
                             } catch (reason) {
-                                exception_1.causeAsyncException(reason);
+                                (0, exception_1.causeAsyncException)(reason);
                             }
                             i = i < items.length ? i : items.length - 1;
                             for (; i >= 0 && items[i].id > item.id; --i);
@@ -3994,7 +3995,7 @@ require = function () {
                         try {
                             tracker(data, results);
                         } catch (reason) {
-                            exception_1.causeAsyncException(reason);
+                            (0, exception_1.causeAsyncException)(reason);
                         }
                     }
                 }
@@ -4058,7 +4059,7 @@ require = function () {
                         break;
                     --i;
                 }
-                array_1.splice(subscribers, 0);
+                (0, array_1.splice)(subscribers, 0);
                 return monitors.length === 0;
             }
         },
@@ -4096,10 +4097,11 @@ require = function () {
                 }
                 static all(vs) {
                     return new AtomicPromise((resolve, reject) => {
-                        const values = alias_1.isArray(vs) ? vs : [...vs];
-                        const results = global_1.Array(values.length);
+                        const values = (0, alias_1.isArray)(vs) ? vs : [...vs];
+                        const results = (0, global_1.Array)(values.length);
+                        let done = false;
                         let count = 0;
-                        for (let i = 0; i < values.length; ++i) {
+                        for (let i = 0; !done && i < values.length; ++i) {
                             const value = values[i];
                             if (!isPromiseLike(value)) {
                                 results[i] = value;
@@ -4114,9 +4116,7 @@ require = function () {
                                     ++count;
                                     continue;
                                 case 3:
-                                    reject(status.reason);
-                                    i = values.length;
-                                    continue;
+                                    return reject(status.reason);
                                 }
                             }
                             value.then(value => {
@@ -4125,7 +4125,7 @@ require = function () {
                                 count === values.length && resolve(results);
                             }, reason => {
                                 reject(reason);
-                                i = values.length;
+                                done = true;
                             });
                         }
                         count === values.length && resolve(results);
@@ -4133,7 +4133,7 @@ require = function () {
                 }
                 static race(vs) {
                     return new AtomicPromise((resolve, reject) => {
-                        const values = alias_1.isArray(vs) ? vs : [...vs];
+                        const values = (0, alias_1.isArray)(vs) ? vs : [...vs];
                         for (let i = 0; i < values.length; ++i) {
                             const value = values[i];
                             if (!isPromiseLike(value)) {
@@ -4150,7 +4150,7 @@ require = function () {
                             }
                         }
                         let done = false;
-                        for (let i = 0; i < values.length; ++i) {
+                        for (let i = 0; !done && i < values.length; ++i) {
                             const value = values[i];
                             value.then(value => {
                                 resolve(value);
@@ -4159,15 +4159,13 @@ require = function () {
                                 reject(reason);
                                 done = true;
                             });
-                            if (done)
-                                return;
                         }
                     });
                 }
                 static allSettled(vs) {
                     return new AtomicPromise(resolve => {
-                        const values = alias_1.isArray(vs) ? vs : [...vs];
-                        const results = global_1.Array(values.length);
+                        const values = (0, alias_1.isArray)(vs) ? vs : [...vs];
+                        const results = (0, global_1.Array)(values.length);
                         let count = 0;
                         for (let i = 0; i < values.length; ++i) {
                             const value = values[i];
@@ -4215,6 +4213,40 @@ require = function () {
                             });
                         }
                         count === values.length && resolve(results);
+                    });
+                }
+                static any(vs) {
+                    return new AtomicPromise((resolve, reject) => {
+                        const values = (0, alias_1.isArray)(vs) ? vs : [...vs];
+                        const reasons = (0, global_1.Array)(values.length);
+                        let done = false;
+                        let count = 0;
+                        for (let i = 0; !done && i < values.length; ++i) {
+                            const value = values[i];
+                            if (!isPromiseLike(value)) {
+                                return resolve(value);
+                            }
+                            if (isAtomicPromiseLike(value)) {
+                                const {status} = value[internal];
+                                switch (status.state) {
+                                case 2:
+                                    return resolve(status.value);
+                                case 3:
+                                    reasons[i] = status.reason;
+                                    ++count;
+                                    continue;
+                                }
+                            }
+                            value.then(value => {
+                                resolve(value);
+                                done = true;
+                            }, reason => {
+                                reasons[i] = reason;
+                                ++count;
+                                count === values.length && reject(new AggregateError(reasons, 'All promises were rejected'));
+                            });
+                        }
+                        count === values.length && reject(new AggregateError(reasons, 'All promises were rejected'));
                     });
                 }
                 static resolve(value) {
@@ -4394,88 +4426,6 @@ require = function () {
     89: [
         function (_dereq_, module, exports) {
             'use strict';
-            Object.defineProperty(exports, '__esModule', { value: true });
-            exports.unique = exports.rnd0Z = exports.rnd0z = exports.rnd0f = exports.rnd64 = exports.rnd62 = exports.rnd36 = exports.rnd32 = exports.rnd16 = void 0;
-            const global_1 = _dereq_('./global');
-            const bases = [...Array(7)].map((_, i) => 1 << i);
-            const dict = [
-                ...[...Array(36)].map((_, i) => i.toString(36)),
-                ...[...Array(36)].map((_, i) => i.toString(36).toUpperCase()).slice(-26)
-            ];
-            exports.rnd16 = cons(16);
-            exports.rnd32 = cons(32);
-            exports.rnd36 = cons(36);
-            exports.rnd62 = cons(62);
-            exports.rnd64 = cons(64);
-            exports.rnd0f = conv(exports.rnd16);
-            exports.rnd0z = conv(exports.rnd36);
-            exports.rnd0Z = conv(exports.rnd62);
-            function unique(rnd, len, mem = new global_1.Set()) {
-                let limit = 5;
-                return () => {
-                    while (true) {
-                        for (let i = 0; i < limit; ++i) {
-                            const r = rnd(len);
-                            if (mem.has(r))
-                                continue;
-                            mem.add(r);
-                            return r;
-                        }
-                        mem.clear();
-                        ++len;
-                        limit = len < 3 ? limit : 3;
-                    }
-                };
-            }
-            exports.unique = unique;
-            function cons(radix) {
-                const base = bases.find(base => base >= radix);
-                const len = bases.indexOf(base);
-                return () => {
-                    while (true) {
-                        const r = random(len);
-                        if (r < radix)
-                            return r;
-                    }
-                };
-            }
-            function conv(rnd) {
-                return (len = 1) => {
-                    let acc = '';
-                    while (len--) {
-                        acc += dict[rnd()];
-                    }
-                    return acc;
-                };
-            }
-            const buffer = new Uint16Array(512);
-            const digit = 16;
-            const masks = bases.map((_, i) => +`0b${ '1'.repeat(i) || 0 }`);
-            let index = buffer.length;
-            let offset = digit;
-            function random(len) {
-                if (index === buffer.length) {
-                    global_1.crypto.getRandomValues(buffer);
-                    index = 0;
-                }
-                if (offset === len) {
-                    offset = digit;
-                    return buffer[index++] & masks[len];
-                } else if (offset > len) {
-                    offset -= len;
-                    return buffer[index] >> offset & masks[len];
-                } else {
-                    offset = digit;
-                    ++index;
-                    return random(len);
-                }
-            }
-        },
-        { './global': 20 }
-    ],
-    90: [
-        function (_dereq_, module, exports) {
-            'use strict';
             var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
                 if (k2 === undefined)
                     k2 = k;
@@ -4500,7 +4450,7 @@ require = function () {
         },
         { './monad/sequence': 39 }
     ],
-    91: [
+    90: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4527,7 +4477,7 @@ require = function () {
         },
         { './global': 20 }
     ],
-    92: [
+    91: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4581,7 +4531,7 @@ require = function () {
         },
         {}
     ],
-    93: [
+    92: [
         function (_dereq_, module, exports) {
             (function (global) {
                 (function () {
@@ -4607,7 +4557,7 @@ require = function () {
                                 return this.state;
                             }, { delay: false });
                             this.state = new future_1.AtomicFuture();
-                            this.id = sqid_1.sqid();
+                            this.id = (0, sqid_1.sqid)();
                             this.settings = {
                                 name: '',
                                 capacity: global_1.Infinity,
@@ -4635,7 +4585,7 @@ require = function () {
                             };
                             this.scheduled = false;
                             this.messages = [];
-                            void assign_1.extend(this.settings, opts);
+                            void (0, assign_1.extend)(this.settings, opts);
                             this.name = this.settings.name;
                             if (this.constructor === Supervisor)
                                 throw new global_1.Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: Cannot instantiate abstract classes.`);
@@ -4668,11 +4618,11 @@ require = function () {
                             var _b;
                             this.available = false;
                             void this.clear(reason);
-                            void alias_1.ObjectFreeze(this.workers);
+                            void (0, alias_1.ObjectFreeze)(this.workers);
                             while (this.messages.length > 0) {
                                 const [names, param, , , timer] = this.messages.shift();
-                                const name = typeof names === 'string' ? names : names[Symbol.iterator]().next().value;
-                                timer && void global_1.clearTimeout(timer);
+                                const name = typeof names === 'string' ? names : names[global_1.Symbol.iterator]().next().value;
+                                timer && void (0, global_1.clearTimeout)(timer);
                                 void ((_b = this.events_) === null || _b === void 0 ? void 0 : _b.loss.emit([name], [
                                     name,
                                     param
@@ -4680,7 +4630,7 @@ require = function () {
                             }
                             this.alive = false;
                             void this.constructor.instances.delete(this);
-                            void alias_1.ObjectFreeze(this);
+                            void (0, alias_1.ObjectFreeze)(this);
                             void this.settings.destructor(reason);
                             void this.state.bind(reason === void 0 ? void 0 : promise_1.AtomicPromise.reject(reason));
                         }
@@ -4699,7 +4649,7 @@ require = function () {
                         register(name, process, state) {
                             state = state;
                             void this.throwErrorIfNotAvailable();
-                            if (coroutine_1.isCoroutine(process)) {
+                            if ((0, coroutine_1.isCoroutine)(process)) {
                                 const port = process[process.constructor.port];
                                 const proc = {
                                     init: state => state,
@@ -4763,10 +4713,10 @@ require = function () {
                             void this.workers.set(name, worker);
                             return worker.terminate;
                             function isAsyncGeneratorFunction(process) {
-                                return process[Symbol.toStringTag] === 'AsyncGeneratorFunction';
+                                return process[global_1.Symbol.toStringTag] === 'AsyncGeneratorFunction';
                             }
                             function isGeneratorFunction(process) {
-                                return process[Symbol.toStringTag] === 'GeneratorFunction';
+                                return process[global_1.Symbol.toStringTag] === 'GeneratorFunction';
                             }
                         }
                         call(name, param, callback = this.settings.timeout, timeout = this.settings.timeout) {
@@ -4783,8 +4733,8 @@ require = function () {
                             ]);
                             while (this.messages.length > (this.available ? this.settings.capacity : 0)) {
                                 const [names, param, callback, , timer] = this.messages.shift();
-                                timer && void global_1.clearTimeout(timer);
-                                const name = typeof names === 'string' ? names : names[Symbol.iterator]().next().value;
+                                timer && void (0, global_1.clearTimeout)(timer);
+                                const name = typeof names === 'string' ? names : names[global_1.Symbol.iterator]().next().value;
                                 void ((_b = this.events_) === null || _b === void 0 ? void 0 : _b.loss.emit([name], [
                                     name,
                                     param
@@ -4792,7 +4742,7 @@ require = function () {
                                 try {
                                     void callback(void 0, new global_1.Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: A message overflowed.`));
                                 } catch (reason) {
-                                    void exception_1.causeAsyncException(reason);
+                                    void (0, exception_1.causeAsyncException)(reason);
                                 }
                             }
                             if (this.messages.length === 0)
@@ -4800,7 +4750,7 @@ require = function () {
                             void this.throwErrorIfNotAvailable();
                             void this.schedule();
                             if (timeout > 0 && timeout !== global_1.Infinity) {
-                                this.messages[this.messages.length - 1][4] = global_1.setTimeout(() => void this.schedule(), timeout + 3);
+                                this.messages[this.messages.length - 1][4] = (0, global_1.setTimeout)(() => void this.schedule(), timeout + 3);
                             }
                         }
                         cast(name, param, timeout = this.settings.timeout) {
@@ -4866,7 +4816,7 @@ require = function () {
                                 void this.deliver();
                             });
                             void this.settings.scheduler.call(void 0, p.bind);
-                            this.settings.scheduler === global.requestAnimationFrame && void global_1.setTimeout(p.bind, 1000);
+                            this.settings.scheduler === global.requestAnimationFrame && void (0, global_1.setTimeout)(p.bind, 1000);
                         }
                         deliver() {
                             var _b, _c;
@@ -4888,10 +4838,10 @@ require = function () {
                                 }
                                 if (result === void 0 && Date.now() < expiry)
                                     continue;
-                                void array_1.splice(this.messages, i, 1);
+                                void (0, array_1.splice)(this.messages, i, 1);
                                 void --i;
                                 void --len;
-                                timer && void global_1.clearTimeout(timer);
+                                timer && void (0, global_1.clearTimeout)(timer);
                                 if (result === void 0) {
                                     void ((_c = this.events_) === null || _c === void 0 ? void 0 : _c.loss.emit([name], [
                                         name,
@@ -4900,7 +4850,7 @@ require = function () {
                                     try {
                                         void callback(void 0, new global_1.Error(`Spica: Supervisor: A process has failed.`));
                                     } catch (reason) {
-                                        void exception_1.causeAsyncException(reason);
+                                        void (0, exception_1.causeAsyncException)(reason);
                                     }
                                 } else {
                                     void result.then(reply => void callback(reply), () => void callback(void 0, new global_1.Error(`Spica: Supervisor: A process has failed.`)));
@@ -4916,7 +4866,7 @@ require = function () {
                             this.workers = workers;
                             this.selector = selector;
                         }
-                        *[Symbol.iterator]() {
+                        *[global_1.Symbol.iterator]() {
                             let cnt = 0;
                             for (const name of this.selector(this.workers.keys())) {
                                 void ++cnt;
@@ -4951,11 +4901,11 @@ require = function () {
                         destructor(reason) {
                             this.alive = false;
                             this.available = false;
-                            void alias_1.ObjectFreeze(this);
+                            void (0, alias_1.ObjectFreeze)(this);
                             try {
                                 void this.destructor_();
                             } catch (reason) {
-                                void exception_1.causeAsyncException(reason);
+                                void (0, exception_1.causeAsyncException)(reason);
                             }
                             if (this.initiated) {
                                 void this.exit(reason);
@@ -4996,7 +4946,7 @@ require = function () {
                             if (!this.available || now > expiry)
                                 return;
                             return new promise_1.AtomicPromise((resolve, reject) => {
-                                alias_1.isFinite(expiry) && void global_1.setTimeout(() => void reject(new global_1.Error()), expiry - now);
+                                (0, alias_1.isFinite)(expiry) && void (0, global_1.setTimeout)(() => void reject(new global_1.Error()), expiry - now);
                                 this.available = false;
                                 if (!this.initiated) {
                                     void this.init();
@@ -5033,10 +4983,10 @@ require = function () {
             './noop': 86,
             './observer': 87,
             './promise': 88,
-            './sqid': 91
+            './sqid': 90
         }
     ],
-    94: [
+    93: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5055,13 +5005,13 @@ require = function () {
                     }
                     if (timer !== 0)
                         return;
-                    timer = global_1.setTimeout(async () => {
+                    timer = (0, global_1.setTimeout)(async () => {
                         const buf = buffer;
                         buffer = [];
                         try {
                             await callback.call(this, buf[0], buf);
                         } catch (reason) {
-                            exception_1.causeAsyncException(reason);
+                            (0, exception_1.causeAsyncException)(reason);
                         }
                         timer = 0;
                         buffer.length > 0 && self.call(this, buffer.shift());
@@ -5082,9 +5032,9 @@ require = function () {
                     }
                     if (timer !== 0)
                         return;
-                    timer = global_1.setTimeout(() => {
+                    timer = (0, global_1.setTimeout)(() => {
                         timer = 0;
-                        void global_1.setTimeout(async () => {
+                        void (0, global_1.setTimeout)(async () => {
                             if (timer !== 0)
                                 return;
                             if (!callable)
@@ -5095,7 +5045,7 @@ require = function () {
                             try {
                                 await callback.call(this, buf[0], buf);
                             } catch (reason) {
-                                exception_1.causeAsyncException(reason);
+                                (0, exception_1.causeAsyncException)(reason);
                             }
                             callable = true;
                             timer === 0 && buffer.length > 0 && self.call(this, buffer.shift());
@@ -5110,7 +5060,7 @@ require = function () {
             './global': 20
         }
     ],
-    95: [
+    94: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5122,7 +5072,7 @@ require = function () {
         },
         {}
     ],
-    96: [
+    95: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5138,7 +5088,7 @@ require = function () {
                     return 'null';
                 const type = typeof value;
                 if (type === 'object') {
-                    const proto = alias_1.ObjectGetPrototypeOf(value);
+                    const proto = (0, alias_1.ObjectGetPrototypeOf)(value);
                     if (proto === ObjectPrototype || proto === null)
                         return 'Object';
                     if (proto === ArrayPrototype)
@@ -5166,7 +5116,7 @@ require = function () {
         },
         { './alias': 4 }
     ],
-    97: [
+    96: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5189,11 +5139,11 @@ require = function () {
             });
             const internal = Symbol.for('spica/url::internal');
             class URL {
-                constructor(url, base) {
-                    this.url = url;
+                constructor(source, base) {
+                    this.source = source;
                     this.base = base;
                     this[internal] = {
-                        url: new format_1.ReadonlyURL(url, base),
+                        url: new format_1.ReadonlyURL(source, base),
                         searchParams: void 0
                     };
                 }
@@ -5266,10 +5216,10 @@ require = function () {
         },
         {
             './global': 20,
-            './url/format': 98
+            './url/format': 97
         }
     ],
-    98: [
+    97: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5286,25 +5236,25 @@ require = function () {
             }
             exports.standardize = standardize;
             function encode(url) {
-                return url.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]?|[\uDC00-\uDFFF]/g, str => str.length === 2 ? str : '').replace(/%(?![0-9A-F]{2})|[^%\[\]]+/ig, global_1.encodeURI).replace(/\?[^#]+/, query => '?' + query.slice(1).replace(/%[0-9A-F]{2}|%|[^=&]+/ig, str => str[0] === '%' && str.length === 3 ? str : global_1.encodeURIComponent(str))).replace(/%[0-9A-F]{2}/ig, str => str.toUpperCase()).replace(/#.+/, url.slice(url.indexOf('#')));
+                return url.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]?|[\uDC00-\uDFFF]/g, str => str.length === 2 ? str : '').replace(/%(?![0-9A-F]{2})|[^%\[\]]+/ig, global_1.encodeURI).replace(/\?[^#]+/, query => '?' + query.slice(1).replace(/%[0-9A-F]{2}|%|[^=&]+/ig, str => str[0] === '%' && str.length === 3 ? str : (0, global_1.encodeURIComponent)(str))).replace(/%[0-9A-F]{2}/ig, str => str.toUpperCase()).replace(/#.+/, url.slice(url.indexOf('#')));
             }
             exports._encode = encode;
             const internal = Symbol.for('spica/url::internal');
             class ReadonlyURL {
-                constructor(src, base) {
+                constructor(source, base) {
                     var _a, _b;
-                    this.src = src;
+                    this.source = source;
                     this.base = base;
                     const i = (_a = base === null || base === void 0 ? void 0 : base.indexOf('#')) !== null && _a !== void 0 ? _a : -1;
                     if (i > -1) {
                         base = base === null || base === void 0 ? void 0 : base.slice(0, i);
                     }
                     const j = (_b = base === null || base === void 0 ? void 0 : base.indexOf('?')) !== null && _b !== void 0 ? _b : -1;
-                    if (i > -1 && src.indexOf('#') === -1) {
+                    if (i > -1 && source.indexOf('#') === -1) {
                         base = base === null || base === void 0 ? void 0 : base.slice(0, j);
                     }
                     this[internal] = {
-                        share: ReadonlyURL.get(src, base),
+                        share: ReadonlyURL.get(source, base),
                         searchParams: void 0
                     };
                 }
@@ -5396,7 +5346,7 @@ require = function () {
                 }
             }
             exports.ReadonlyURL = ReadonlyURL;
-            ReadonlyURL.get = flip_1.flip(curry_1.uncurry(memoize_1.memoize(base => memoize_1.memoize(url => ({
+            ReadonlyURL.get = (0, flip_1.flip)((0, curry_1.uncurry)((0, memoize_1.memoize)(base => (0, memoize_1.memoize)(url => ({
                 url: new global_1.global.URL(url, base),
                 href: void 0,
                 resource: void 0,
@@ -5423,789 +5373,1525 @@ require = function () {
             '../memoize': 29
         }
     ],
-    99: [
+    98: [
         function (_dereq_, module, exports) {
-            'use strict';
-            Object.defineProperty(exports, '__esModule', { value: true });
-            exports.identity = exports.apply = exports.currentTarget = exports.wait = exports.once = exports.bind = exports.delegate = exports.listen = exports.defrag = exports.define = exports.element = exports.text = exports.svg = exports.html = exports.frag = exports.shadow = exports.proxy = exports.API = exports.SVG = exports.HTML = exports.Shadow = void 0;
-            _dereq_('spica/global');
-            var builder_1 = _dereq_('./src/builder');
-            Object.defineProperty(exports, 'Shadow', {
-                enumerable: true,
-                get: function () {
-                    return builder_1.Shadow;
+            _dereq_ = function () {
+                function r(e, n, t) {
+                    function o(i, f) {
+                        if (!n[i]) {
+                            if (!e[i]) {
+                                var c = 'function' == typeof _dereq_ && _dereq_;
+                                if (!f && c)
+                                    return c(i, !0);
+                                if (u)
+                                    return u(i, !0);
+                                var a = new Error('Cannot find module \'' + i + '\'');
+                                throw a.code = 'MODULE_NOT_FOUND', a;
+                            }
+                            var p = n[i] = { exports: {} };
+                            e[i][0].call(p.exports, function (r) {
+                                var n = e[i][1][r];
+                                return o(n || r);
+                            }, p, p.exports, r, e, n, t);
+                        }
+                        return n[i].exports;
+                    }
+                    for (var u = 'function' == typeof _dereq_ && _dereq_, i = 0; i < t.length; i++)
+                        o(t[i]);
+                    return o;
                 }
-            });
-            Object.defineProperty(exports, 'HTML', {
-                enumerable: true,
-                get: function () {
-                    return builder_1.HTML;
-                }
-            });
-            Object.defineProperty(exports, 'SVG', {
-                enumerable: true,
-                get: function () {
-                    return builder_1.SVG;
-                }
-            });
-            Object.defineProperty(exports, 'API', {
-                enumerable: true,
-                get: function () {
-                    return builder_1.API;
-                }
-            });
-            var proxy_1 = _dereq_('./src/proxy');
-            Object.defineProperty(exports, 'proxy', {
-                enumerable: true,
-                get: function () {
-                    return proxy_1.proxy;
-                }
-            });
-            var dom_1 = _dereq_('./src/util/dom');
-            Object.defineProperty(exports, 'shadow', {
-                enumerable: true,
-                get: function () {
-                    return dom_1.shadow;
-                }
-            });
-            Object.defineProperty(exports, 'frag', {
-                enumerable: true,
-                get: function () {
-                    return dom_1.frag;
-                }
-            });
-            Object.defineProperty(exports, 'html', {
-                enumerable: true,
-                get: function () {
-                    return dom_1.html;
-                }
-            });
-            Object.defineProperty(exports, 'svg', {
-                enumerable: true,
-                get: function () {
-                    return dom_1.svg;
-                }
-            });
-            Object.defineProperty(exports, 'text', {
-                enumerable: true,
-                get: function () {
-                    return dom_1.text;
-                }
-            });
-            Object.defineProperty(exports, 'element', {
-                enumerable: true,
-                get: function () {
-                    return dom_1.element;
-                }
-            });
-            Object.defineProperty(exports, 'define', {
-                enumerable: true,
-                get: function () {
-                    return dom_1.define;
-                }
-            });
-            Object.defineProperty(exports, 'defrag', {
-                enumerable: true,
-                get: function () {
-                    return dom_1.defrag;
-                }
-            });
-            var listener_1 = _dereq_('./src/util/listener');
-            Object.defineProperty(exports, 'listen', {
-                enumerable: true,
-                get: function () {
-                    return listener_1.listen;
-                }
-            });
-            Object.defineProperty(exports, 'delegate', {
-                enumerable: true,
-                get: function () {
-                    return listener_1.delegate;
-                }
-            });
-            Object.defineProperty(exports, 'bind', {
-                enumerable: true,
-                get: function () {
-                    return listener_1.bind;
-                }
-            });
-            Object.defineProperty(exports, 'once', {
-                enumerable: true,
-                get: function () {
-                    return listener_1.once;
-                }
-            });
-            Object.defineProperty(exports, 'wait', {
-                enumerable: true,
-                get: function () {
-                    return listener_1.wait;
-                }
-            });
-            Object.defineProperty(exports, 'currentTarget', {
-                enumerable: true,
-                get: function () {
-                    return listener_1.currentTarget;
-                }
-            });
-            var query_1 = _dereq_('./src/util/query');
-            Object.defineProperty(exports, 'apply', {
-                enumerable: true,
-                get: function () {
-                    return query_1.apply;
-                }
-            });
-            var identity_1 = _dereq_('./src/util/identity');
-            Object.defineProperty(exports, 'identity', {
-                enumerable: true,
-                get: function () {
-                    return identity_1.identity;
-                }
-            });
-        },
-        {
-            './src/builder': 100,
-            './src/proxy': 101,
-            './src/util/dom': 102,
-            './src/util/identity': 103,
-            './src/util/listener': 104,
-            './src/util/query': 105,
-            'spica/global': 20
-        }
-    ],
-    100: [
-        function (_dereq_, module, exports) {
-            'use strict';
-            Object.defineProperty(exports, '__esModule', { value: true });
-            exports.SVG = exports.HTML = exports.Shadow = exports.API = void 0;
-            const alias_1 = _dereq_('spica/alias');
-            const proxy_1 = _dereq_('./proxy');
-            const dom_1 = _dereq_('./util/dom');
-            function API(baseFactory, formatter = el => el) {
-                return new Proxy(() => void 0, handle(baseFactory, formatter));
-            }
-            exports.API = API;
-            exports.Shadow = API(dom_1.html, dom_1.shadow);
-            exports.HTML = API(dom_1.html);
-            exports.SVG = API(dom_1.svg);
-            function handle(baseFactory, formatter) {
-                return {
-                    apply(target, _, [prop, ...args]) {
-                        return this.get(target, prop, target)(...args);
+                return r;
+            }()({
+                1: [
+                    function (_dereq_, module, exports) {
                     },
-                    get: (target, prop) => target[prop] || prop in target || typeof prop !== 'string' ? target[prop] : target[prop] = builder(prop, baseFactory)
-                };
-                function builder(tag, baseFactory) {
-                    return function build(attrs, children, factory) {
-                        if (typeof attrs === 'function')
-                            return build(void 0, void 0, attrs);
-                        if (typeof children === 'function')
-                            return build(attrs, void 0, children);
-                        if (attrs !== void 0 && isElChildren(attrs))
-                            return build(void 0, attrs, factory);
-                        const node = formatter(elem(factory, attrs, children));
-                        return node.nodeType === 1 ? new proxy_1.Elem(node, children) : new proxy_1.Elem(node.host, children, node);
-                    };
-                    function isElChildren(children) {
-                        if (typeof children !== 'object')
-                            return true;
-                        for (const i in children) {
-                            if (!alias_1.hasOwnProperty(children, i))
-                                continue;
-                            return typeof children[i] === 'object';
+                    {}
+                ],
+                2: [
+                    function (_dereq_, module, exports) {
+                        arguments[4][1][0].apply(exports, arguments);
+                    },
+                    { 'dup': 1 }
+                ],
+                3: [
+                    function (_dereq_, module, exports) {
+                        'use strict';
+                        Object.defineProperty(exports, '__esModule', { value: true });
+                    },
+                    {}
+                ],
+                4: [
+                    function (_dereq_, module, exports) {
+                        'use strict';
+                        Object.defineProperty(exports, '__esModule', { value: true });
+                        exports.isArray = exports.ObjectValues = exports.ObjectSetPrototypeOf = exports.ObjectSeal = exports.ObjectPreventExtensions = exports.ObjectKeys = exports.isSealed = exports.isFrozen = exports.isExtensible = exports.ObjectIs = exports.ObjectGetPrototypeOf = exports.ObjectGetOwnPropertySymbols = exports.ObjectGetOwnPropertyNames = exports.ObjectGetOwnPropertyDescriptors = exports.ObjectGetOwnPropertyDescriptor = exports.ObjectFromEntries = exports.ObjectFreeze = exports.ObjectEntries = exports.ObjectDefineProperty = exports.ObjectDefineProperties = exports.ObjectCreate = exports.ObjectAssign = exports.toString = exports.isEnumerable = exports.isPrototypeOf = exports.hasOwnProperty = exports.SymbolKeyFor = exports.SymbolFor = exports.sign = exports.round = exports.random = exports.min = exports.max = exports.floor = exports.ceil = exports.abs = exports.parseInt = exports.parseFloat = exports.isSafeInteger = exports.isNaN = exports.isInteger = exports.isFinite = exports.NaN = void 0;
+                        exports.NaN = Number.NaN, exports.isFinite = Number.isFinite, exports.isInteger = Number.isInteger, exports.isNaN = Number.isNaN, exports.isSafeInteger = Number.isSafeInteger, exports.parseFloat = Number.parseFloat, exports.parseInt = Number.parseInt;
+                        exports.abs = Math.abs, exports.ceil = Math.ceil, exports.floor = Math.floor, exports.max = Math.max, exports.min = Math.min, exports.random = Math.random, exports.round = Math.round, exports.sign = Math.sign;
+                        exports.SymbolFor = Symbol.for;
+                        exports.SymbolKeyFor = Symbol.keyFor;
+                        exports.hasOwnProperty = Object.prototype.hasOwnProperty.call.bind(Object.prototype.hasOwnProperty);
+                        exports.isPrototypeOf = Object.prototype.isPrototypeOf.call.bind(Object.prototype.isPrototypeOf);
+                        exports.isEnumerable = Object.prototype.propertyIsEnumerable.call.bind(Object.prototype.propertyIsEnumerable);
+                        exports.toString = Object.prototype.toString.call.bind(Object.prototype.toString);
+                        exports.ObjectAssign = Object.assign;
+                        exports.ObjectCreate = Object.create;
+                        exports.ObjectDefineProperties = Object.defineProperties;
+                        exports.ObjectDefineProperty = Object.defineProperty;
+                        exports.ObjectEntries = Object.entries;
+                        exports.ObjectFreeze = Object.freeze;
+                        exports.ObjectFromEntries = Object.fromEntries;
+                        exports.ObjectGetOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
+                        exports.ObjectGetOwnPropertyDescriptors = Object.getOwnPropertyDescriptors;
+                        exports.ObjectGetOwnPropertyNames = Object.getOwnPropertyNames;
+                        exports.ObjectGetOwnPropertySymbols = Object.getOwnPropertySymbols;
+                        exports.ObjectGetPrototypeOf = Object.getPrototypeOf;
+                        exports.ObjectIs = Object.is;
+                        exports.isExtensible = Object.isExtensible;
+                        exports.isFrozen = Object.isFrozen;
+                        exports.isSealed = Object.isSealed;
+                        exports.ObjectKeys = Object.keys;
+                        exports.ObjectPreventExtensions = Object.preventExtensions;
+                        exports.ObjectSeal = Object.seal;
+                        exports.ObjectSetPrototypeOf = Object.setPrototypeOf;
+                        exports.ObjectValues = Object.values;
+                        exports.isArray = Array.isArray;
+                    },
+                    {}
+                ],
+                5: [
+                    function (_dereq_, module, exports) {
+                        'use strict';
+                        Object.defineProperty(exports, '__esModule', { value: true });
+                        exports.join = exports.splice = exports.pop = exports.push = exports.shift = exports.unshift = exports.indexOf = void 0;
+                        const global_1 = _dereq_('./global');
+                        function indexOf(as, a) {
+                            if (as.length === 0)
+                                return -1;
+                            return a === a ? as.indexOf(a) : as.findIndex(a => a !== a);
                         }
-                        return true;
-                    }
-                    function elem(factory, attrs, children) {
-                        const el = factory ? dom_1.define(factory(baseFactory, tag, attrs || {}, children), attrs) : baseFactory(tag, attrs);
-                        if (tag !== el.tagName.toLowerCase())
-                            throw new Error(`TypedDOM: Expected tag name is "${ tag }" but actually "${ el.tagName.toLowerCase() }".`);
-                        return el;
-                    }
-                }
-            }
-        },
-        {
-            './proxy': 101,
-            './util/dom': 102,
-            'spica/alias': 4
-        }
-    ],
-    101: [
-        function (_dereq_, module, exports) {
-            'use strict';
-            Object.defineProperty(exports, '__esModule', { value: true });
-            exports.Elem = exports.proxy = void 0;
-            const global_1 = _dereq_('spica/global');
-            const alias_1 = _dereq_('spica/alias');
-            const identity_1 = _dereq_('./util/identity');
-            const dom_1 = _dereq_('./util/dom');
-            const array_1 = _dereq_('spica/array');
-            const proxies = new global_1.WeakMap();
-            function proxy(el) {
-                const proxy = proxies.get(el);
-                if (proxy)
-                    return proxy;
-                throw new Error(`TypedDOM: This element has no proxy.`);
-            }
-            exports.proxy = proxy;
-            const tag = Symbol.for('typed-dom::tag');
-            const id = identity_1.identity();
-            let counter = 0;
-            class Elem {
-                constructor(element, children_, container = element) {
-                    this.element = element;
-                    this.children_ = children_;
-                    this.container = container;
-                    this.id_ = '';
-                    this.query_ = '';
-                    this.isPartialUpdate = false;
-                    this.isInit = true;
-                    switch (true) {
-                    case children_ === void 0:
-                        this.type = 0;
-                        break;
-                    case typeof children_ === 'string':
-                        this.type = 1;
-                        break;
-                    case alias_1.isArray(children_):
-                        this.type = 2;
-                        break;
-                    case children_ && typeof children_ === 'object':
-                        this.type = 3;
-                        break;
-                    default:
-                        throw new Error(`TypedDOM: Invalid children type.`);
-                    }
-                    throwErrorIfNotUsable(this);
-                    proxies.set(this.element, this);
-                    switch (this.type) {
-                    case 0:
-                        this.isInit = false;
-                        return;
-                    case 1:
-                        dom_1.define(this.container, []);
-                        this.children_ = this.container.appendChild(dom_1.text(''));
-                        this.children = children_;
-                        this.isInit = false;
-                        return;
-                    case 2:
-                        dom_1.define(this.container, []);
-                        this.children_ = [];
-                        this.children = children_;
-                        this.isInit = false;
-                        return;
-                    case 3:
-                        dom_1.define(this.container, []);
-                        this.children_ = this.observe({ ...children_ });
-                        this.children = children_;
-                        this.isInit = false;
-                        return;
-                    default:
-                        throw new Error(`TypedDOM: Unreachable code.`);
-                    }
-                }
-                get id() {
-                    if (this.id_)
-                        return this.id_;
-                    this.id_ = this.element.id;
-                    if (/^[\w-]+$/.test(this.id_))
-                        return this.id_;
-                    this.id_ = `rnd-${ id }-${ ++counter }`;
-                    this.element.classList.add(this.id_);
-                    return this.id_;
-                }
-                get query() {
-                    if (this.query_)
-                        return this.query_;
-                    switch (true) {
-                    case this.element !== this.container:
-                        return this.query_ = ':host';
-                    case this.id === this.element.id:
-                        return this.query_ = `#${ this.id }`;
-                    default:
-                        return this.query_ = `.${ this.id }`;
-                    }
-                }
-                scope(child) {
-                    const style = child.element;
-                    switch (false) {
-                    case 'type' in style:
-                    case 'media' in style:
-                    case style.tagName === 'STYLE':
-                        return;
-                    }
-                    const target = /(^|[,}])(\s*)\$scope(?![\w-])(?=[^;{}]*{)/g;
-                    const html = style.innerHTML;
-                    if (html.search(target) === -1)
-                        return;
-                    const query = this.query;
-                    style.innerHTML = html.replace(target, `$1$2${ query }`);
-                    if (!style.firstElementChild)
-                        return;
-                    for (let es = style.children, i = 0, len = es.length; i < len; ++i) {
-                        es[0].remove();
-                    }
-                }
-                observe(children) {
-                    const descs = {};
-                    let i = -1;
-                    for (const name of alias_1.ObjectKeys(children)) {
-                        if (name in {})
-                            throw new Error(`TypedDOM: Child names must be different from the object property names.`);
-                        ++i;
-                        let child = children[name];
-                        throwErrorIfNotUsable(child);
-                        if (child.element !== this.container.children[i]) {
-                            this.container.appendChild(child.element);
+                        exports.indexOf = indexOf;
+                        function unshift(as, bs) {
+                            if ('length' in as) {
+                                for (let i = as.length - 1; i >= 0; --i) {
+                                    bs.unshift(as[i]);
+                                }
+                            } else {
+                                bs.unshift(...as);
+                            }
+                            return bs;
                         }
-                        descs[name] = {
-                            configurable: true,
-                            enumerable: true,
-                            get: () => {
-                                return child;
-                            },
-                            set: newChild => {
-                                const oldChild = child;
-                                if (newChild === oldChild)
-                                    return;
-                                if (this.isPartialUpdate) {
-                                    child = newChild;
-                                    if (newChild.element.parentNode === oldChild.element.parentNode) {
-                                        const ref = newChild.element.nextSibling !== oldChild.element ? newChild.element.nextSibling : oldChild.element.nextSibling;
-                                        this.container.replaceChild(newChild.element, oldChild.element);
-                                        this.container.insertBefore(oldChild.element, ref);
-                                    } else {
-                                        this.container.insertBefore(newChild.element, oldChild.element);
-                                        this.container.removeChild(oldChild.element);
+                        exports.unshift = unshift;
+                        function shift(as, count) {
+                            if (count < 0)
+                                throw new Error('Unexpected negative number');
+                            return count === void 0 ? [
+                                as.shift(),
+                                as
+                            ] : [
+                                splice(as, 0, count),
+                                as
+                            ];
+                        }
+                        exports.shift = shift;
+                        function push(as, bs) {
+                            if ('length' in bs) {
+                                for (let i = 0, len = bs.length; i < len; ++i) {
+                                    as.push(bs[i]);
+                                }
+                            } else {
+                                for (const b of bs) {
+                                    as.push(b);
+                                }
+                            }
+                            return as;
+                        }
+                        exports.push = push;
+                        function pop(as, count) {
+                            if (count < 0)
+                                throw new Error('Unexpected negative number');
+                            return count === void 0 ? [
+                                as,
+                                as.pop()
+                            ] : [
+                                as,
+                                splice(as, as.length - count, count)
+                            ];
+                        }
+                        exports.pop = pop;
+                        function splice(as, index, count, ...inserts) {
+                            if (count === 0 && inserts.length === 0)
+                                return [];
+                            count = count > as.length ? as.length : count;
+                            switch (index) {
+                            case 0:
+                                switch (count) {
+                                case 0:
+                                    return [
+                                        [],
+                                        unshift(inserts, as)
+                                    ][0];
+                                case 1:
+                                    return as.length === 0 ? [
+                                        [],
+                                        unshift(inserts, as)
+                                    ][0] : [
+                                        [as.shift()],
+                                        unshift(inserts, as)
+                                    ][0];
+                                case void 0:
+                                    if (as.length > 1 || arguments.length > 2)
+                                        break;
+                                    return as.length === 0 ? [] : splice(as, index, 1);
+                                }
+                                break;
+                            case -1:
+                            case as.length - 1:
+                                switch (count) {
+                                case 1:
+                                    return as.length === 0 ? [
+                                        [],
+                                        push(as, inserts)
+                                    ][0] : [
+                                        [as.pop()],
+                                        push(as, inserts)
+                                    ][0];
+                                case void 0:
+                                    if (as.length > 1 || arguments.length > 2)
+                                        break;
+                                    return as.length === 0 ? [] : splice(as, index, 1);
+                                }
+                                break;
+                            case as.length:
+                            case global_1.Infinity:
+                                return [
+                                    [],
+                                    push(as, inserts)
+                                ][0];
+                            }
+                            return arguments.length > 2 ? as.splice(index, count, ...inserts) : as.splice(index);
+                        }
+                        exports.splice = splice;
+                        function join(as, sep = '') {
+                            let acc = '';
+                            for (let i = 0; i < as.length; ++i) {
+                                acc += i === 0 ? as[i] : sep + as[i];
+                            }
+                            return acc;
+                        }
+                        exports.join = join;
+                    },
+                    { './global': 8 }
+                ],
+                6: [
+                    function (_dereq_, module, exports) {
+                        'use strict';
+                        Object.defineProperty(exports, '__esModule', { value: true });
+                        exports.equal = void 0;
+                        function equal(a, b) {
+                            return a === a ? a === b : b !== b;
+                        }
+                        exports.equal = equal;
+                    },
+                    {}
+                ],
+                7: [
+                    function (_dereq_, module, exports) {
+                        'use strict';
+                        Object.defineProperty(exports, '__esModule', { value: true });
+                        exports.run = exports.clear = exports.mapReturn = exports.mapParameters = exports.once = void 0;
+                        const global_1 = _dereq_('./global');
+                        const noop_1 = _dereq_('./noop');
+                        function once(f) {
+                            let result;
+                            return function (...as) {
+                                if (f === noop_1.noop)
+                                    return result;
+                                result = f.call(this, ...as);
+                                f = noop_1.noop;
+                                return result;
+                            };
+                        }
+                        exports.once = once;
+                        function mapParameters(f, g) {
+                            return (...as) => f(...g(...as));
+                        }
+                        exports.mapParameters = mapParameters;
+                        function mapReturn(f, g) {
+                            return (...as) => g(f(...as));
+                        }
+                        exports.mapReturn = mapReturn;
+                        function clear(f) {
+                            return (...as) => void f(...as);
+                        }
+                        exports.clear = clear;
+                        function run(fs) {
+                            const gs = (0, global_1.Array)(fs.length);
+                            try {
+                                for (let i = 0; i < fs.length; ++i) {
+                                    gs[i] = fs[i]();
+                                }
+                            } catch (reason) {
+                                for (let i = 0; gs[i]; ++i) {
+                                    gs[i]();
+                                }
+                                throw reason;
+                            }
+                            return once(() => {
+                                for (let i = 0; gs[i]; ++i) {
+                                    gs[i]();
+                                }
+                            });
+                        }
+                        exports.run = run;
+                    },
+                    {
+                        './global': 8,
+                        './noop': 10
+                    }
+                ],
+                8: [
+                    function (_dereq_, module, exports) {
+                        'use strict';
+                        const global = void 0 || typeof globalThis !== 'undefined' && globalThis || typeof self !== 'undefined' && self || Function('return this')();
+                        eval('global.global = global');
+                        module.exports = global;
+                    },
+                    {}
+                ],
+                9: [
+                    function (_dereq_, module, exports) {
+                        'use strict';
+                        Object.defineProperty(exports, '__esModule', { value: true });
+                        exports.reduce = exports.memoize = void 0;
+                        const global_1 = _dereq_('./global');
+                        const compare_1 = _dereq_('./compare');
+                        function memoize(f, identify = (...as) => as[0], memory) {
+                            if (typeof identify === 'object')
+                                return memoize(f, void 0, identify);
+                            if (memory === void 0)
+                                return memoize(f, identify, new global_1.Map());
+                            let nullish = false;
+                            return (...as) => {
+                                const b = identify(...as);
+                                let z = memory.get(b);
+                                if (z !== void 0 || nullish && memory.has(b))
+                                    return z;
+                                z = f(...as);
+                                nullish || (nullish = z === void 0);
+                                memory.set(b, z);
+                                return z;
+                            };
+                        }
+                        exports.memoize = memoize;
+                        function reduce(f, identify = (...as) => as[0]) {
+                            let key = [];
+                            let val = [];
+                            return (...as) => {
+                                const b = identify(...as);
+                                if (!(0, compare_1.equal)(key, b)) {
+                                    key = b;
+                                    val = f(...as);
+                                }
+                                return val;
+                            };
+                        }
+                        exports.reduce = reduce;
+                    },
+                    {
+                        './compare': 6,
+                        './global': 8
+                    }
+                ],
+                10: [
+                    function (_dereq_, module, exports) {
+                        'use strict';
+                        Object.defineProperty(exports, '__esModule', { value: true });
+                        exports.noop = void 0;
+                        function noop() {
+                        }
+                        exports.noop = noop;
+                    },
+                    {}
+                ],
+                11: [
+                    function (_dereq_, module, exports) {
+                        'use strict';
+                        var _a, _b;
+                        Object.defineProperty(exports, '__esModule', { value: true });
+                        exports.never = exports.isPromiseLike = exports.Internal = exports.AtomicPromise = void 0;
+                        const global_1 = _dereq_('./global');
+                        const alias_1 = _dereq_('./alias');
+                        const noop_1 = _dereq_('./noop');
+                        const internal = Symbol.for('spica/promise::internal');
+                        class AtomicPromise {
+                            constructor(executor) {
+                                this[_a] = 'Promise';
+                                this[_b] = new Internal();
+                                try {
+                                    executor(value => void this[internal].resolve(value), reason => void this[internal].reject(reason));
+                                } catch (reason) {
+                                    this[internal].reject(reason);
+                                }
+                            }
+                            static get [Symbol.species]() {
+                                return AtomicPromise;
+                            }
+                            static all(vs) {
+                                return new AtomicPromise((resolve, reject) => {
+                                    const values = (0, alias_1.isArray)(vs) ? vs : [...vs];
+                                    const results = (0, global_1.Array)(values.length);
+                                    let done = false;
+                                    let count = 0;
+                                    for (let i = 0; !done && i < values.length; ++i) {
+                                        const value = values[i];
+                                        if (!isPromiseLike(value)) {
+                                            results[i] = value;
+                                            ++count;
+                                            continue;
+                                        }
+                                        if (isAtomicPromiseLike(value)) {
+                                            const {status} = value[internal];
+                                            switch (status.state) {
+                                            case 2:
+                                                results[i] = status.value;
+                                                ++count;
+                                                continue;
+                                            case 3:
+                                                return reject(status.reason);
+                                            }
+                                        }
+                                        value.then(value => {
+                                            results[i] = value;
+                                            ++count;
+                                            count === values.length && resolve(results);
+                                        }, reason => {
+                                            reject(reason);
+                                            done = true;
+                                        });
                                     }
-                                } else {
-                                    this.children = {
-                                        ...this.children_,
-                                        [name]: newChild
+                                    count === values.length && resolve(results);
+                                });
+                            }
+                            static race(vs) {
+                                return new AtomicPromise((resolve, reject) => {
+                                    const values = (0, alias_1.isArray)(vs) ? vs : [...vs];
+                                    for (let i = 0; i < values.length; ++i) {
+                                        const value = values[i];
+                                        if (!isPromiseLike(value)) {
+                                            return resolve(value);
+                                        }
+                                        if (isAtomicPromiseLike(value)) {
+                                            const {status} = value[internal];
+                                            switch (status.state) {
+                                            case 2:
+                                                return resolve(status.value);
+                                            case 3:
+                                                return reject(status.reason);
+                                            }
+                                        }
+                                    }
+                                    let done = false;
+                                    for (let i = 0; !done && i < values.length; ++i) {
+                                        const value = values[i];
+                                        value.then(value => {
+                                            resolve(value);
+                                            done = true;
+                                        }, reason => {
+                                            reject(reason);
+                                            done = true;
+                                        });
+                                    }
+                                });
+                            }
+                            static allSettled(vs) {
+                                return new AtomicPromise(resolve => {
+                                    const values = (0, alias_1.isArray)(vs) ? vs : [...vs];
+                                    const results = (0, global_1.Array)(values.length);
+                                    let count = 0;
+                                    for (let i = 0; i < values.length; ++i) {
+                                        const value = values[i];
+                                        if (!isPromiseLike(value)) {
+                                            results[i] = {
+                                                status: 'fulfilled',
+                                                value: value
+                                            };
+                                            ++count;
+                                            continue;
+                                        }
+                                        if (isAtomicPromiseLike(value)) {
+                                            const {status} = value[internal];
+                                            switch (status.state) {
+                                            case 2:
+                                                results[i] = {
+                                                    status: 'fulfilled',
+                                                    value: status.value
+                                                };
+                                                ++count;
+                                                continue;
+                                            case 3:
+                                                results[i] = {
+                                                    status: 'rejected',
+                                                    reason: status.reason
+                                                };
+                                                ++count;
+                                                continue;
+                                            }
+                                        }
+                                        value.then(value => {
+                                            results[i] = {
+                                                status: 'fulfilled',
+                                                value: value
+                                            };
+                                            ++count;
+                                            count === values.length && resolve(results);
+                                        }, reason => {
+                                            results[i] = {
+                                                status: 'rejected',
+                                                reason
+                                            };
+                                            ++count;
+                                            count === values.length && resolve(results);
+                                        });
+                                    }
+                                    count === values.length && resolve(results);
+                                });
+                            }
+                            static any(vs) {
+                                return new AtomicPromise((resolve, reject) => {
+                                    const values = (0, alias_1.isArray)(vs) ? vs : [...vs];
+                                    const reasons = (0, global_1.Array)(values.length);
+                                    let done = false;
+                                    let count = 0;
+                                    for (let i = 0; !done && i < values.length; ++i) {
+                                        const value = values[i];
+                                        if (!isPromiseLike(value)) {
+                                            return resolve(value);
+                                        }
+                                        if (isAtomicPromiseLike(value)) {
+                                            const {status} = value[internal];
+                                            switch (status.state) {
+                                            case 2:
+                                                return resolve(status.value);
+                                            case 3:
+                                                reasons[i] = status.reason;
+                                                ++count;
+                                                continue;
+                                            }
+                                        }
+                                        value.then(value => {
+                                            resolve(value);
+                                            done = true;
+                                        }, reason => {
+                                            reasons[i] = reason;
+                                            ++count;
+                                            count === values.length && reject(new AggregateError(reasons, 'All promises were rejected'));
+                                        });
+                                    }
+                                    count === values.length && reject(new AggregateError(reasons, 'All promises were rejected'));
+                                });
+                            }
+                            static resolve(value) {
+                                return new AtomicPromise(resolve => resolve(value));
+                            }
+                            static reject(reason) {
+                                return new AtomicPromise((_, reject) => reject(reason));
+                            }
+                            then(onfulfilled, onrejected) {
+                                return new AtomicPromise((resolve, reject) => this[internal].then(resolve, reject, onfulfilled, onrejected));
+                            }
+                            catch(onrejected) {
+                                return this.then(void 0, onrejected);
+                            }
+                            finally(onfinally) {
+                                return this.then(onfinally, onfinally).then(() => this);
+                            }
+                        }
+                        exports.AtomicPromise = AtomicPromise;
+                        _a = Symbol.toStringTag, _b = internal;
+                        class Internal {
+                            constructor() {
+                                this.status = { state: 0 };
+                                this.fulfillReactions = [];
+                                this.rejectReactions = [];
+                            }
+                            get isPending() {
+                                return this.status.state === 0;
+                            }
+                            resolve(value) {
+                                if (this.status.state !== 0)
+                                    return;
+                                if (!isPromiseLike(value)) {
+                                    this.status = {
+                                        state: 2,
+                                        value: value
+                                    };
+                                    return this.resume();
+                                }
+                                if (isAtomicPromiseLike(value)) {
+                                    const core = value[internal];
+                                    switch (core.status.state) {
+                                    case 2:
+                                    case 3:
+                                        this.status = core.status;
+                                        return this.resume();
+                                    default:
+                                        return core.then(() => (this.status = core.status, this.resume()), () => (this.status = core.status, this.resume()));
+                                    }
+                                }
+                                this.status = {
+                                    state: 1,
+                                    promise: value
+                                };
+                                return void value.then(value => {
+                                    this.status = {
+                                        state: 2,
+                                        value
+                                    };
+                                    this.resume();
+                                }, reason => {
+                                    this.status = {
+                                        state: 3,
+                                        reason
+                                    };
+                                    this.resume();
+                                });
+                            }
+                            reject(reason) {
+                                if (this.status.state !== 0)
+                                    return;
+                                this.status = {
+                                    state: 3,
+                                    reason
+                                };
+                                return this.resume();
+                            }
+                            then(resolve, reject, onfulfilled, onrejected) {
+                                const {status, fulfillReactions, rejectReactions} = this;
+                                switch (status.state) {
+                                case 2:
+                                    if (fulfillReactions.length !== 0)
+                                        break;
+                                    return call(resolve, reject, resolve, onfulfilled, status.value);
+                                case 3:
+                                    if (rejectReactions.length !== 0)
+                                        break;
+                                    return call(resolve, reject, reject, onrejected, status.reason);
+                                }
+                                fulfillReactions.push([
+                                    resolve,
+                                    reject,
+                                    resolve,
+                                    onfulfilled
+                                ]);
+                                rejectReactions.push([
+                                    resolve,
+                                    reject,
+                                    reject,
+                                    onrejected
+                                ]);
+                            }
+                            resume() {
+                                const {status, fulfillReactions, rejectReactions} = this;
+                                switch (status.state) {
+                                case 0:
+                                case 1:
+                                    return;
+                                case 2:
+                                    if (rejectReactions.length !== 0) {
+                                        this.rejectReactions = [];
+                                    }
+                                    if (fulfillReactions.length === 0)
+                                        return;
+                                    react(fulfillReactions, status.value);
+                                    this.fulfillReactions = [];
+                                    return;
+                                case 3:
+                                    if (fulfillReactions.length !== 0) {
+                                        this.fulfillReactions = [];
+                                    }
+                                    if (rejectReactions.length === 0)
+                                        return;
+                                    react(rejectReactions, status.reason);
+                                    this.rejectReactions = [];
+                                    return;
+                                }
+                            }
+                        }
+                        exports.Internal = Internal;
+                        function react(reactions, param) {
+                            for (let i = 0; i < reactions.length; ++i) {
+                                const reaction = reactions[i];
+                                call(reaction[0], reaction[1], reaction[2], reaction[3], param);
+                            }
+                        }
+                        function call(resolve, reject, cont, callback, param) {
+                            if (!callback)
+                                return cont(param);
+                            try {
+                                resolve(callback(param));
+                            } catch (reason) {
+                                reject(reason);
+                            }
+                        }
+                        function isPromiseLike(value) {
+                            return value !== null && typeof value === 'object' && typeof value.then === 'function';
+                        }
+                        exports.isPromiseLike = isPromiseLike;
+                        function isAtomicPromiseLike(value) {
+                            return internal in value;
+                        }
+                        exports.never = new class Never extends Promise {
+                            static get [Symbol.species]() {
+                                return Never;
+                            }
+                            constructor() {
+                                super(noop_1.noop);
+                            }
+                            then() {
+                                return this;
+                            }
+                            catch() {
+                                return this;
+                            }
+                            finally() {
+                                return this;
+                            }
+                        }();
+                    },
+                    {
+                        './alias': 4,
+                        './global': 8,
+                        './noop': 10
+                    }
+                ],
+                12: [
+                    function (_dereq_, module, exports) {
+                        'use strict';
+                        Object.defineProperty(exports, '__esModule', { value: true });
+                        exports.unique = exports.rnd0Z = exports.rnd0z = exports.rnd0f = exports.rnd64 = exports.rnd62 = exports.rnd36 = exports.rnd32 = exports.rnd16 = void 0;
+                        const global_1 = _dereq_('./global');
+                        const bases = [...Array(7)].map((_, i) => 1 << i);
+                        const dict = [
+                            ...[...Array(36)].map((_, i) => i.toString(36)),
+                            ...[...Array(36)].map((_, i) => i.toString(36).toUpperCase()).slice(-26)
+                        ];
+                        exports.rnd16 = cons(16);
+                        exports.rnd32 = cons(32);
+                        exports.rnd36 = cons(36);
+                        exports.rnd62 = cons(62);
+                        exports.rnd64 = cons(64);
+                        exports.rnd0f = conv(exports.rnd16);
+                        exports.rnd0z = conv(exports.rnd36);
+                        exports.rnd0Z = conv(exports.rnd62);
+                        function unique(rnd, len, mem) {
+                            const clear = !mem;
+                            mem !== null && mem !== void 0 ? mem : mem = new global_1.Set();
+                            let limit = 5;
+                            return () => {
+                                while (true) {
+                                    for (let i = 0; i < limit; ++i) {
+                                        const r = rnd(len);
+                                        if (mem.has(r))
+                                            continue;
+                                        mem.add(r);
+                                        return r;
+                                    }
+                                    clear && mem.clear();
+                                    ++len;
+                                    limit = len < 3 ? limit : 3;
+                                }
+                            };
+                        }
+                        exports.unique = unique;
+                        function cons(radix) {
+                            const base = bases.find(base => base >= radix);
+                            const len = bases.indexOf(base);
+                            return () => {
+                                while (true) {
+                                    const r = random(len);
+                                    if (r < radix)
+                                        return r;
+                                }
+                            };
+                        }
+                        function conv(rnd) {
+                            return (len = 1) => {
+                                let acc = '';
+                                while (len--) {
+                                    acc += dict[rnd()];
+                                }
+                                return acc;
+                            };
+                        }
+                        const buffer = new Uint16Array(512);
+                        const digit = 16;
+                        const masks = bases.map((_, i) => +`0b${ '1'.repeat(i) || 0 }`);
+                        let index = buffer.length;
+                        let offset = digit;
+                        function random(len) {
+                            if (index === buffer.length) {
+                                global_1.crypto.getRandomValues(buffer);
+                                index = 0;
+                            }
+                            if (offset === len) {
+                                offset = digit;
+                                return buffer[index++] & masks[len];
+                            } else if (offset > len) {
+                                offset -= len;
+                                return buffer[index] >> offset & masks[len];
+                            } else {
+                                offset = digit;
+                                ++index;
+                                return random(len);
+                            }
+                        }
+                    },
+                    { './global': 8 }
+                ],
+                13: [
+                    function (_dereq_, module, exports) {
+                        'use strict';
+                        Object.defineProperty(exports, '__esModule', { value: true });
+                        exports.SVG = exports.HTML = exports.Shadow = exports.API = void 0;
+                        const alias_1 = _dereq_('spica/alias');
+                        const proxy_1 = _dereq_('./proxy');
+                        const dom_1 = _dereq_('./util/dom');
+                        function API(baseFactory, formatter = el => el) {
+                            return new Proxy(() => void 0, handle(baseFactory, formatter));
+                        }
+                        exports.API = API;
+                        exports.Shadow = API(dom_1.html, dom_1.shadow);
+                        exports.HTML = API(dom_1.html);
+                        exports.SVG = API(dom_1.svg);
+                        function handle(baseFactory, formatter) {
+                            return {
+                                apply(target, _, [prop, ...args]) {
+                                    return this.get(target, prop, target)(...args);
+                                },
+                                get: (target, prop) => target[prop] || prop in target || typeof prop !== 'string' ? target[prop] : target[prop] = builder(prop, baseFactory)
+                            };
+                            function builder(tag, baseFactory) {
+                                return function build(attrs, children, factory) {
+                                    if (typeof attrs === 'function')
+                                        return build(void 0, void 0, attrs);
+                                    if (typeof children === 'function')
+                                        return build(attrs, void 0, children);
+                                    if (attrs !== void 0 && isElChildren(attrs))
+                                        return build(void 0, attrs, factory);
+                                    const node = formatter(elem(factory, attrs, children));
+                                    return node.nodeType === 1 ? new proxy_1.Elem(node, children) : new proxy_1.Elem(node.host, children, node);
+                                };
+                                function isElChildren(children) {
+                                    if (typeof children !== 'object')
+                                        return true;
+                                    for (const i in children) {
+                                        if (!(0, alias_1.hasOwnProperty)(children, i))
+                                            continue;
+                                        return typeof children[i] === 'object';
+                                    }
+                                    return true;
+                                }
+                                function elem(factory, attrs, children) {
+                                    const el = factory ? (0, dom_1.define)(factory(baseFactory, tag, attrs || {}, children), attrs) : baseFactory(tag, attrs);
+                                    if (tag !== el.tagName.toLowerCase())
+                                        throw new Error(`TypedDOM: Expected tag name is "${ tag }" but actually "${ el.tagName.toLowerCase() }".`);
+                                    return el;
+                                }
+                            }
+                        }
+                    },
+                    {
+                        './proxy': 14,
+                        './util/dom': 15,
+                        'spica/alias': 4
+                    }
+                ],
+                14: [
+                    function (_dereq_, module, exports) {
+                        'use strict';
+                        var _a, _b, _c, _d;
+                        Object.defineProperty(exports, '__esModule', { value: true });
+                        exports.Elem = exports.proxy = void 0;
+                        const global_1 = _dereq_('spica/global');
+                        const alias_1 = _dereq_('spica/alias');
+                        const identity_1 = _dereq_('./util/identity');
+                        const dom_1 = _dereq_('./util/dom');
+                        const array_1 = _dereq_('spica/array');
+                        const proxies = new global_1.WeakMap();
+                        function proxy(el) {
+                            const proxy = proxies.get(el);
+                            if (proxy)
+                                return proxy;
+                            throw new Error(`TypedDOM: This element has no proxy.`);
+                        }
+                        exports.proxy = proxy;
+                        var privates;
+                        (function (privates) {
+                            privates.id = Symbol();
+                            privates.id_ = Symbol();
+                            privates.query = Symbol();
+                            privates.query_ = Symbol();
+                            privates.scope = Symbol();
+                            privates.observe = Symbol();
+                            privates.type = Symbol();
+                            privates.container = Symbol();
+                            privates.children = Symbol();
+                            privates.isInit = Symbol();
+                            privates.isPartialUpdate = Symbol();
+                        }(privates || (privates = {})));
+                        const tag = Symbol.for('typed-dom::tag');
+                        let id = (0, identity_1.identity)();
+                        let counter = 0;
+                        class Elem {
+                            constructor(element, children, container = element) {
+                                this.element = element;
+                                this[_a] = '';
+                                this[_b] = '';
+                                this[_c] = false;
+                                this[_d] = true;
+                                this[privates.children] = children;
+                                this[privates.container] = container;
+                                switch (true) {
+                                case children === void 0:
+                                    this[privates.type] = 0;
+                                    break;
+                                case typeof children === 'string':
+                                    this[privates.type] = 1;
+                                    break;
+                                case (0, alias_1.isArray)(children):
+                                    this[privates.type] = 2;
+                                    break;
+                                case children && typeof children === 'object':
+                                    this[privates.type] = 3;
+                                    break;
+                                default:
+                                    throw new Error(`TypedDOM: Invalid children type.`);
+                                }
+                                throwErrorIfNotUsable(this);
+                                proxies.set(this.element, this);
+                                switch (this[privates.type]) {
+                                case 0:
+                                    this[privates.isInit] = false;
+                                    return;
+                                case 1:
+                                    (0, dom_1.define)(this[privates.container], []);
+                                    this[privates.children] = this[privates.container].appendChild((0, dom_1.text)(''));
+                                    this.children = children;
+                                    this[privates.isInit] = false;
+                                    return;
+                                case 2:
+                                    (0, dom_1.define)(this[privates.container], []);
+                                    this[privates.children] = [];
+                                    this.children = children;
+                                    this[privates.isInit] = false;
+                                    return;
+                                case 3:
+                                    (0, dom_1.define)(this[privates.container], []);
+                                    this[privates.children] = this[privates.observe]({ ...children });
+                                    this.children = children;
+                                    this[privates.isInit] = false;
+                                    return;
+                                default:
+                                    throw new Error(`TypedDOM: Unreachable code.`);
+                                }
+                            }
+                            get [(_a = privates.id_, privates.id)]() {
+                                if (this[privates.id_])
+                                    return this[privates.id_];
+                                this[privates.id_] = this.element.id;
+                                if (/^[\w-]+$/.test(this[privates.id_]))
+                                    return this[privates.id_];
+                                if (counter === 999) {
+                                    id = (0, identity_1.identity)();
+                                    counter = 0;
+                                }
+                                this[privates.id_] = `rnd-${ id }-${ ++counter }`;
+                                this.element.classList.add(this[privates.id_]);
+                                return this[privates.id_];
+                            }
+                            get [(_b = privates.query_, privates.query)]() {
+                                if (this[privates.query_])
+                                    return this[privates.query_];
+                                switch (true) {
+                                case this.element !== this[privates.container]:
+                                    return this[privates.query_] = ':host';
+                                case this[privates.id] === this.element.id:
+                                    return this[privates.query_] = `#${ this[privates.id] }`;
+                                default:
+                                    return this[privates.query_] = `.${ this[privates.id] }`;
+                                }
+                            }
+                            [privates.scope](child) {
+                                if (child.element.tagName !== 'STYLE')
+                                    return;
+                                const target = /(^|[,}])(\s*)\$scope(?![\w-])(?=[^;{}]*{)/g;
+                                const style = child.element.innerHTML;
+                                if (!target.test(style))
+                                    return;
+                                child.element.innerHTML = style.replace(target, `$1$2${ this[privates.query] }`);
+                                child.element.firstElementChild && child.element.replaceChildren();
+                            }
+                            [(_c = privates.isPartialUpdate, privates.observe)](children) {
+                                const descs = {};
+                                let i = -1;
+                                for (const name of (0, alias_1.ObjectKeys)(children)) {
+                                    if (name in {})
+                                        throw new Error(`TypedDOM: Child names must be different from the object property names.`);
+                                    ++i;
+                                    let child = children[name];
+                                    throwErrorIfNotUsable(child);
+                                    if (child.element !== this[privates.container].children[i]) {
+                                        this[privates.container].appendChild(child.element);
+                                    }
+                                    descs[name] = {
+                                        configurable: true,
+                                        enumerable: true,
+                                        get: () => {
+                                            return child;
+                                        },
+                                        set: newChild => {
+                                            const oldChild = child;
+                                            if (newChild === oldChild)
+                                                return;
+                                            if (this[privates.isPartialUpdate]) {
+                                                child = newChild;
+                                                if (newChild.element.parentNode === oldChild.element.parentNode) {
+                                                    const ref = newChild.element.nextSibling !== oldChild.element ? newChild.element.nextSibling : oldChild.element.nextSibling;
+                                                    this[privates.container].replaceChild(newChild.element, oldChild.element);
+                                                    this[privates.container].insertBefore(oldChild.element, ref);
+                                                } else {
+                                                    this[privates.container].insertBefore(newChild.element, oldChild.element);
+                                                    this[privates.container].removeChild(oldChild.element);
+                                                }
+                                            } else {
+                                                this.children = {
+                                                    ...this[privates.children],
+                                                    [name]: newChild
+                                                };
+                                            }
+                                        }
                                     };
                                 }
+                                return (0, alias_1.ObjectDefineProperties)(children, descs);
                             }
-                        };
-                    }
-                    return alias_1.ObjectDefineProperties(children, descs);
-                }
-                get children() {
-                    switch (this.type) {
-                    case 1:
-                        if (this.children_.parentNode !== this.container) {
-                            this.children_ = void 0;
-                            for (let ns = this.container.childNodes, i = 0, len = ns.length; i < len; ++i) {
-                                const node = ns[i];
-                                if ('wholeText' in node === false)
-                                    continue;
-                                this.children_ = node;
-                                break;
-                            }
-                        }
-                        return this.children_.data;
-                    default:
-                        return this.children_;
-                    }
-                }
-                set children(children) {
-                    const removedChildren = [];
-                    const addedChildren = [];
-                    let isMutated = false;
-                    switch (this.type) {
-                    case 0:
-                        return;
-                    case 1: {
-                            if (!this.isInit && children === this.children)
-                                return;
-                            const targetChildren = this.children_;
-                            const oldText = targetChildren.data;
-                            const newText = children;
-                            targetChildren.data = newText;
-                            if (newText === oldText)
-                                return;
-                            this.element.dispatchEvent(new global_1.Event('mutate', {
-                                bubbles: false,
-                                cancelable: true
-                            }));
-                            return;
-                        }
-                    case 2: {
-                            const sourceChildren = children;
-                            const targetChildren = [];
-                            this.children_ = targetChildren;
-                            const nodeChildren = this.container.children;
-                            for (let i = 0; i < sourceChildren.length; ++i) {
-                                const newChild = sourceChildren[i];
-                                const el = nodeChildren[i];
-                                if (newChild.element.parentNode !== this.container) {
-                                    throwErrorIfNotUsable(newChild);
-                                }
-                                if (newChild.element !== el) {
-                                    if (newChild.element.parentNode !== this.container) {
-                                        this.scope(newChild);
-                                        addedChildren.push(newChild);
+                            get children() {
+                                switch (this[privates.type]) {
+                                case 1:
+                                    if (this[privates.children].parentNode !== this[privates.container]) {
+                                        this[privates.children] = void 0;
+                                        for (let ns = this[privates.container].childNodes, i = 0, len = ns.length; i < len; ++i) {
+                                            const node = ns[i];
+                                            if ('wholeText' in node === false)
+                                                continue;
+                                            this[privates.children] = node;
+                                            break;
+                                        }
                                     }
-                                    this.container.insertBefore(newChild.element, el);
-                                    isMutated = true;
+                                    return this[privates.children].data;
+                                default:
+                                    return this[privates.children];
                                 }
-                                targetChildren.push(newChild);
                             }
-                            for (let i = nodeChildren.length; sourceChildren.length < i--;) {
-                                const el = nodeChildren[sourceChildren.length];
-                                if (!proxies.has(el))
-                                    continue;
-                                removedChildren.push(proxy(this.container.removeChild(el)));
-                                isMutated = true;
-                            }
-                            break;
-                        }
-                    case 3: {
-                            const sourceChildren = children;
-                            const targetChildren = this.children_;
-                            for (const name of alias_1.ObjectKeys(targetChildren)) {
-                                const oldChild = targetChildren[name];
-                                const newChild = sourceChildren[name];
-                                if (!this.isInit && newChild === oldChild)
-                                    continue;
-                                if (newChild.element.parentNode !== this.container) {
-                                    throwErrorIfNotUsable(newChild);
-                                }
-                                if (this.isInit || newChild !== oldChild && newChild.element.parentNode !== oldChild.element.parentNode) {
-                                    this.scope(newChild);
-                                    addedChildren.push(newChild);
-                                    if (!this.isInit) {
-                                        let i = 0;
-                                        i = removedChildren.lastIndexOf(newChild);
-                                        i > -1 && array_1.splice(removedChildren, i, 1);
-                                        removedChildren.push(oldChild);
-                                        i = addedChildren.lastIndexOf(oldChild);
-                                        i > -1 && array_1.splice(addedChildren, i, 1);
+                            set children(children) {
+                                const removedChildren = [];
+                                const addedChildren = [];
+                                let isMutated = false;
+                                switch (this[privates.type]) {
+                                case 0:
+                                    return;
+                                case 1: {
+                                        if (!this[privates.isInit] && children === this.children)
+                                            return;
+                                        const targetChildren = this[privates.children];
+                                        const oldText = targetChildren.data;
+                                        const newText = children;
+                                        targetChildren.data = newText;
+                                        if (newText === oldText)
+                                            return;
+                                        this.element.dispatchEvent(new global_1.Event('mutate', {
+                                            bubbles: false,
+                                            cancelable: true
+                                        }));
+                                        return;
+                                    }
+                                case 2: {
+                                        const sourceChildren = children;
+                                        const targetChildren = [];
+                                        this[privates.children] = targetChildren;
+                                        const nodeChildren = this[privates.container].children;
+                                        for (let i = 0; i < sourceChildren.length; ++i) {
+                                            const newChild = sourceChildren[i];
+                                            const el = nodeChildren[i];
+                                            if (newChild.element.parentNode !== this[privates.container]) {
+                                                throwErrorIfNotUsable(newChild);
+                                            }
+                                            if (newChild.element !== el) {
+                                                if (newChild.element.parentNode !== this[privates.container]) {
+                                                    this[privates.scope](newChild);
+                                                    addedChildren.push(newChild);
+                                                }
+                                                this[privates.container].insertBefore(newChild.element, el);
+                                                isMutated = true;
+                                            }
+                                            targetChildren.push(newChild);
+                                        }
+                                        for (let i = nodeChildren.length; sourceChildren.length < i--;) {
+                                            const el = nodeChildren[sourceChildren.length];
+                                            if (!proxies.has(el))
+                                                continue;
+                                            removedChildren.push(proxy(this[privates.container].removeChild(el)));
+                                            isMutated = true;
+                                        }
+                                        break;
+                                    }
+                                case 3: {
+                                        const sourceChildren = children;
+                                        const targetChildren = this[privates.children];
+                                        for (const name of (0, alias_1.ObjectKeys)(targetChildren)) {
+                                            const oldChild = targetChildren[name];
+                                            const newChild = sourceChildren[name];
+                                            if (!this[privates.isInit] && newChild === oldChild)
+                                                continue;
+                                            if (newChild.element.parentNode !== this[privates.container]) {
+                                                throwErrorIfNotUsable(newChild);
+                                            }
+                                            if (this[privates.isInit] || newChild !== oldChild && newChild.element.parentNode !== oldChild.element.parentNode) {
+                                                this[privates.scope](newChild);
+                                                addedChildren.push(newChild);
+                                                if (!this[privates.isInit]) {
+                                                    let i = 0;
+                                                    i = removedChildren.lastIndexOf(newChild);
+                                                    i > -1 && (0, array_1.splice)(removedChildren, i, 1);
+                                                    removedChildren.push(oldChild);
+                                                    i = addedChildren.lastIndexOf(oldChild);
+                                                    i > -1 && (0, array_1.splice)(addedChildren, i, 1);
+                                                }
+                                            }
+                                            this[privates.isPartialUpdate] = true;
+                                            targetChildren[name] = sourceChildren[name];
+                                            this[privates.isPartialUpdate] = false;
+                                            isMutated = true;
+                                        }
+                                        break;
                                     }
                                 }
-                                this.isPartialUpdate = true;
-                                targetChildren[name] = sourceChildren[name];
-                                this.isPartialUpdate = false;
-                                isMutated = true;
+                                if (removedChildren.length) {
+                                    const ev = new global_1.Event('disconnect', {
+                                        bubbles: false,
+                                        cancelable: true
+                                    });
+                                    for (const {element} of removedChildren) {
+                                        element.dispatchEvent(ev);
+                                    }
+                                }
+                                if (addedChildren.length) {
+                                    const ev = new global_1.Event('connect', {
+                                        bubbles: false,
+                                        cancelable: true
+                                    });
+                                    for (const {element} of addedChildren) {
+                                        element.dispatchEvent(ev);
+                                    }
+                                }
+                                if (isMutated) {
+                                    this.element.dispatchEvent(new global_1.Event('mutate', {
+                                        bubbles: false,
+                                        cancelable: true
+                                    }));
+                                }
                             }
-                            break;
                         }
+                        exports.Elem = Elem;
+                        privates.type, privates.container, _d = privates.isInit, privates.children;
+                        function throwErrorIfNotUsable({element}) {
+                            if (!element.parentElement || !proxies.has(element.parentElement))
+                                return;
+                            throw new Error(`TypedDOM: Typed DOM children must not be used to another typed DOM.`);
+                        }
+                    },
+                    {
+                        './util/dom': 15,
+                        './util/identity': 16,
+                        'spica/alias': 4,
+                        'spica/array': 5,
+                        'spica/global': 8
                     }
-                    if (removedChildren.length) {
-                        const ev = new global_1.Event('disconnect', {
-                            bubbles: false,
-                            cancelable: true
+                ],
+                15: [
+                    function (_dereq_, module, exports) {
+                        'use strict';
+                        Object.defineProperty(exports, '__esModule', { value: true });
+                        exports.defrag = exports.isChildren = exports.define = exports.element = exports.text = exports.svg = exports.html = exports.frag = exports.shadow = void 0;
+                        const global_1 = _dereq_('spica/global');
+                        const alias_1 = _dereq_('spica/alias');
+                        const memoize_1 = _dereq_('spica/memoize');
+                        const array_1 = _dereq_('spica/array');
+                        var caches;
+                        (function (caches) {
+                            caches.shadows = new WeakMap();
+                            caches.fragment = global_1.document.createDocumentFragment();
+                        }(caches || (caches = {})));
+                        function shadow(el, children, opts) {
+                            if (typeof el === 'string')
+                                return shadow((0, exports.html)(el), children, opts);
+                            if (children && !isChildren(children))
+                                return shadow(el, void 0, children);
+                            const root = opts === void 0 ? el.shadowRoot || caches.shadows.get(el) : opts.mode === 'open' ? el.shadowRoot || void 0 : caches.shadows.get(el);
+                            return defineChildren(!opts || opts.mode === 'open' ? root || el.attachShadow(opts || { mode: 'open' }) : root || caches.shadows.set(el, el.attachShadow(opts)).get(el), !root && children == void 0 ? el.childNodes : children);
+                        }
+                        exports.shadow = shadow;
+                        function frag(children) {
+                            return defineChildren(caches.fragment.cloneNode(true), children);
+                        }
+                        exports.frag = frag;
+                        exports.html = element(global_1.document, 'HTML');
+                        exports.svg = element(global_1.document, 'SVG');
+                        function text(source) {
+                            return global_1.document.createTextNode(source);
+                        }
+                        exports.text = text;
+                        function element(context, ns) {
+                            const cache = (0, memoize_1.memoize)(elem, (_, ns, tag) => `${ ns }:${ tag }`);
+                            return (tag, attrs, children) => {
+                                const el = tag.includes('-') ? elem(context, ns, tag) : cache(context, ns, tag).cloneNode(true);
+                                return isChildren(attrs) ? defineChildren(el, attrs) : defineChildren(defineAttrs(el, attrs), children);
+                            };
+                        }
+                        exports.element = element;
+                        function elem(context, ns, tag) {
+                            if (!('createElement' in context))
+                                throw new Error(`TypedDOM: Scoped custom elements are not supported on this browser.`);
+                            switch (ns) {
+                            case 'HTML':
+                                return context.createElement(tag);
+                            case 'SVG':
+                                return context.createElementNS('http://www.w3.org/2000/svg', tag);
+                            }
+                        }
+                        function define(node, attrs, children) {
+                            return isChildren(attrs) ? defineChildren(node, attrs) : defineChildren(defineAttrs(node, attrs), children);
+                        }
+                        exports.define = define;
+                        function defineAttrs(el, attrs) {
+                            if (!attrs)
+                                return el;
+                            for (let i = 0, names = (0, alias_1.ObjectKeys)(attrs); i < names.length; ++i) {
+                                const name = names[i];
+                                const value = attrs[name];
+                                switch (typeof value) {
+                                case 'string':
+                                    el.setAttribute(name, value);
+                                    continue;
+                                case 'function':
+                                    if (name.length < 3)
+                                        throw new Error(`TypedDOM: Attribute names for event listeners must have an event name but got "${ name }".`);
+                                    if (name.slice(0, 2) !== 'on')
+                                        throw new Error(`TypedDOM: Attribute names for event listeners must start with "on" but got "${ name }".`);
+                                    el.addEventListener(name.slice(2), value, {
+                                        passive: [
+                                            'wheel',
+                                            'mousewheel',
+                                            'touchstart',
+                                            'touchmove',
+                                            'touchend',
+                                            'touchcancel'
+                                        ].includes(name.slice(2))
+                                    });
+                                    continue;
+                                case 'object':
+                                    el.removeAttribute(name);
+                                    continue;
+                                default:
+                                    continue;
+                                }
+                            }
+                            return el;
+                        }
+                        function defineChildren(node, children) {
+                            children && node.replaceChildren(...typeof children === 'string' ? [children] : children);
+                            return node;
+                        }
+                        function isChildren(o) {
+                            return !!(o === null || o === void 0 ? void 0 : o[global_1.Symbol.iterator]);
+                        }
+                        exports.isChildren = isChildren;
+                        function defrag(nodes) {
+                            const acc = [];
+                            for (let i = 0; i < nodes.length; ++i) {
+                                const node = nodes[i];
+                                if (node === '')
+                                    continue;
+                                acc.length > 0 && typeof node === 'string' && typeof nodes[i - 1] === 'string' ? acc[acc.length - 1] += node : acc.push(node);
+                            }
+                            return acc;
+                        }
+                        exports.defrag = defrag;
+                    },
+                    {
+                        'spica/alias': 4,
+                        'spica/array': 5,
+                        'spica/global': 8,
+                        'spica/memoize': 9
+                    }
+                ],
+                16: [
+                    function (_dereq_, module, exports) {
+                        'use strict';
+                        var _a;
+                        Object.defineProperty(exports, '__esModule', { value: true });
+                        exports.identity = void 0;
+                        const global_1 = _dereq_('spica/global');
+                        const random_1 = _dereq_('spica/random');
+                        const ids = Symbol.for('typed-dom::ids');
+                        exports.identity = (0, random_1.unique)(random_1.rnd0Z, 2, (_a = global_1.global[ids]) !== null && _a !== void 0 ? _a : global_1.global[ids] = new global_1.Set());
+                    },
+                    {
+                        'spica/global': 8,
+                        'spica/random': 12
+                    }
+                ],
+                17: [
+                    function (_dereq_, module, exports) {
+                        'use strict';
+                        Object.defineProperty(exports, '__esModule', { value: true });
+                        exports.bind = exports.delegate = exports.wait = exports.once = exports.listen = exports.currentTarget = void 0;
+                        const promise_1 = _dereq_('spica/promise');
+                        const function_1 = _dereq_('spica/function');
+                        const noop_1 = _dereq_('spica/noop');
+                        exports.currentTarget = Symbol.for('typed-dom::currentTarget');
+                        function listen(target, a, b, c = false, d = {}) {
+                            return typeof b === 'string' ? delegate(target, a, b, c, d) : bind(target, a, b, c);
+                        }
+                        exports.listen = listen;
+                        function once(target, a, b, c = false, d = {}) {
+                            return typeof b === 'string' ? delegate(target, a, b, c, {
+                                ...typeof d === 'boolean' ? { capture: d } : d,
+                                once: true
+                            }) : bind(target, a, b, {
+                                ...typeof c === 'boolean' ? { capture: c } : c,
+                                once: true
+                            });
+                        }
+                        exports.once = once;
+                        function wait(target, a, b = false, c = {}) {
+                            return new promise_1.AtomicPromise(resolve => typeof b === 'string' ? once(target, a, b, resolve, c) : once(target, a, resolve, b));
+                        }
+                        exports.wait = wait;
+                        function delegate(target, selector, type, listener, option = {}) {
+                            let unbind = noop_1.noop;
+                            return bind(target, type, ev => {
+                                var _a, _b;
+                                unbind();
+                                const cx = ev.target.shadowRoot ? (_a = ev.composedPath()[0]) === null || _a === void 0 ? void 0 : _a.closest(selector) : (_b = ev.target) === null || _b === void 0 ? void 0 : _b.closest(selector);
+                                return cx ? unbind = once(cx, type, listener, option) : void 0, ev.returnValue;
+                            }, {
+                                ...option,
+                                capture: true
+                            });
+                        }
+                        exports.delegate = delegate;
+                        function bind(target, type, listener, option = false) {
+                            target.addEventListener(type, handler, option);
+                            return (0, function_1.once)(() => void target.removeEventListener(type, handler, option));
+                            function handler(ev) {
+                                return exports.currentTarget in ev && !ev[exports.currentTarget] ? void 0 : ev[exports.currentTarget] = ev.currentTarget, listener(ev);
+                            }
+                        }
+                        exports.bind = bind;
+                    },
+                    {
+                        'spica/function': 7,
+                        'spica/noop': 10,
+                        'spica/promise': 11
+                    }
+                ],
+                18: [
+                    function (_dereq_, module, exports) {
+                        'use strict';
+                        Object.defineProperty(exports, '__esModule', { value: true });
+                        exports.apply = void 0;
+                        const dom_1 = _dereq_('./dom');
+                        function apply(node, selector, attrs) {
+                            const ns = node.querySelectorAll(selector);
+                            for (let i = 0, len = ns.length; i < len; ++i) {
+                                (0, dom_1.define)(ns[i], attrs);
+                            }
+                            return ns;
+                        }
+                        exports.apply = apply;
+                    },
+                    { './dom': 15 }
+                ],
+                'typed-dom': [
+                    function (_dereq_, module, exports) {
+                        'use strict';
+                        Object.defineProperty(exports, '__esModule', { value: true });
+                        exports.identity = exports.apply = exports.currentTarget = exports.wait = exports.once = exports.bind = exports.delegate = exports.listen = exports.defrag = exports.define = exports.element = exports.text = exports.svg = exports.html = exports.frag = exports.shadow = exports.proxy = exports.API = exports.SVG = exports.HTML = exports.Shadow = void 0;
+                        _dereq_('spica/global');
+                        var builder_1 = _dereq_('./src/builder');
+                        Object.defineProperty(exports, 'Shadow', {
+                            enumerable: true,
+                            get: function () {
+                                return builder_1.Shadow;
+                            }
                         });
-                        for (const {element} of removedChildren) {
-                            element.dispatchEvent(ev);
-                        }
-                    }
-                    if (addedChildren.length) {
-                        const ev = new global_1.Event('connect', {
-                            bubbles: false,
-                            cancelable: true
+                        Object.defineProperty(exports, 'HTML', {
+                            enumerable: true,
+                            get: function () {
+                                return builder_1.HTML;
+                            }
                         });
-                        for (const {element} of addedChildren) {
-                            element.dispatchEvent(ev);
-                        }
-                    }
-                    if (isMutated) {
-                        this.element.dispatchEvent(new global_1.Event('mutate', {
-                            bubbles: false,
-                            cancelable: true
-                        }));
-                    }
-                }
-            }
-            exports.Elem = Elem;
-            function throwErrorIfNotUsable({element}) {
-                if (!element.parentElement || !proxies.has(element.parentElement))
-                    return;
-                throw new Error(`TypedDOM: Typed DOM children must not be used to another typed DOM.`);
-            }
-        },
-        {
-            './util/dom': 102,
-            './util/identity': 103,
-            'spica/alias': 4,
-            'spica/array': 5,
-            'spica/global': 20
-        }
-    ],
-    102: [
-        function (_dereq_, module, exports) {
-            'use strict';
-            Object.defineProperty(exports, '__esModule', { value: true });
-            exports.defrag = exports.isChildren = exports.define = exports.element = exports.text = exports.svg = exports.html = exports.frag = exports.shadow = void 0;
-            const global_1 = _dereq_('spica/global');
-            const alias_1 = _dereq_('spica/alias');
-            const memoize_1 = _dereq_('spica/memoize');
-            const array_1 = _dereq_('spica/array');
-            var caches;
-            (function (caches) {
-                caches.shadows = new WeakMap();
-                caches.fragment = global_1.document.createDocumentFragment();
-            }(caches || (caches = {})));
-            function shadow(el, children, opts) {
-                if (typeof el === 'string')
-                    return shadow(exports.html(el), children, opts);
-                if (children && !isChildren(children))
-                    return shadow(el, void 0, children);
-                const root = opts === void 0 ? el.shadowRoot || caches.shadows.get(el) : opts.mode === 'open' ? el.shadowRoot || void 0 : caches.shadows.get(el);
-                return defineChildren(!opts || opts.mode === 'open' ? root || el.attachShadow(opts || { mode: 'open' }) : root || caches.shadows.set(el, el.attachShadow(opts)).get(el), !root && children == void 0 ? el.childNodes : children);
-            }
-            exports.shadow = shadow;
-            function frag(children) {
-                return defineChildren(caches.fragment.cloneNode(true), children);
-            }
-            exports.frag = frag;
-            exports.html = element(global_1.document, 'HTML');
-            exports.svg = element(global_1.document, 'SVG');
-            function text(source) {
-                return global_1.document.createTextNode(source);
-            }
-            exports.text = text;
-            function element(context, ns) {
-                const cache = memoize_1.memoize(elem, (_, ns, tag) => `${ ns }:${ tag }`);
-                return (tag, attrs, children) => {
-                    const el = tag.includes('-') ? elem(context, ns, tag) : cache(context, ns, tag).cloneNode(true);
-                    return isChildren(attrs) ? defineChildren(el, attrs) : defineChildren(defineAttrs(el, attrs), children);
-                };
-            }
-            exports.element = element;
-            function elem(context, ns, tag) {
-                if (!('createElement' in context))
-                    throw new Error(`TypedDOM: Scoped custom elements are not supported on this browser.`);
-                switch (ns) {
-                case 'HTML':
-                    return context.createElement(tag);
-                case 'SVG':
-                    return context.createElementNS('http://www.w3.org/2000/svg', tag);
-                }
-            }
-            function define(node, attrs, children) {
-                return isChildren(attrs) ? defineChildren(node, attrs) : defineChildren(defineAttrs(node, attrs), children);
-            }
-            exports.define = define;
-            function defineAttrs(el, attrs) {
-                if (!attrs)
-                    return el;
-                for (let i = 0, names = alias_1.ObjectKeys(attrs); i < names.length; ++i) {
-                    const name = names[i];
-                    const value = attrs[name];
-                    switch (typeof value) {
-                    case 'string':
-                        el.setAttribute(name, value);
-                        continue;
-                    case 'function':
-                        if (name.length < 3)
-                            throw new Error(`TypedDOM: Attribute names for event listeners must have an event name but got "${ name }".`);
-                        if (name.slice(0, 2) !== 'on')
-                            throw new Error(`TypedDOM: Attribute names for event listeners must start with "on" but got "${ name }".`);
-                        el.addEventListener(name.slice(2), value, {
-                            passive: [
-                                'wheel',
-                                'mousewheel',
-                                'touchstart',
-                                'touchmove',
-                                'touchend',
-                                'touchcancel'
-                            ].includes(name.slice(2))
+                        Object.defineProperty(exports, 'SVG', {
+                            enumerable: true,
+                            get: function () {
+                                return builder_1.SVG;
+                            }
                         });
-                        continue;
-                    case 'object':
-                        el.removeAttribute(name);
-                        continue;
-                    default:
-                        continue;
+                        Object.defineProperty(exports, 'API', {
+                            enumerable: true,
+                            get: function () {
+                                return builder_1.API;
+                            }
+                        });
+                        var proxy_1 = _dereq_('./src/proxy');
+                        Object.defineProperty(exports, 'proxy', {
+                            enumerable: true,
+                            get: function () {
+                                return proxy_1.proxy;
+                            }
+                        });
+                        var dom_1 = _dereq_('./src/util/dom');
+                        Object.defineProperty(exports, 'shadow', {
+                            enumerable: true,
+                            get: function () {
+                                return dom_1.shadow;
+                            }
+                        });
+                        Object.defineProperty(exports, 'frag', {
+                            enumerable: true,
+                            get: function () {
+                                return dom_1.frag;
+                            }
+                        });
+                        Object.defineProperty(exports, 'html', {
+                            enumerable: true,
+                            get: function () {
+                                return dom_1.html;
+                            }
+                        });
+                        Object.defineProperty(exports, 'svg', {
+                            enumerable: true,
+                            get: function () {
+                                return dom_1.svg;
+                            }
+                        });
+                        Object.defineProperty(exports, 'text', {
+                            enumerable: true,
+                            get: function () {
+                                return dom_1.text;
+                            }
+                        });
+                        Object.defineProperty(exports, 'element', {
+                            enumerable: true,
+                            get: function () {
+                                return dom_1.element;
+                            }
+                        });
+                        Object.defineProperty(exports, 'define', {
+                            enumerable: true,
+                            get: function () {
+                                return dom_1.define;
+                            }
+                        });
+                        Object.defineProperty(exports, 'defrag', {
+                            enumerable: true,
+                            get: function () {
+                                return dom_1.defrag;
+                            }
+                        });
+                        var listener_1 = _dereq_('./src/util/listener');
+                        Object.defineProperty(exports, 'listen', {
+                            enumerable: true,
+                            get: function () {
+                                return listener_1.listen;
+                            }
+                        });
+                        Object.defineProperty(exports, 'delegate', {
+                            enumerable: true,
+                            get: function () {
+                                return listener_1.delegate;
+                            }
+                        });
+                        Object.defineProperty(exports, 'bind', {
+                            enumerable: true,
+                            get: function () {
+                                return listener_1.bind;
+                            }
+                        });
+                        Object.defineProperty(exports, 'once', {
+                            enumerable: true,
+                            get: function () {
+                                return listener_1.once;
+                            }
+                        });
+                        Object.defineProperty(exports, 'wait', {
+                            enumerable: true,
+                            get: function () {
+                                return listener_1.wait;
+                            }
+                        });
+                        Object.defineProperty(exports, 'currentTarget', {
+                            enumerable: true,
+                            get: function () {
+                                return listener_1.currentTarget;
+                            }
+                        });
+                        var query_1 = _dereq_('./src/util/query');
+                        Object.defineProperty(exports, 'apply', {
+                            enumerable: true,
+                            get: function () {
+                                return query_1.apply;
+                            }
+                        });
+                        var identity_1 = _dereq_('./src/util/identity');
+                        Object.defineProperty(exports, 'identity', {
+                            enumerable: true,
+                            get: function () {
+                                return identity_1.identity;
+                            }
+                        });
+                    },
+                    {
+                        './src/builder': 13,
+                        './src/proxy': 14,
+                        './src/util/dom': 15,
+                        './src/util/identity': 16,
+                        './src/util/listener': 17,
+                        './src/util/query': 18,
+                        'spica/global': 8
                     }
+                ]
+            }, {}, [
+                1,
+                2,
+                'typed-dom',
+                3
+            ]);
+            (function (root, factory) {
+                if (typeof define === 'function' && define.amd) {
+                    define([], factory);
+                } else if (typeof module === 'object' && module.exports) {
+                    module.exports = factory();
+                } else {
+                    root.commonJsStrict = factory();
                 }
-                return el;
-            }
-            function defineChildren(node, children) {
-                switch (typeof children) {
-                case 'undefined':
-                    return node;
-                case 'string':
-                    return defineChildren(node, [children]);
-                }
-                if (!('length' in children)) {
-                    if (node.firstChild)
-                        return defineChildren(node, array_1.push([], children));
-                    for (const child of children) {
-                        node.append(child);
-                    }
-                    return node;
-                }
-                if (!alias_1.isArray(children)) {
-                    if (node.firstChild)
-                        return defineChildren(node, array_1.push([], children));
-                    for (let i = children.length; i--;) {
-                        node.prepend(children[i]);
-                    }
-                    return node;
-                }
-                const targetNodes = node.firstChild ? node.childNodes : [];
-                let targetLength = targetNodes.length;
-                if (targetLength === 0)
-                    return append(node, children);
-                let count = 0;
-                I:
-                    for (let i = 0; i < children.length; ++i) {
-                        if (count === targetLength)
-                            return append(node, children, i);
-                        const newChild = children[i];
-                        if (typeof newChild === 'object' && newChild.nodeType === 11) {
-                            const sourceLength = newChild.childNodes.length;
-                            targetLength += newChild !== node ? sourceLength : 0;
-                            node.insertBefore(newChild, targetNodes[count] || null);
-                            count += sourceLength;
-                            continue;
-                        }
-                        ++count;
-                        while (targetLength > children.length) {
-                            const oldChild = targetNodes[count - 1];
-                            if (equal(oldChild, newChild))
-                                continue I;
-                            oldChild.remove();
-                            --targetLength;
-                        }
-                        const oldChild = targetNodes[count - 1];
-                        if (equal(oldChild, newChild))
-                            continue;
-                        if (targetLength < children.length - i + count) {
-                            targetLength += typeof newChild === 'string' || newChild.parentNode !== node ? 1 : 0;
-                            node.insertBefore(typeof newChild === 'string' ? text(newChild) : newChild, oldChild);
-                        } else {
-                            node.replaceChild(typeof newChild === 'string' ? text(newChild) : newChild, oldChild);
-                        }
-                    }
-                while (count < targetLength) {
-                    targetNodes[count].remove();
-                    --targetLength;
-                }
-                return node;
-            }
-            function isChildren(o) {
-                return !!(o === null || o === void 0 ? void 0 : o[global_1.Symbol.iterator]);
-            }
-            exports.isChildren = isChildren;
-            function equal(node, data) {
-                return typeof data === 'string' ? 'wholeText' in node && node.data === data : node === data;
-            }
-            function append(node, children, i = 0) {
-                for (const len = children.length; i < len; ++i) {
-                    node.append(children[i]);
-                }
-                return node;
-            }
-            function defrag(nodes) {
-                const acc = [];
-                for (let i = 0; i < nodes.length; ++i) {
-                    const node = nodes[i];
-                    if (node === '')
-                        continue;
-                    acc.length > 0 && typeof node === 'string' && typeof nodes[i - 1] === 'string' ? acc[acc.length - 1] += node : acc.push(node);
-                }
-                return acc;
-            }
-            exports.defrag = defrag;
+            }(typeof self !== 'undefined' ? self : this, function () {
+                return _dereq_('typed-dom');
+            }));
         },
-        {
-            'spica/alias': 4,
-            'spica/array': 5,
-            'spica/global': 20,
-            'spica/memoize': 29
-        }
+        { 'typed-dom': 98 }
     ],
-    103: [
-        function (_dereq_, module, exports) {
-            'use strict';
-            var _a;
-            Object.defineProperty(exports, '__esModule', { value: true });
-            exports.identity = void 0;
-            const global_1 = _dereq_('spica/global');
-            const random_1 = _dereq_('spica/random');
-            const ids = Symbol.for('typed-dom::ids');
-            exports.identity = random_1.unique(random_1.rnd0Z, 2, (_a = global_1.global[ids]) !== null && _a !== void 0 ? _a : global_1.global[ids] = new global_1.Set());
-        },
-        {
-            'spica/global': 20,
-            'spica/random': 89
-        }
-    ],
-    104: [
-        function (_dereq_, module, exports) {
-            'use strict';
-            Object.defineProperty(exports, '__esModule', { value: true });
-            exports.bind = exports.delegate = exports.wait = exports.once = exports.listen = exports.currentTarget = void 0;
-            const promise_1 = _dereq_('spica/promise');
-            const function_1 = _dereq_('spica/function');
-            const noop_1 = _dereq_('spica/noop');
-            exports.currentTarget = Symbol.for('typed-dom::currentTarget');
-            function listen(target, a, b, c = false, d = {}) {
-                return typeof b === 'string' ? delegate(target, a, b, c, d) : bind(target, a, b, c);
-            }
-            exports.listen = listen;
-            function once(target, a, b, c = false, d = {}) {
-                return typeof b === 'string' ? delegate(target, a, b, c, {
-                    ...typeof d === 'boolean' ? { capture: d } : d,
-                    once: true
-                }) : bind(target, a, b, {
-                    ...typeof c === 'boolean' ? { capture: c } : c,
-                    once: true
-                });
-            }
-            exports.once = once;
-            function wait(target, a, b = false, c = {}) {
-                return new promise_1.AtomicPromise(resolve => typeof b === 'string' ? once(target, a, b, resolve, c) : once(target, a, resolve, b));
-            }
-            exports.wait = wait;
-            function delegate(target, selector, type, listener, option = {}) {
-                let unbind = noop_1.noop;
-                return bind(target, type, ev => {
-                    var _a, _b;
-                    unbind();
-                    const cx = ev.target.shadowRoot ? (_a = ev.composedPath()[0]) === null || _a === void 0 ? void 0 : _a.closest(selector) : (_b = ev.target) === null || _b === void 0 ? void 0 : _b.closest(selector);
-                    return cx ? unbind = once(cx, type, listener, option) : void 0, ev.returnValue;
-                }, {
-                    ...option,
-                    capture: true
-                });
-            }
-            exports.delegate = delegate;
-            function bind(target, type, listener, option = false) {
-                target.addEventListener(type, handler, option);
-                return function_1.once(() => void target.removeEventListener(type, handler, option));
-                function handler(ev) {
-                    return exports.currentTarget in ev && !ev[exports.currentTarget] ? void 0 : ev[exports.currentTarget] = ev.currentTarget, listener(ev);
-                }
-            }
-            exports.bind = bind;
-        },
-        {
-            'spica/function': 18,
-            'spica/noop': 86,
-            'spica/promise': 88
-        }
-    ],
-    105: [
-        function (_dereq_, module, exports) {
-            'use strict';
-            Object.defineProperty(exports, '__esModule', { value: true });
-            exports.apply = void 0;
-            const dom_1 = _dereq_('./dom');
-            function apply(node, selector, attrs) {
-                const ns = node.querySelectorAll(selector);
-                for (let i = 0, len = ns.length; i < len; ++i) {
-                    dom_1.define(ns[i], attrs);
-                }
-                return ns;
-            }
-            exports.apply = apply;
-        },
-        { './dom': 102 }
-    ],
-    106: [
+    99: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6232,11 +6918,11 @@ require = function () {
             });
         },
         {
-            './layer/interface/service/gui': 135,
-            './lib/router': 145
+            './layer/interface/service/gui': 128,
+            './lib/router': 138
         }
     ],
-    107: [
+    100: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6275,17 +6961,17 @@ require = function () {
                 }
             });
             function route(config, event, state, io) {
-                return api_1.route(new api_1.RouterEntity(config, event, new api_1.RouterEntityState(state.process, state.scripts)), io);
+                return (0, api_1.route)(new api_1.RouterEntity(config, event, new api_1.RouterEntityState(state.process, state.scripts)), io);
             }
             exports.route = route;
         },
         {
-            '../domain/data/config': 110,
-            '../domain/event/router': 112,
-            '../domain/router/api': 113
+            '../domain/data/config': 103,
+            '../domain/event/router': 105,
+            '../domain/router/api': 106
         }
     ],
-    108: [
+    101: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6304,9 +6990,9 @@ require = function () {
                 }
             });
         },
-        { '../domain/store/path': 129 }
+        { '../domain/store/path': 122 }
     ],
-    109: [
+    102: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6346,8 +7032,8 @@ require = function () {
             }
             exports.savePosition = savePosition;
             function isTransitable(state) {
-                var _a;
-                return ((_a = state === null || state === void 0 ? void 0 : state.pjax) === null || _a === void 0 ? void 0 : _a.transition) || false;
+                var _a, _b;
+                return (_b = ((_a = state === null || state === void 0 ? void 0 : state.pjax) === null || _a === void 0 ? void 0 : _a.transition) === true) !== null && _b !== void 0 ? _b : false;
             }
             exports.isTransitable = isTransitable;
             function savePjax() {
@@ -6364,7 +7050,7 @@ require = function () {
         },
         {}
     ],
-    110: [
+    103: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6408,21 +7094,21 @@ require = function () {
                     this.sequence = new Sequence();
                     this.progressbar = 'display:none;position:absolute;bottom:0;left:0;width:0;height:2px;background:rgb(40, 105, 255);';
                     this.scope = {};
-                    void alias_1.ObjectDefineProperties(this.update, {
+                    void (0, alias_1.ObjectDefineProperties)(this.update, {
                         ignore: {
                             enumerable: false,
                             set(value) {
                                 this.ignores['_'] = value;
                             },
                             get() {
-                                return alias_1.ObjectKeys(this.ignores).map(i => this.ignores[i]).filter(s => s.trim().length > 0).join(',');
+                                return (0, alias_1.ObjectKeys)(this.ignores).map(i => this.ignores[i]).filter(s => s.trim().length > 0).join(',');
                             }
                         }
                     });
-                    void assign_1.extend(this, option);
-                    void assign_1.overwrite(this.scope, (_a = option === null || option === void 0 ? void 0 : option.scope) !== null && _a !== void 0 ? _a : {});
+                    void (0, assign_1.extend)(this, option);
+                    void (0, assign_1.overwrite)(this.scope, (_a = option === null || option === void 0 ? void 0 : option.scope) !== null && _a !== void 0 ? _a : {});
                     this.fetch.headers = new Headers(this.fetch.headers);
-                    void alias_1.ObjectFreeze(this);
+                    void (0, alias_1.ObjectFreeze)(this);
                     void this.fetch.headers.set('X-Requested-With', 'XMLHttpRequest');
                     void this.fetch.headers.set('X-Pjax', '1');
                 }
@@ -6437,7 +7123,7 @@ require = function () {
                         return void window.location.assign(target.action);
                     }
                     if (target instanceof Window) {
-                        return void window.location.reload(true);
+                        return void window.location.reload();
                     }
                     throw reason;
                 }
@@ -6461,12 +7147,12 @@ require = function () {
             }
         },
         {
-            './config/scope': 111,
+            './config/scope': 104,
             'spica/alias': 4,
             'spica/assign': 6
         }
     ],
-    111: [
+    104: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6483,20 +7169,20 @@ require = function () {
                     '/': {},
                     ...config.scope
                 };
-                return (_a = sequence_1.Sequence.from(alias_1.ObjectKeys(scope).sort().reverse()).dropWhile(pattern => !!!router_1.compare(pattern, path.orig) && !router_1.compare(pattern, path.dest)).take(1).filter(pattern => !!router_1.compare(pattern, path.orig) && router_1.compare(pattern, path.dest)).map(pattern => scope[pattern]).map(option => option ? maybe_1.Just(new config_1.Config(assign_1.extend({ scope: option.scope && assign_1.overwrite(config.scope, option.scope) }, config, option))) : maybe_1.Nothing).extract()[0]) !== null && _a !== void 0 ? _a : maybe_1.Nothing;
+                return (_a = sequence_1.Sequence.from((0, alias_1.ObjectKeys)(scope).sort().reverse()).dropWhile(pattern => !!!(0, router_1.compare)(pattern, path.orig) && !(0, router_1.compare)(pattern, path.dest)).take(1).filter(pattern => !!(0, router_1.compare)(pattern, path.orig) && (0, router_1.compare)(pattern, path.dest)).map(pattern => scope[pattern]).map(option => option ? (0, maybe_1.Just)(new config_1.Config((0, assign_1.extend)({ scope: option.scope && (0, assign_1.overwrite)(config.scope, option.scope) }, config, option))) : maybe_1.Nothing).extract()[0]) !== null && _a !== void 0 ? _a : maybe_1.Nothing;
             }
             exports.scope = scope;
         },
         {
-            '../../../../lib/router': 145,
-            '../../../domain/data/config': 110,
+            '../../../../lib/router': 138,
+            '../../../domain/data/config': 103,
             'spica/alias': 4,
             'spica/assign': 6,
             'spica/maybe': 28,
-            'spica/sequence': 90
+            'spica/sequence': 89
         }
     ],
-    112: [
+    105: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6512,7 +7198,7 @@ require = function () {
                     this.source = this.original[typed_dom_1.currentTarget];
                     this.request = new RouterEventRequest(this.source);
                     this.location = new RouterEventLocation(this.request.url);
-                    void alias_1.ObjectFreeze(this);
+                    void (0, alias_1.ObjectFreeze)(this);
                 }
             }
             exports.RouterEvent = RouterEvent;
@@ -6551,38 +7237,38 @@ require = function () {
                     })();
                     this.url = (() => {
                         if (this.source instanceof RouterEventSource.Anchor || this.source instanceof RouterEventSource.Area) {
-                            return new url_1.URL(url_1.standardize(this.source.href, window.location.href));
+                            return new url_1.URL((0, url_1.standardize)(this.source.href, window.location.href));
                         }
                         if (this.source instanceof RouterEventSource.Form) {
-                            return this.source.method.toUpperCase() === RouterEventMethod.GET ? new url_1.URL(url_1.standardize(this.source.action.split(/[?#]/)[0] + `?${ dom_1.serialize(this.source) }`, window.location.href)) : new url_1.URL(url_1.standardize(this.source.action.split(/[?#]/)[0], window.location.href));
+                            return this.source.method.toUpperCase() === RouterEventMethod.GET ? new url_1.URL((0, url_1.standardize)(this.source.action.split(/[?#]/)[0] + `?${ (0, dom_1.serialize)(this.source) }`, window.location.href)) : new url_1.URL((0, url_1.standardize)(this.source.action.split(/[?#]/)[0], window.location.href));
                         }
                         if (this.source instanceof RouterEventSource.Window) {
-                            return new url_1.URL(url_1.standardize(window.location.href));
+                            return new url_1.URL((0, url_1.standardize)(window.location.href));
                         }
                         throw new TypeError();
                     })();
                     this.body = (() => this.source instanceof RouterEventSource.Form && this.method === RouterEventMethod.POST ? new FormData(this.source) : null)();
-                    void alias_1.ObjectFreeze(this);
+                    void (0, alias_1.ObjectFreeze)(this);
                 }
             }
             exports.RouterEventRequest = RouterEventRequest;
             class RouterEventLocation {
                 constructor(dest) {
                     this.dest = dest;
-                    this.orig = new url_1.URL(url_1.standardize(window.location.href));
-                    void alias_1.ObjectFreeze(this);
+                    this.orig = new url_1.URL((0, url_1.standardize)(window.location.href));
+                    void (0, alias_1.ObjectFreeze)(this);
                 }
             }
             exports.RouterEventLocation = RouterEventLocation;
         },
         {
-            '../../../lib/dom': 142,
+            '../../../lib/dom': 135,
             'spica/alias': 4,
-            'spica/url': 97,
-            'typed-dom': 99
+            'spica/url': 96,
+            'typed-dom': 98
         }
     ],
-    113: [
+    106: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6606,12 +7292,12 @@ require = function () {
                 }
             });
             async function route(entity, io) {
-                return either_1.Right(void 0).bind(entity.state.process.either).bind(() => match(io.document, entity.config.areas) ? either_1.Right(void 0) : either_1.Left(new Error(`Failed to match areas.`))).fmap(() => fetch_1.fetch(entity.event.request, entity.config, entity.state.process)).fmap(async p => (await p).fmap(([res, seq]) => update_1.update(entity, res, seq, {
+                return (0, either_1.Right)(void 0).bind(entity.state.process.either).bind(() => match(io.document, entity.config.areas) ? (0, either_1.Right)(void 0) : (0, either_1.Left)(new Error(`Failed to match areas.`))).fmap(() => (0, fetch_1.fetch)(entity.event.request, entity.config, entity.state.process)).fmap(async p => (await p).fmap(([res, seq]) => (0, update_1.update)(entity, res, seq, {
                     document: io.document,
                     position: path_1.loadPosition
                 })).extract(either_1.Left)).extract(either_1.Left);
                 function match(document, areas) {
-                    return content_1.separate({
+                    return (0, content_1.separate)({
                         src: document,
                         dst: document
                     }, areas).extract(() => false, () => true);
@@ -6620,15 +7306,15 @@ require = function () {
             exports.route = route;
         },
         {
-            '../store/path': 129,
-            './model/eav/entity': 114,
-            './module/fetch': 116,
-            './module/update': 118,
-            './module/update/content': 120,
+            '../store/path': 122,
+            './model/eav/entity': 107,
+            './module/fetch': 109,
+            './module/update': 111,
+            './module/update/content': 113,
             'spica/either': 15
         }
     ],
-    114: [
+    107: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6639,7 +7325,7 @@ require = function () {
                     this.config = config;
                     this.event = event;
                     this.state = state;
-                    void alias_1.ObjectFreeze(this);
+                    void (0, alias_1.ObjectFreeze)(this);
                 }
             }
             exports.RouterEntity = RouterEntity;
@@ -6647,14 +7333,14 @@ require = function () {
                 constructor(process, scripts) {
                     this.process = process;
                     this.scripts = scripts;
-                    void alias_1.ObjectFreeze(this);
+                    void (0, alias_1.ObjectFreeze)(this);
                 }
             }
             exports.RouterEntityState = RouterEntityState;
         },
         { 'spica/alias': 4 }
     ],
-    115: [
+    108: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6670,25 +7356,25 @@ require = function () {
                     this.document = this.xhr.responseXML.cloneNode(true);
                     if (url.origin !== new url_1.URL(xhr.responseURL, window.location.href).origin)
                         throw new Error(`Redirected to another origin.`);
-                    void alias_1.ObjectDefineProperty(this.document, 'URL', {
+                    void (0, alias_1.ObjectDefineProperty)(this.document, 'URL', {
                         configurable: true,
                         enumerable: true,
                         value: url.href,
                         writable: false
                     });
-                    void html_1.fix(this.document);
-                    void alias_1.ObjectFreeze(this);
+                    void (0, html_1.fix)(this.document);
+                    void (0, alias_1.ObjectFreeze)(this);
                 }
             }
             exports.FetchResponse = FetchResponse;
         },
         {
-            '../../../../../../lib/html': 144,
+            '../../../../../../lib/html': 137,
             'spica/alias': 4,
-            'spica/url': 97
+            'spica/url': 96
         }
     ],
-    116: [
+    109: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6701,14 +7387,14 @@ require = function () {
             }, process) {
                 void window.dispatchEvent(new Event('pjax:fetch'));
                 const [seq, res] = await Promise.all([
-                    sequence.fetch(void 0, {
+                    await sequence.fetch(void 0, {
                         path: url.path,
                         method,
                         headers,
                         body
                     }),
-                    xhr_1.xhr(method, url, headers, body, timeout, rewrite, cache, process),
-                    clock_1.wait(wait)
+                    (0, xhr_1.xhr)(method, url, headers, body, timeout, rewrite, cache, process),
+                    (0, clock_1.wait)(wait)
                 ]);
                 return res.bind(process.either).fmap(res => [
                     res,
@@ -6718,11 +7404,11 @@ require = function () {
             exports.fetch = fetch;
         },
         {
-            '../module/fetch/xhr': 117,
+            '../module/fetch/xhr': 110,
             'spica/clock': 10
         }
     ],
-    117: [
+    110: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6738,14 +7424,14 @@ require = function () {
             function xhr(method, displayURL, headers, body, timeout, rewrite, cache, cancellation) {
                 headers = new Headers(headers);
                 void headers.set('Accept', headers.get('Accept') || 'text/html');
-                const requestURL = new url_1.URL(url_1.standardize(rewrite(displayURL.path), window.location.href));
+                const requestURL = new url_1.URL((0, url_1.standardize)(rewrite(displayURL.path), window.location.href));
                 if (method === 'GET' && caches.has(requestURL.path) && Date.now() > caches.get(requestURL.path).expiry) {
                     void headers.set('If-None-Match', headers.get('If-None-Match') || caches.get(requestURL.path).etag);
                 }
                 const key = method === 'GET' ? cache(requestURL.path, headers) || void 0 : void 0;
                 return new promise_1.AtomicPromise(resolve => {
                     if (key && memory.has(key))
-                        return resolve(either_1.Right(memory.get(key)(displayURL, requestURL)));
+                        return resolve((0, either_1.Right)(memory.get(key)(displayURL, requestURL)));
                     const xhr = new XMLHttpRequest();
                     void xhr.open(method, requestURL.path, true);
                     for (const [name, value] of headers) {
@@ -6754,11 +7440,11 @@ require = function () {
                     xhr.responseType = 'document';
                     xhr.timeout = timeout;
                     void xhr.send(body);
-                    void xhr.addEventListener('abort', () => void resolve(either_1.Left(new Error(`Failed to request a page by abort.`))));
-                    void xhr.addEventListener('error', () => void resolve(either_1.Left(new Error(`Failed to request a page by error.`))));
-                    void xhr.addEventListener('timeout', () => void resolve(either_1.Left(new Error(`Failed to request a page by timeout.`))));
+                    void xhr.addEventListener('abort', () => void resolve((0, either_1.Left)(new Error(`Failed to request a page by abort.`))));
+                    void xhr.addEventListener('error', () => void resolve((0, either_1.Left)(new Error(`Failed to request a page by error.`))));
+                    void xhr.addEventListener('timeout', () => void resolve((0, either_1.Left)(new Error(`Failed to request a page by timeout.`))));
                     void xhr.addEventListener('load', () => void verify(xhr, method).fmap(xhr => {
-                        const responseURL = new url_1.URL(url_1.standardize(xhr.responseURL, window.location.href));
+                        const responseURL = new url_1.URL((0, url_1.standardize)(xhr.responseURL, window.location.href));
                         if (method === 'GET') {
                             const cc = new Map(xhr.getResponseHeader('Cache-Control') ? xhr.getResponseHeader('Cache-Control').trim().split(/\s*,\s*/).filter(v => v.length > 0).map(v => v.split('=').concat('')) : []);
                             for (const path of new Set([
@@ -6782,27 +7468,27 @@ require = function () {
                             void memory.set(key, f);
                         }
                         return f(displayURL, requestURL);
-                    }).extract(err => void resolve(either_1.Left(err)), res => void resolve(either_1.Right(res))));
+                    }).extract(err => void resolve((0, either_1.Left)(err)), res => void resolve((0, either_1.Right)(res))));
                     void cancellation.register(() => void xhr.abort());
                 });
             }
             exports.xhr = xhr;
             function verify(xhr, method) {
-                return either_1.Right(xhr).bind(xhr => {
-                    const url = new url_1.URL(url_1.standardize(xhr.responseURL, window.location.href));
+                return (0, either_1.Right)(xhr).bind(xhr => {
+                    const url = new url_1.URL((0, url_1.standardize)(xhr.responseURL, window.location.href));
                     switch (true) {
                     case !xhr.responseURL:
-                        return either_1.Left(new Error(`Failed to get the response URL.`));
+                        return (0, either_1.Left)(new Error(`Failed to get the response URL.`));
                     case url.origin !== new url_1.URL('', window.location.origin).origin:
-                        return either_1.Left(new Error(`Redirected to another origin.`));
+                        return (0, either_1.Left)(new Error(`Redirected to another origin.`));
                     case !/2..|304/.test(`${ xhr.status }`):
-                        return either_1.Left(new Error(`Failed to validate the status of response.`));
+                        return (0, either_1.Left)(new Error(`Failed to validate the status of response.`));
                     case !xhr.response:
-                        return method === 'GET' && xhr.status === 304 && caches.has(url.path) ? either_1.Right(caches.get(url.path).xhr) : either_1.Left(new Error(`Failed to get the response body.`));
+                        return method === 'GET' && xhr.status === 304 && caches.has(url.path) ? (0, either_1.Right)(caches.get(url.path).xhr) : (0, either_1.Left)(new Error(`Failed to get the response body.`));
                     case !match(xhr.getResponseHeader('Content-Type'), 'text/html'):
-                        return either_1.Left(new Error(`Failed to validate the content type of response.`));
+                        return (0, either_1.Left)(new Error(`Failed to validate the content type of response.`));
                     default:
-                        return either_1.Right(xhr);
+                        return (0, either_1.Right)(xhr);
                     }
                 });
             }
@@ -6815,15 +7501,15 @@ require = function () {
             exports.match_ = match;
         },
         {
-            '../../model/eav/value/fetch': 115,
+            '../../model/eav/value/fetch': 108,
             'spica/cache': 7,
             'spica/either': 15,
             'spica/promise': 88,
-            'spica/sequence': 90,
-            'spica/url': 97
+            'spica/sequence': 89,
+            'spica/url': 96
         }
     ],
-    118: [
+    111: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6848,32 +7534,32 @@ require = function () {
                     src: response.document,
                     dst: io.document
                 };
-                return promise_1.AtomicPromise.resolve(seq).then(process.either).then(m => m.bind(() => content_1.separate(documents, config.areas).extract(() => either_1.Left(new Error(`Failed to separate the areas.`)), () => m)).fmap(seqA => (void window.dispatchEvent(new Event('pjax:unload')), config.sequence.unload(seqA, {
+                return promise_1.AtomicPromise.resolve(seq).then(process.either).then(m => m.bind(() => (0, content_1.separate)(documents, config.areas).extract(() => (0, either_1.Left)(new Error(`Failed to separate the areas.`)), () => m)).fmap(seqA => (void window.dispatchEvent(new Event('pjax:unload')), config.sequence.unload(seqA, {
                     ...response,
                     url: response.url.href
-                })))).then(m => either_1.Either.sequence(m)).then(process.promise).then(m => m.bind(seqB => content_1.separate(documents, config.areas).fmap(([area]) => [
+                })))).then(m => either_1.Either.sequence(m)).then(process.promise).then(m => m.bind(seqB => (0, content_1.separate)(documents, config.areas).fmap(([area]) => [
                     seqB,
                     area
-                ]).extract(() => either_1.Left(new Error(`Failed to separate the areas.`)), process.either)).bind(([seqB, area]) => (void config.update.rewrite(documents.src, area), content_1.separate(documents, config.areas).fmap(([, areas]) => [
+                ]).extract(() => (0, either_1.Left)(new Error(`Failed to separate the areas.`)), process.either)).bind(([seqB, area]) => (void config.update.rewrite(documents.src, area), (0, content_1.separate)(documents, config.areas).fmap(([, areas]) => [
                     seqB,
                     areas
-                ]).extract(() => either_1.Left(new Error(`Failed to separate the areas.`)), process.either)))).then(process.promise).then(m => m.fmap(([seqB, areas]) => hlist_1.HList().unfold(() => (void blur_1.blur(documents.dst), void path_1.savePjax(), void url_1.url(new router_1.RouterEventLocation(response.url), documents.src.title, event.type, event.source, config.replace), void path_1.savePjax(), void title_1.title(documents), void path_1.saveTitle(), void head_1.head(documents, config.update.head, config.update.ignore), process.either(content_1.content(documents, areas)).fmap(([as, ps]) => [
+                ]).extract(() => (0, either_1.Left)(new Error(`Failed to separate the areas.`)), process.either)))).then(process.promise).then(m => m.fmap(([seqB, areas]) => (0, hlist_1.HList)().unfold(() => (void (0, blur_1.blur)(documents.dst), void (0, path_1.savePjax)(), void (0, url_1.url)(new router_1.RouterEventLocation(response.url), documents.src.title, event.type, event.source, config.replace), void (0, path_1.savePjax)(), void (0, title_1.title)(documents), void (0, path_1.saveTitle)(), void (0, head_1.head)(documents, config.update.head, config.update.ignore), process.either((0, content_1.content)(documents, areas)).fmap(([as, ps]) => [
                     as,
                     promise_1.AtomicPromise.all(ps)
                 ]))).unfold(async p => (await p).fmap(async ([areas]) => {
-                    config.update.css ? void css_1.css(documents, config.update.ignore) : void 0;
+                    config.update.css ? void (0, css_1.css)(documents, config.update.ignore) : void 0;
                     void io.document.dispatchEvent(new Event('pjax:content'));
                     const seqC = await config.sequence.content(seqB, areas);
-                    const ssm = config.update.script ? await script_1.script(documents, state.scripts, config.update, Math.max(config.fetch.timeout, 1000) * 10, process) : await process.either([
+                    const ssm = config.update.script ? await (0, script_1.script)(documents, state.scripts, config.update, Math.max(config.fetch.timeout, 1000) * 10, process) : await process.either([
                         [],
                         promise_1.AtomicPromise.resolve(process.either([]))
                     ]);
-                    void focus_1.focus(event.type, documents.dst);
-                    void scroll_1.scroll(event.type, documents.dst, {
+                    void (0, focus_1.focus)(event.type, documents.dst);
+                    void (0, scroll_1.scroll)(event.type, documents.dst, {
                         hash: event.location.dest.fragment,
                         position: io.position
                     });
-                    void path_1.savePosition();
+                    void (0, path_1.savePosition)();
                     void io.document.dispatchEvent(new Event('pjax:ready'));
                     return [
                         ssm.fmap(([ss, ap]) => [
@@ -6885,7 +7571,7 @@ require = function () {
                 }).fmap(p => p.then(([m, seqD]) => m.fmap(sst => [
                     sst,
                     seqD
-                ]))).extract(err => promise_1.AtomicPromise.resolve(either_1.Left(err)))).reverse())).then(process.promise).then(m => m.fmap(([p1, p2]) => (void promise_1.AtomicPromise.all([
+                ]))).extract(err => promise_1.AtomicPromise.resolve((0, either_1.Left)(err)))).reverse())).then(process.promise).then(m => m.fmap(([p1, p2]) => (void promise_1.AtomicPromise.all([
                     p1,
                     p2
                 ]).then(([m1, m2]) => m1.bind(([, cp]) => m2.fmap(([[, sp], seqD]) => void promise_1.AtomicPromise.all([
@@ -6896,23 +7582,23 @@ require = function () {
             exports.update = update;
         },
         {
-            '../../event/router': 112,
-            '../../store/path': 129,
-            '../module/update/blur': 119,
-            '../module/update/content': 120,
-            '../module/update/css': 121,
-            '../module/update/focus': 122,
-            '../module/update/head': 123,
-            '../module/update/script': 124,
-            '../module/update/scroll': 125,
-            '../module/update/title': 127,
-            '../module/update/url': 128,
+            '../../event/router': 105,
+            '../../store/path': 122,
+            '../module/update/blur': 112,
+            '../module/update/content': 113,
+            '../module/update/css': 114,
+            '../module/update/focus': 115,
+            '../module/update/head': 116,
+            '../module/update/script': 117,
+            '../module/update/scroll': 118,
+            '../module/update/title': 120,
+            '../module/update/url': 121,
             'spica/either': 15,
             'spica/hlist': 22,
             'spica/promise': 88
         }
     ],
-    119: [
+    112: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6927,7 +7613,7 @@ require = function () {
         },
         {}
     ],
-    120: [
+    113: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6966,33 +7652,33 @@ require = function () {
                             src: [...documents.src.querySelectorAll(area)],
                             dst: [...documents.dst.querySelectorAll(area)]
                         };
-                        return record.src.length > 0 && record.src.length === record.dst.length ? maybe_1.Just(array_1.push(acc, [record])) : maybe_1.Nothing;
-                    }), maybe_1.Just([])));
+                        return record.src.length > 0 && record.src.length === record.dst.length ? (0, maybe_1.Just)((0, array_1.push)(acc, [record])) : maybe_1.Nothing;
+                    }), (0, maybe_1.Just)([])));
                 }
             }
             exports.separate = separate;
             function split(area) {
-                return (area.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g) || []).map(area => area.trim()).reduce((m, area) => area ? m.fmap(acc => array_1.push(acc, [area])) : maybe_1.Nothing, maybe_1.Just([]));
+                return (area.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g) || []).map(area => area.trim()).reduce((m, area) => area ? m.fmap(acc => (0, array_1.push)(acc, [area])) : maybe_1.Nothing, (0, maybe_1.Just)([]));
             }
             exports._split = split;
             function wait(el) {
                 return promise_1.AtomicPromise.race([
-                    new promise_1.AtomicPromise(resolve => void typed_dom_1.once(el, 'load', resolve)),
-                    new promise_1.AtomicPromise(resolve => void typed_dom_1.once(el, 'abort', resolve)),
-                    new promise_1.AtomicPromise(resolve => void typed_dom_1.once(el, 'error', resolve))
+                    new promise_1.AtomicPromise(resolve => void (0, typed_dom_1.once)(el, 'load', resolve)),
+                    new promise_1.AtomicPromise(resolve => void (0, typed_dom_1.once)(el, 'abort', resolve)),
+                    new promise_1.AtomicPromise(resolve => void (0, typed_dom_1.once)(el, 'error', resolve))
                 ]);
             }
             exports._wait = wait;
         },
         {
-            './script': 124,
+            './script': 117,
             'spica/array': 5,
             'spica/maybe': 28,
             'spica/promise': 88,
-            'typed-dom': 99
+            'typed-dom': 98
         }
     ],
-    121: [
+    114: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7006,16 +7692,16 @@ require = function () {
                 ].map(query => [
                     documents.src.querySelector(query),
                     documents.dst.querySelector(query)
-                ]).forEach(([src, dst]) => void sync_1.sync(sync_1.pair(list(src), list(dst), (a, b) => a.outerHTML === b.outerHTML), dst));
+                ]).forEach(([src, dst]) => void (0, sync_1.sync)((0, sync_1.pair)(list(src), list(dst), (a, b) => a.outerHTML === b.outerHTML), dst));
                 function list(source) {
                     return [...source.querySelectorAll(selector)].filter(el => !ignore || !el.matches(ignore));
                 }
             }
             exports.css = css;
         },
-        { './sync': 126 }
+        { './sync': 119 }
     ],
-    122: [
+    115: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7034,9 +7720,9 @@ require = function () {
             }
             exports.focus = focus;
         },
-        { '../../../event/router': 112 }
+        { '../../../event/router': 105 }
     ],
-    123: [
+    116: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7044,16 +7730,16 @@ require = function () {
             const sync_1 = _dereq_('./sync');
             function head(documents, selector, ignore) {
                 ignore += selector.includes('link') ? ', link[rel~="stylesheet"]' : '';
-                return void sync_1.sync(sync_1.pair(list(documents.src.head), list(documents.dst.head), (a, b) => a.outerHTML === b.outerHTML), documents.dst.head);
+                return void (0, sync_1.sync)((0, sync_1.pair)(list(documents.src.head), list(documents.dst.head), (a, b) => a.outerHTML === b.outerHTML), documents.dst.head);
                 function list(source) {
                     return [...source.querySelectorAll(selector)].filter(el => !ignore || !el.matches(ignore));
                 }
             }
             exports.head = head;
         },
-        { './sync': 126 }
+        { './sync': 119 }
     ],
-    124: [
+    117: [
         function (_dereq_, module, exports) {
             'use strict';
             var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
@@ -7105,7 +7791,7 @@ require = function () {
                 fetch,
                 evaluate
             }) {
-                const scripts = [...documents.src.querySelectorAll('script')].filter(el => !el.type || /(?:application|text)\/(?:java|ecma)script|module/i.test(el.type)).filter(el => !el.matches(selector.ignore.trim() || '_')).filter(el => el.hasAttribute('src') ? !skip.has(new url_1.URL(url_1.standardize(el.src)).href) || el.matches(selector.reload.trim() || '_') : true);
+                const scripts = [...documents.src.querySelectorAll('script')].filter(el => !el.type || /(?:application|text)\/(?:java|ecma)script|module/i.test(el.type)).filter(el => !el.matches(selector.ignore.trim() || '_')).filter(el => el.hasAttribute('src') ? !skip.has(new url_1.URL((0, url_1.standardize)(el.src)).href) || el.matches(selector.reload.trim() || '_') : true);
                 const {ss, as} = scripts.reduce((o, script) => {
                     switch (true) {
                     case script.matches('[src][async], [src][defer]'):
@@ -7126,29 +7812,29 @@ require = function () {
                     ss1,
                     ap1.then(async as1 => am.fmap(async p => (await p).fmap(([ss2, ap2]) => promise_1.AtomicPromise.all([
                         as1,
-                        either_1.Right(ss2),
+                        (0, either_1.Right)(ss2),
                         ap2
-                    ]).then(sst => sst.reduce((m1, m2) => m1.bind(s1 => m2.fmap(s2 => array_1.push(s1, s2)))))).extract(either_1.Left)).extract(either_1.Left))
+                    ]).then(sst => sst.reduce((m1, m2) => m1.bind(s1 => m2.fmap(s2 => (0, array_1.push)(s1, s2)))))).extract(either_1.Left)).extract(either_1.Left))
                 ])).extract(either_1.Left));
                 function request(scripts) {
                     return scripts.map(script => io.fetch(script, timeout));
                 }
                 function run(responses) {
-                    return responses.reduce((results, m) => m.bind(() => results), responses.reduce((results, m) => results.bind(cancellation.either).bind(([sp, ap]) => m.fmap(([script, code]) => io.evaluate(script, code, selector.logger, skip, promise_1.AtomicPromise.all(sp), cancellation)).bind(m => m.extract(p => either_1.Right(tuple_1.tuple(array_1.push(sp, [p]), ap)), p => either_1.Right(tuple_1.tuple(sp, array_1.push(ap, [p])))))), either_1.Right([
+                    return responses.reduce((results, m) => m.bind(() => results), responses.reduce((results, m) => results.bind(cancellation.either).bind(([sp, ap]) => m.fmap(([script, code]) => io.evaluate(script, code, selector.logger, skip, promise_1.AtomicPromise.all(sp), cancellation)).bind(m => m.extract(p => (0, either_1.Right)((0, tuple_1.tuple)((0, array_1.push)(sp, [p]), ap)), p => (0, either_1.Right)((0, tuple_1.tuple)(sp, (0, array_1.push)(ap, [p])))))), (0, either_1.Right)([
                         [],
                         []
-                    ]))).fmap(([sp, ap]) => promise_1.AtomicPromise.all(sp).then(m => either_1.Either.sequence(m)).then(sm => sm.fmap(ss => tuple_1.tuple(ss, Promise.all(ap).then(m => either_1.Either.sequence(m))))));
+                    ]))).fmap(([sp, ap]) => promise_1.AtomicPromise.all(sp).then(m => either_1.Either.sequence(m)).then(sm => sm.fmap(ss => (0, tuple_1.tuple)(ss, Promise.all(ap).then(m => either_1.Either.sequence(m))))));
                 }
             }
             exports.script = script;
             async function fetch(script, timeout) {
                 if (!script.hasAttribute('src'))
-                    return either_1.Right([
+                    return (0, either_1.Right)([
                         script,
                         script.text
                     ]);
                 if (script.type.toLowerCase() === 'module')
-                    return either_1.Right([
+                    return (0, either_1.Right)([
                         script,
                         ''
                     ]);
@@ -7157,14 +7843,14 @@ require = function () {
                         headers: new Headers({ Accept: 'application/javascript' }),
                         integrity: script.integrity
                     }),
-                    clock_1.wait(timeout).then(() => promise_1.AtomicPromise.reject(new Error(`${ script.src }: Timeout.`)))
-                ]).then(async res => res.ok ? either_1.Right([
+                    (0, clock_1.wait)(timeout).then(() => promise_1.AtomicPromise.reject(new Error(`${ script.src }: Timeout.`)))
+                ]).then(async res => res.ok ? (0, either_1.Right)([
                     script,
                     await res.text()
-                ]) : script.matches('[src][async]') ? retry(script).then(() => either_1.Right([
+                ]) : script.matches('[src][async]') ? retry(script).then(() => (0, either_1.Right)([
                     script,
                     ''
-                ]), () => either_1.Left(new Error(`${ script.src }: ${ res.statusText }`))) : either_1.Left(new Error(res.statusText)), error => either_1.Left(error));
+                ]), () => (0, either_1.Left)(new Error(`${ script.src }: ${ res.statusText }`))) : (0, either_1.Left)(new Error(res.statusText)), error => (0, either_1.Left)(error));
             }
             exports._fetch = fetch;
             function evaluate(script, code, logger, skip, wait, cancellation) {
@@ -7176,22 +7862,22 @@ require = function () {
                 void unescape();
                 !logging && void script.remove();
                 const result = promise_1.AtomicPromise.resolve(wait).then(evaluate);
-                return script.matches('[src][async]') ? either_1.Right(result) : either_1.Left(result);
+                return script.matches('[src][async]') ? (0, either_1.Right)(result) : (0, either_1.Left)(result);
                 function evaluate() {
                     if (!cancellation.alive)
                         throw new error_1.FatalError('Expired.');
                     if (script.matches('[type="module"][src]')) {
-                        return promise_1.AtomicPromise.resolve(Promise.resolve().then(() => __importStar(_dereq_(script.src)))).catch(reason => reason.message.startsWith('Failed to load ') && script.matches('[src][async]') ? retry(script).catch(() => promise_1.AtomicPromise.reject(reason)) : promise_1.AtomicPromise.reject(reason)).then(() => (void script.dispatchEvent(new Event('load')), either_1.Right(script)), reason => (void script.dispatchEvent(new Event('error')), either_1.Left(new error_1.FatalError(reason instanceof Error ? reason.message : reason + ''))));
+                        return promise_1.AtomicPromise.resolve(Promise.resolve().then(() => __importStar(_dereq_(script.src)))).catch(reason => reason.message.startsWith('Failed to load ') && script.matches('[src][async]') ? retry(script).catch(() => promise_1.AtomicPromise.reject(reason)) : promise_1.AtomicPromise.reject(reason)).then(() => (void script.dispatchEvent(new Event('load')), (0, either_1.Right)(script)), reason => (void script.dispatchEvent(new Event('error')), (0, either_1.Left)(new error_1.FatalError(reason instanceof Error ? reason.message : reason + ''))));
                     } else {
                         try {
-                            if (skip.has(new url_1.URL(url_1.standardize(window.location.href)).href))
+                            if (skip.has(new url_1.URL((0, url_1.standardize)(window.location.href)).href))
                                 throw new error_1.FatalError('Expired.');
                             void (0, eval)(code);
                             script.hasAttribute('src') && void script.dispatchEvent(new Event('load'));
-                            return promise_1.AtomicPromise.resolve(either_1.Right(script));
+                            return promise_1.AtomicPromise.resolve((0, either_1.Right)(script));
                         } catch (reason) {
                             script.hasAttribute('src') && void script.dispatchEvent(new Event('error'));
-                            return promise_1.AtomicPromise.resolve(either_1.Left(new error_1.FatalError(reason instanceof Error ? reason.message : reason + '')));
+                            return promise_1.AtomicPromise.resolve((0, either_1.Left)(new error_1.FatalError(reason instanceof Error ? reason.message : reason + '')));
                         }
                     }
                 }
@@ -7206,26 +7892,26 @@ require = function () {
             }
             exports.escape = escape;
             function retry(script) {
-                if (new url_1.URL(url_1.standardize(script.src)).origin === new url_1.URL(url_1.standardize(window.location.href)).origin)
+                if (new url_1.URL((0, url_1.standardize)(script.src)).origin === new url_1.URL((0, url_1.standardize)(window.location.href)).origin)
                     return promise_1.AtomicPromise.reject(new Error());
-                script = typed_dom_1.html('script', alias_1.ObjectValues(script.attributes).reduce((o, {name, value}) => (o[name] = value, o), {}), [...script.childNodes]);
+                script = (0, typed_dom_1.html)('script', (0, alias_1.ObjectValues)(script.attributes).reduce((o, {name, value}) => (o[name] = value, o), {}), [...script.childNodes]);
                 return new promise_1.AtomicPromise((resolve, reject) => (void script.addEventListener('load', () => void resolve(global_1.undefined)), void script.addEventListener('error', reject), void document.body.appendChild(script), void script.remove()));
             }
         },
         {
-            '../../../../../lib/error': 143,
+            '../../../../../lib/error': 136,
             'spica/alias': 4,
             'spica/array': 5,
             'spica/clock': 10,
             'spica/either': 15,
             'spica/global': 20,
             'spica/promise': 88,
-            'spica/tuple': 95,
-            'spica/url': 97,
-            'typed-dom': 99
+            'spica/tuple': 94,
+            'spica/url': 96,
+            'typed-dom': 98
         }
     ],
-    125: [
+    118: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7268,9 +7954,9 @@ require = function () {
             }
             exports._hash = hash;
         },
-        { '../../../event/router': 112 }
+        { '../../../event/router': 105 }
     ],
-    126: [
+    119: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7295,7 +7981,7 @@ require = function () {
                     dst
                 ]);
                 function bind(srcs, dsts, compare) {
-                    return srcs.reduce((link, src) => dsts.length === 0 ? link.set(null, array_1.push(link.get(null) || [], [src])) : dsts.reduce((m, dst) => m.bind(link => !link.has(dst) && compare(src, dst) ? (void link.set(dst, array_1.push(link.get(null) || [], [src])), void link.delete(null), either_1.Left(link)) : either_1.Right(link)), either_1.Right(link)).fmap(link => link.set(null, array_1.push(link.get(null) || [], [src]))).extract(link => link), new Map());
+                    return srcs.reduce((link, src) => dsts.length === 0 ? link.set(null, (0, array_1.push)(link.get(null) || [], [src])) : dsts.reduce((m, dst) => m.bind(link => !link.has(dst) && compare(src, dst) ? (void link.set(dst, (0, array_1.push)(link.get(null) || [], [src])), void link.delete(null), (0, either_1.Left)(link)) : (0, either_1.Right)(link)), (0, either_1.Right)(link)).fmap(link => link.set(null, (0, array_1.push)(link.get(null) || [], [src]))).extract(link => link), new Map());
                 }
             }
             exports.pair = pair;
@@ -7311,7 +7997,7 @@ require = function () {
             'spica/either': 15
         }
     ],
-    127: [
+    120: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7323,14 +8009,14 @@ require = function () {
         },
         {}
     ],
-    128: [
+    121: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             exports._isReplaceable = exports._isRegisterable = exports.url = void 0;
             const router_1 = _dereq_('../../../event/router');
             const typed_dom_1 = _dereq_('typed-dom');
-            void typed_dom_1.bind(document, 'pjax:ready', () => void window.history.replaceState(window.history.state, window.document.title));
+            void (0, typed_dom_1.bind)(document, 'pjax:ready', () => void window.history.replaceState(window.history.state, window.document.title));
             function url(location, title, type, source, replaceable) {
                 switch (true) {
                 case isReplaceable(type, source, replaceable):
@@ -7370,11 +8056,11 @@ require = function () {
             exports._isReplaceable = isReplaceable;
         },
         {
-            '../../../event/router': 112,
-            'typed-dom': 99
+            '../../../event/router': 105,
+            'typed-dom': 98
         }
     ],
-    129: [
+    122: [
         function (_dereq_, module, exports) {
             'use strict';
             var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
@@ -7399,9 +8085,9 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             __exportStar(_dereq_('../../data/store/state'), exports);
         },
-        { '../../data/store/state': 109 }
+        { '../../data/store/state': 102 }
     ],
-    130: [
+    123: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7411,7 +8097,7 @@ require = function () {
             class ClickView extends coroutine_1.Coroutine {
                 constructor(document, selector, listener) {
                     super(async function* () {
-                        return this.finally(typed_dom_1.delegate(document, selector, 'click', ev => {
+                        return this.finally((0, typed_dom_1.delegate)(document, selector, 'click', ev => {
                             if (!(ev.currentTarget instanceof HTMLAnchorElement || ev.currentTarget instanceof HTMLAreaElement))
                                 return;
                             void listener(ev);
@@ -7423,10 +8109,10 @@ require = function () {
         },
         {
             'spica/coroutine': 13,
-            'typed-dom': 99
+            'typed-dom': 98
         }
     ],
-    131: [
+    124: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7439,10 +8125,10 @@ require = function () {
             class NavigationView extends coroutine_1.Coroutine {
                 constructor(window, listener) {
                     super(async function* () {
-                        return this.finally(typed_dom_1.bind(window, 'popstate', ev => {
-                            if (!state_1.isTransitable(page_1.page.state) || !state_1.isTransitable(window.history.state))
+                        return this.finally((0, typed_dom_1.bind)(window, 'popstate', ev => {
+                            if (!(0, state_1.isTransitable)(page_1.page.state) || !(0, state_1.isTransitable)(window.history.state))
                                 return;
-                            if (url_1.standardize(window.location.href) === page_1.page.href)
+                            if ((0, url_1.standardize)(window.location.href) === page_1.page.href)
                                 return;
                             void listener(ev);
                         }));
@@ -7452,14 +8138,14 @@ require = function () {
             exports.NavigationView = NavigationView;
         },
         {
-            '../../../data/store/state': 109,
-            '../../service/state/page': 138,
+            '../../../data/store/state': 102,
+            '../../service/state/page': 131,
             'spica/coroutine': 13,
-            'spica/url': 97,
-            'typed-dom': 99
+            'spica/url': 96,
+            'typed-dom': 98
         }
     ],
-    132: [
+    125: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7472,8 +8158,8 @@ require = function () {
             class ScrollView extends coroutine_1.Coroutine {
                 constructor(window, listener) {
                     super(async function* () {
-                        return this.finally(typed_dom_1.bind(window, 'scroll', throttle_1.debounce(100, ev => {
-                            if (url_1.standardize(window.location.href) !== page_1.page.href)
+                        return this.finally((0, typed_dom_1.bind)(window, 'scroll', (0, throttle_1.debounce)(100, ev => {
+                            if ((0, url_1.standardize)(window.location.href) !== page_1.page.href)
                                 return;
                             void listener(ev);
                         }), { passive: true }));
@@ -7483,14 +8169,14 @@ require = function () {
             exports.ScrollView = ScrollView;
         },
         {
-            '../../service/state/page': 138,
+            '../../service/state/page': 131,
             'spica/coroutine': 13,
-            'spica/throttle': 94,
-            'spica/url': 97,
-            'typed-dom': 99
+            'spica/throttle': 93,
+            'spica/url': 96,
+            'typed-dom': 98
         }
     ],
-    133: [
+    126: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7500,7 +8186,7 @@ require = function () {
             class SubmitView extends coroutine_1.Coroutine {
                 constructor(document, selector, listener) {
                     super(async function* () {
-                        return this.finally(typed_dom_1.delegate(document, selector, 'submit', ev => {
+                        return this.finally((0, typed_dom_1.delegate)(document, selector, 'submit', ev => {
                             if (!(ev.currentTarget instanceof HTMLFormElement))
                                 return;
                             void listener(ev);
@@ -7512,10 +8198,10 @@ require = function () {
         },
         {
             'spica/coroutine': 13,
-            'typed-dom': 99
+            'typed-dom': 98
         }
     ],
-    134: [
+    127: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7540,20 +8226,20 @@ require = function () {
                     router: router_1.route
                 }) {
                     let result;
-                    void click(url, event => result = io.router(new router_1.Config(assign_1.assign({}, option, { replace: '*' })), new router_1.RouterEvent(event), process_1.process, io));
+                    void click(url, event => result = io.router(new router_1.Config((0, assign_1.assign)({}, option, { replace: '*' })), new router_1.RouterEvent(event), process_1.process, io));
                     return result;
                 }
                 static sync(isPjaxPage) {
-                    isPjaxPage && void state_1.savePjax();
+                    isPjaxPage && void (0, state_1.savePjax)();
                     void process_1.process.cast('', new Error(`Canceled.`));
-                    void router_1.sync();
+                    void (0, router_1.sync)();
                 }
                 static pushURL(url, title, state = null) {
                     void window.history.pushState(state, title, url);
                     void this.sync();
                 }
                 static replaceURL(url, title, state = window.history.state) {
-                    const isPjaxPage = state_1.isTransitable(window.history.state);
+                    const isPjaxPage = (0, state_1.isTransitable)(window.history.state);
                     void window.history.replaceState(state, title, url);
                     void this.sync(isPjaxPage);
                 }
@@ -7562,22 +8248,22 @@ require = function () {
             function click(url, callback) {
                 const el = document.createElement('a');
                 el.href = url;
-                void html_1.parse('').extract().body.appendChild(el);
-                void typed_dom_1.once(el, 'click', callback);
-                void typed_dom_1.once(el, 'click', ev => void ev.preventDefault());
+                void (0, html_1.parse)('').extract().body.appendChild(el);
+                void (0, typed_dom_1.once)(el, 'click', callback);
+                void (0, typed_dom_1.once)(el, 'click', ev => void ev.preventDefault());
                 void el.click();
             }
         },
         {
-            '../../../lib/html': 144,
-            '../../data/store/state': 109,
-            './router': 136,
-            './state/process': 139,
+            '../../../lib/html': 137,
+            '../../data/store/state': 102,
+            './router': 129,
+            './state/process': 132,
             'spica/assign': 6,
-            'typed-dom': 99
+            'typed-dom': 98
         }
     ],
-    135: [
+    128: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7629,20 +8315,20 @@ require = function () {
             }
         },
         {
-            '../../application/store': 108,
-            '../module/view/click': 130,
-            '../module/view/navigation': 131,
-            '../module/view/scroll': 132,
-            '../module/view/submit': 133,
-            './api': 134,
-            './router': 136,
-            './state/process': 139,
-            './state/scroll-restoration': 141,
+            '../../application/store': 101,
+            '../module/view/click': 123,
+            '../module/view/navigation': 124,
+            '../module/view/scroll': 125,
+            '../module/view/submit': 126,
+            './api': 127,
+            './router': 129,
+            './state/process': 132,
+            './state/scroll-restoration': 134,
             'spica/copropagator': 12,
-            'spica/supervisor': 93
+            'spica/supervisor': 92
         }
     ],
-    136: [
+    129: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7675,18 +8361,18 @@ require = function () {
             const maybe_1 = _dereq_('spica/maybe');
             const promise_1 = _dereq_('spica/promise');
             const typed_dom_1 = _dereq_('typed-dom');
-            void typed_dom_1.bind(window, 'pjax:unload', () => window.history.scrollRestoration = 'auto', true);
+            void (0, typed_dom_1.bind)(window, 'pjax:unload', () => window.history.scrollRestoration = 'auto', true);
             function route(config, event, process, io) {
                 switch (event.type) {
                 case router_1.RouterEventType.Click:
                 case router_1.RouterEventType.Submit:
-                    void store_1.savePosition();
+                    void (0, store_1.savePosition)();
                     break;
                 case router_1.RouterEventType.Popstate:
-                    io.document.title = store_1.loadTitle();
+                    io.document.title = (0, store_1.loadTitle)();
                     break;
                 }
-                return maybe_1.Just(0).guard(validate(event.request.url, config, event)).bind(() => router_1.scope(config, (({orig, dest}) => ({
+                return (0, maybe_1.Just)(0).guard(validate(event.request.url, config, event)).bind(() => (0, router_1.scope)(config, (({orig, dest}) => ({
                     orig: orig.pathname,
                     dest: dest.pathname
                 }))(event.location))).fmap(async config => {
@@ -7700,10 +8386,10 @@ require = function () {
                     });
                     const [scripts] = await env_1.env;
                     window.history.scrollRestoration = 'manual';
-                    return router_1.route(config, event, {
+                    return (0, router_1.route)(config, event, {
                         process: cancellation,
                         scripts
-                    }, io).then(m => m.fmap(async ([ss, p]) => (void kill(), void page_1.page.sync(), void ss.filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_1.URL(url_1.standardize(s.src)).href)), void (await p).filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_1.URL(url_1.standardize(s.src)).href)))).extract()).catch(reason => (void kill(), void page_1.page.sync(), window.history.scrollRestoration = 'auto', cancellation.alive || reason instanceof error_1.FatalError ? void config.fallback(event.source, reason) : void 0));
+                    }, io).then(m => m.fmap(async ([ss, p]) => (void kill(), void page_1.page.sync(), void ss.filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_1.URL((0, url_1.standardize)(s.src)).href)), void (await p).filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_1.URL((0, url_1.standardize)(s.src)).href)))).extract()).catch(reason => (void kill(), void page_1.page.sync(), window.history.scrollRestoration = 'auto', cancellation.alive || reason instanceof error_1.FatalError ? void config.fallback(event.source, reason) : void 0));
                 }).extract(() => {
                     switch (event.type) {
                     case router_1.RouterEventType.Click:
@@ -7766,19 +8452,19 @@ require = function () {
             }
         },
         {
-            '../../../lib/error': 143,
-            '../../application/router': 107,
-            '../../application/store': 108,
-            '../service/state/env': 137,
-            './state/page': 138,
+            '../../../lib/error': 136,
+            '../../application/router': 100,
+            '../../application/store': 101,
+            '../service/state/env': 130,
+            './state/page': 131,
             'spica/cancellation': 8,
             'spica/maybe': 28,
             'spica/promise': 88,
-            'spica/url': 97,
-            'typed-dom': 99
+            'spica/url': 96,
+            'typed-dom': 98
         }
     ],
-    137: [
+    130: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7789,9 +8475,9 @@ require = function () {
                 new Promise(r => void setTimeout(r))
             ]);
         },
-        { './script': 140 }
+        { './script': 133 }
     ],
-    138: [
+    131: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7800,11 +8486,11 @@ require = function () {
             const state_1 = _dereq_('../../../data/store/state');
             const url_1 = _dereq_('spica/url');
             const typed_dom_1 = _dereq_('typed-dom');
-            void typed_dom_1.bind(global_1.window, 'hashchange', () => void exports.page.sync());
-            void typed_dom_1.bind(global_1.window, 'popstate', () => state_1.isTransitable(exports.page.state) && state_1.isTransitable(global_1.window.history.state) || void exports.page.sync());
+            void (0, typed_dom_1.bind)(global_1.window, 'hashchange', () => void exports.page.sync());
+            void (0, typed_dom_1.bind)(global_1.window, 'popstate', () => (0, state_1.isTransitable)(exports.page.state) && (0, state_1.isTransitable)(global_1.window.history.state) || void exports.page.sync());
             exports.page = new class {
                 constructor() {
-                    this.url = url_1.standardize(global_1.window.location.href);
+                    this.url = (0, url_1.standardize)(global_1.window.location.href);
                     this.state_ = global_1.window.history.state;
                 }
                 get href() {
@@ -7814,19 +8500,19 @@ require = function () {
                     return this.state_;
                 }
                 sync() {
-                    this.url = url_1.standardize(global_1.window.location.href);
+                    this.url = (0, url_1.standardize)(global_1.window.location.href);
                     this.state_ = global_1.window.history.state;
                 }
             }();
         },
         {
-            '../../../data/store/state': 109,
+            '../../../data/store/state': 102,
             'spica/global': 20,
-            'spica/url': 97,
-            'typed-dom': 99
+            'spica/url': 96,
+            'typed-dom': 98
         }
     ],
-    139: [
+    132: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7835,9 +8521,9 @@ require = function () {
             exports.process = new class extends supervisor_1.Supervisor {
             }();
         },
-        { 'spica/supervisor': 93 }
+        { 'spica/supervisor': 92 }
     ],
-    140: [
+    133: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7845,23 +8531,23 @@ require = function () {
             const url_1 = _dereq_('spica/url');
             const typed_dom_1 = _dereq_('typed-dom');
             exports.scripts = new Set();
-            void typed_dom_1.bind(window, 'pjax:unload', () => void document.querySelectorAll('script[src]').forEach(script => void exports.scripts.add(new url_1.URL(url_1.standardize(script.src)).href)));
+            void (0, typed_dom_1.bind)(window, 'pjax:unload', () => void document.querySelectorAll('script[src]').forEach(script => void exports.scripts.add(new url_1.URL((0, url_1.standardize)(script.src)).href)));
         },
         {
-            'spica/url': 97,
-            'typed-dom': 99
+            'spica/url': 96,
+            'typed-dom': 98
         }
     ],
-    141: [
+    134: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const typed_dom_1 = _dereq_('typed-dom');
-            void typed_dom_1.bind(window, 'unload', () => window.history.scrollRestoration = 'auto', false);
+            void (0, typed_dom_1.bind)(window, 'unload', () => window.history.scrollRestoration = 'auto', false);
         },
-        { 'typed-dom': 99 }
+        { 'typed-dom': 98 }
     ],
-    142: [
+    135: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7905,7 +8591,7 @@ require = function () {
         },
         {}
     ],
-    143: [
+    136: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7921,7 +8607,7 @@ require = function () {
         },
         {}
     ],
-    144: [
+    137: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7931,7 +8617,7 @@ require = function () {
             exports.parse = [
                 parseByDOM,
                 parseByDoc
-            ].reduce((m, f) => m.bind(() => test(f) ? either_1.Left(f) : m), either_1.Right(() => maybe_1.Nothing)).extract(f => html => maybe_1.Just(f(html)));
+            ].reduce((m, f) => m.bind(() => test(f) ? (0, either_1.Left)(f) : m), (0, either_1.Right)(() => maybe_1.Nothing)).extract(f => html => (0, maybe_1.Just)(f(html)));
             function parseByDOM(html) {
                 const document = new DOMParser().parseFromString(html, 'text/html');
                 void fix(document);
@@ -8001,7 +8687,7 @@ require = function () {
             'spica/maybe': 28
         }
     ],
-    145: [
+    138: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -8014,8 +8700,8 @@ require = function () {
             const memoize_1 = _dereq_('spica/memoize');
             function router(config) {
                 return url => {
-                    const {path, pathname} = new url_1.URL(url_1.standardize(url, window.location.href));
-                    return sequence_1.Sequence.from(alias_1.ObjectKeys(config).filter(p => p[0] === '/').sort().reverse()).filter(curry_1.curry(flip_1.flip(compare))(pathname)).map(pattern => config[pattern]).take(1).extract().pop().call(config, path);
+                    const {path, pathname} = new url_1.URL((0, url_1.standardize)(url, window.location.href));
+                    return sequence_1.Sequence.from((0, alias_1.ObjectKeys)(config).filter(p => p[0] === '/').sort().reverse()).filter((0, curry_1.curry)((0, flip_1.flip)(compare))(pathname)).map(pattern => config[pattern]).take(1).extract().pop().call(config, path);
                 };
             }
             exports.router = router;
@@ -8028,13 +8714,13 @@ require = function () {
                 ]).filter(([ps, ss]) => ps.length <= ss.length && sequence_1.Sequence.zip(sequence_1.Sequence.from(ps), sequence_1.Sequence.from(ss)).dropWhile(([a, b]) => match(a, b)).take(1).extract().length === 0).take(1).extract().length > 0;
             }
             exports.compare = compare;
-            const expand = memoize_1.memoize(pattern => {
+            const expand = (0, memoize_1.memoize)(pattern => {
                 if (pattern.match(/\*\*|[\[\]]/))
                     throw new Error(`Invalid pattern: ${ pattern }`);
                 return pattern === '' ? [pattern] : sequence_1.Sequence.from(pattern.match(/{[^{}]*}|.[^{]*/g)).map(p => p.match(/^{[^{}]*}$/) ? p.slice(1, -1).split(',') : [p]).mapM(sequence_1.Sequence.from).map(ps => ps.join('')).bind(p => p === pattern ? sequence_1.Sequence.from([p]) : sequence_1.Sequence.from(expand(p))).unique().extract();
             });
             exports._expand = expand;
-            const match = memoize_1.memoize((pattern, segment) => {
+            const match = (0, memoize_1.memoize)((pattern, segment) => {
                 if (segment[0] === '.' && [...'?*'].includes(pattern[0]))
                     return false;
                 return match(optimize(pattern), segment);
@@ -8064,8 +8750,8 @@ require = function () {
             'spica/curry': 14,
             'spica/flip': 17,
             'spica/memoize': 29,
-            'spica/sequence': 90,
-            'spica/url': 97
+            'spica/sequence': 89,
+            'spica/url': 96
         }
     ],
     'pjax-api': [
@@ -8104,7 +8790,7 @@ require = function () {
             });
             __exportStar(_dereq_('./src/export'), exports);
         },
-        { './src/export': 106 }
+        { './src/export': 99 }
     ]
 }, {}, [
     1,
