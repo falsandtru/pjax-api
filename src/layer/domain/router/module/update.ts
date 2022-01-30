@@ -68,7 +68,7 @@ export function update(
     .then(m => m
       .fmap(([seqB, areas]) =>
         HList()
-          .unfold(() => (
+          .add((
             void blur(documents.dst),
             void savePjax(),
             void url(

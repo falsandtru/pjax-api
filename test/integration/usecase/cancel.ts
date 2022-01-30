@@ -1,7 +1,7 @@
 import { Pjax } from '../../../index';
 import { route as router } from '../../../src/layer/interface/service/router';
 import { parse } from '../../../src/lib/html';
-import { wait as delay } from 'spica/clock';
+import { wait as delay } from 'spica/timer';
 import { once, wait } from 'typed-dom';
 
 describe('Integration: Usecase', function () {

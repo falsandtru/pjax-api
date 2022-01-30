@@ -4,7 +4,7 @@ import { FetchResponse } from '../model/eav/value/fetch';
 import { xhr } from '../module/fetch/xhr';
 import { Cancellee } from 'spica/cancellation';
 import { Either } from 'spica/either';
-import { wait as sleep } from 'spica/clock';
+import { wait as sleep } from 'spica/timer';
 
 export async function fetch(
   {

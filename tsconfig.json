@@ -1,6 +1,12 @@
 {
   "compilerOptions": {
     "target": "ES2018",
+    "lib": [
+      "ES2018",
+      "ES2021.Promise",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "module": "commonjs",
     "moduleResolution": "node",
     "esModuleInterop": true,
