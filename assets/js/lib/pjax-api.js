@@ -345,7 +345,6 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.Cache = void 0;
             const global_1 = _dereq_('./global');
-            const alias_1 = _dereq_('./alias');
             const clock_1 = _dereq_('./clock');
             const invlist_1 = _dereq_('./invlist');
             const assign_1 = _dereq_('./assign');
@@ -398,7 +397,6 @@ require = function () {
                     this.capacity = settings.capacity;
                     if (this.capacity >= 1 === false)
                         throw new Error(`Spica: Cache: Capacity must be 1 or more.`);
-                    this.frequency = (0, alias_1.max)(this.capacity / 100 | 0, 1);
                     this.space = settings.space;
                     this.life = this.capacity * settings.life;
                     this.limit = settings.limit;
@@ -409,7 +407,7 @@ require = function () {
                 get size() {
                     return this.SIZE;
                 }
-                dispose(node, record, callback) {
+                evict(node, record, callback) {
                     var _a, _b, _c;
                     const index = node.value;
                     callback && (callback = !!this.settings.disposer);
@@ -435,24 +433,22 @@ require = function () {
                         const lastIndex = lastNode === null || lastNode === void 0 ? void 0 : lastNode.value;
                         let target;
                         switch (true) {
-                        case LRU.length === 0:
-                            target = LFU.last;
-                            target = target !== skip ? target : target.prev;
-                            break;
                         case lastIndex && lastIndex.clock < this.clock - this.life:
                         case lastIndex && lastIndex.expiry !== global_1.Infinity && lastIndex.expiry < (0, clock_1.now)():
-                            target = lastNode;
+                            target = lastNode.list === OVF ? lastNode.value.parent : lastNode;
+                            break;
+                        case LRU.length === 0:
+                            target = LFU.last !== skip ? LFU.last : LFU.last.prev;
                             break;
                         case LFU.length > this.capacity * this.ratio / 100:
-                            target = LFU.last;
-                            LRU.unshiftNode(target);
-                            target.value.overflow = OVF.unshift(target.value);
+                            LRU.unshiftNode(LFU.last);
+                            LRU.head.value.parent = LRU.head;
+                            LRU.head.value.overflow = OVF.unshift(LRU.head.value);
                         default:
-                            target = LRU.last;
-                            target = target !== skip ? target : target.prev !== skip ? target.prev : LFU.last;
+                            target = LRU.last !== skip ? LRU.last : LRU.last.prev !== skip ? LRU.last.prev : LFU.last;
                         }
-                        this.dispose(target, void 0, true);
-                        skip = (skip === null || skip === void 0 ? void 0 : skip.list) ? skip : void 0;
+                        this.evict(target, void 0, true);
+                        skip = (skip === null || skip === void 0 ? void 0 : skip.list) && skip;
                         size = (_c = skip === null || skip === void 0 ? void 0 : skip.value.size) !== null && _c !== void 0 ? _c : 0;
                     }
                 }
@@ -473,7 +469,7 @@ require = function () {
                         const val = record.value;
                         const index = node.value;
                         this.ensure(size, node);
-                        index.clock = ++this.clockR;
+                        index.clock = index.region === 'LRU' ? ++this.clockR : ++this.clock;
                         index.expiry = expiry;
                         this.SIZE += size - index.size;
                         index.size = size;
@@ -490,7 +486,7 @@ require = function () {
                             size,
                             clock: ++this.clockR,
                             expiry,
-                            stat: this.stats.LRU
+                            region: 'LRU'
                         }),
                         value
                     });
@@ -507,7 +503,7 @@ require = function () {
                     const node = record.index;
                     const expiry = node.value.expiry;
                     if (expiry !== global_1.Infinity && expiry < (0, clock_1.now)()) {
-                        this.dispose(node, record, true);
+                        this.evict(node, record, true);
                         return;
                     }
                     if (this.capacity >= 10 && node === node.list.head)
@@ -522,7 +518,7 @@ require = function () {
                         return false;
                     const expiry = record.index.value.expiry;
                     if (expiry !== global_1.Infinity && expiry < (0, clock_1.now)()) {
-                        this.dispose(record.index, record, true);
+                        this.evict(record.index, record, true);
                         return false;
                     }
                     return true;
@@ -531,7 +527,7 @@ require = function () {
                     const record = this.memory.get(key);
                     if (!record)
                         return false;
-                    this.dispose(record.index, record, this.settings.capture.delete === true);
+                    this.evict(record.index, record, this.settings.capture.delete === true);
                     return true;
                 }
                 clear() {
@@ -560,22 +556,23 @@ require = function () {
                 }
                 slide() {
                     const {LRU, LFU} = this.stats;
-                    const {capacity, frequency, ratio, limit, indexes} = this;
+                    const {capacity, ratio, limit, indexes} = this;
                     const window = capacity;
                     LRU[0] + LFU[0] === window && this.stats.slide();
-                    if ((LRU[0] + LFU[0]) % frequency || LRU[1] + LFU[1] === 0)
+                    if ((LRU[0] + LFU[0]) * 100 % capacity || LRU[1] + LFU[1] === 0)
                         return;
                     const lenR = indexes.LRU.length;
                     const lenF = indexes.LFU.length;
                     const lenV = indexes.OVF.length;
                     const r = (lenF + lenV) * 1000 / (lenR + lenF) | 0;
-                    const rateR = rate(window, LRU[0], LRU[0] + LFU[0], LRU[1], LRU[1] + LFU[1]) * (1 + r);
-                    const rateF = rate(window, LFU[0], LRU[0] + LFU[0], LFU[1], LRU[1] + LFU[1]) * (1001 - r);
-                    if (ratio > 0 && rateR > rateF || ratio > 0 && rateF < rate(window, LFU[1], LRU[1] + LFU[1], LFU[0], LRU[0] + LFU[0]) * (1001 - r) * 0.95) {
+                    const rateR0 = rate(window, LRU[0], LRU[0] + LFU[0], LRU[1], LRU[1] + LFU[1], 0) * (1 + r);
+                    const rateF0 = rate(window, LFU[0], LRU[0] + LFU[0], LFU[1], LRU[1] + LFU[1], 0) * (1001 - r);
+                    const rateF1 = rate(window, LFU[1], LRU[1] + LFU[1], LFU[0], LRU[0] + LFU[0], 5) * (1001 - r);
+                    if (ratio > 0 && (rateR0 > rateF0 || rateF0 < rateF1 * 0.95)) {
                         if (lenR >= capacity * (100 - ratio) / 100) {
                             --this.ratio;
                         }
-                    } else if (ratio < limit && rateF > rateR) {
+                    } else if (ratio < limit && rateF0 > rateR0) {
                         if (lenF >= capacity * ratio / 100) {
                             ++this.ratio;
                         }
@@ -588,14 +585,14 @@ require = function () {
                     var _a;
                     const index = node.value;
                     const {LRU, LFU} = this.indexes;
-                    ++index.stat[0];
+                    ++this.stats[index.region][0];
                     if (!index.overflow && index.clock >= this.clockR - LRU.length / 3 && this.capacity > 3) {
                         index.clock = ++this.clockR;
                         node.moveToHead();
                         return true;
                     }
                     index.clock = ++this.clock;
-                    index.stat = this.stats.LFU;
+                    index.region = 'LFU';
                     (_a = index.overflow) === null || _a === void 0 ? void 0 : _a.delete();
                     LFU.unshiftNode(node);
                     return true;
@@ -605,24 +602,24 @@ require = function () {
                     const {LFU} = this.indexes;
                     if (node.list !== LFU)
                         return false;
-                    ++index.stat[0];
+                    ++this.stats[index.region][0];
                     index.clock = ++this.clock;
                     node.moveToHead();
                     return true;
                 }
             }
             exports.Cache = Cache;
-            function rate(window, currHits, currTotal, prevHits, prevTotal) {
-                window = (0, alias_1.min)(currTotal + prevTotal, window);
-                const currRate = currHits * 100 / currTotal | 0;
-                const currRatio = (0, alias_1.min)(currTotal * 100 / window | 0, 100);
+            function rate(window, currHits, currTotal, prevHits, prevTotal, offset) {
                 const prevRate = prevHits * 100 / prevTotal | 0;
+                const currRatio = currTotal * 100 / window - offset | 0;
+                if (currRatio <= 0)
+                    return prevRate * 100;
+                const currRate = currHits * 100 / currTotal | 0;
                 const prevRatio = 100 - currRatio;
                 return currRate * currRatio + prevRate * prevRatio;
             }
         },
         {
-            './alias': 4,
             './assign': 6,
             './clock': 10,
             './global': 20,
@@ -1800,19 +1797,24 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.List = void 0;
             const global_1 = _dereq_('../global');
+            const alias_1 = _dereq_('../alias');
             const stack_1 = _dereq_('../stack');
             const compare_1 = _dereq_('../compare');
             const undefined = void 0;
+            const BORDER = 1000000000;
             class List {
-                constructor(index, capacity = 0) {
-                    this.index = index;
-                    this.capacity = capacity;
-                    this.nodes = {};
-                    this.buffers = new stack_1.Stack();
+                constructor(capacity = global_1.Infinity, index) {
+                    this.heap = new stack_1.Stack();
                     this.HEAD = 0;
                     this.CURSOR = 0;
                     this.LENGTH = 0;
-                    this.capacity || (this.capacity = global_1.Number.MAX_SAFE_INTEGER);
+                    if (typeof capacity === 'object') {
+                        index = capacity;
+                        capacity = global_1.Infinity;
+                    }
+                    this.capacity = capacity;
+                    this.index = index;
+                    this.nodes = this.capacity <= BORDER ? (0, global_1.Array)((0, alias_1.min)(this.capacity, BORDER)) : {};
                 }
                 get length() {
                     return this.LENGTH;
@@ -1829,7 +1831,7 @@ require = function () {
                     return head && this.nodes[head.prev];
                 }
                 node(index) {
-                    return this.nodes[index];
+                    return 0 <= index && index < this.capacity ? this.nodes[index] : undefined;
                 }
                 rotateToNext() {
                     var _a, _b;
@@ -1841,8 +1843,8 @@ require = function () {
                 }
                 clear() {
                     var _a;
-                    this.nodes = {};
-                    this.buffers.clear();
+                    this.nodes = this.capacity <= BORDER ? (0, global_1.Array)((0, alias_1.min)(this.capacity, BORDER)) : {};
+                    this.heap.clear();
                     (_a = this.index) === null || _a === void 0 ? void 0 : _a.clear();
                     this.HEAD = 0;
                     this.CURSOR = 0;
@@ -1850,10 +1852,13 @@ require = function () {
                 }
                 add(key, value) {
                     var _a, _b;
+                    if (this.LENGTH === BORDER && 'length' in this.nodes) {
+                        this.nodes = { ...this.nodes };
+                    }
                     const nodes = this.nodes;
                     const head = nodes[this.HEAD];
                     if (!head) {
-                        const index = this.HEAD = this.CURSOR = this.buffers.length > 0 ? this.buffers.pop() : this.length;
+                        const index = this.HEAD = this.CURSOR = this.heap.length > 0 ? this.heap.pop() : this.length;
                         ++this.LENGTH;
                         (_a = this.index) === null || _a === void 0 ? void 0 : _a.set(key, index);
                         nodes[index] = {
@@ -1866,7 +1871,7 @@ require = function () {
                         return index;
                     }
                     if (this.length !== this.capacity) {
-                        const index = this.HEAD = this.CURSOR = this.buffers.length > 0 ? this.buffers.pop() : this.length;
+                        const index = this.HEAD = this.CURSOR = this.heap.length > 0 ? this.heap.pop() : this.length;
                         ++this.LENGTH;
                         (_b = this.index) === null || _b === void 0 ? void 0 : _b.set(key, index);
                         nodes[index] = {
@@ -1891,50 +1896,39 @@ require = function () {
                     }
                 }
                 put(key, value, index) {
-                    const node = this.search(key, index);
+                    const node = this.find(key, index);
                     if (!node)
                         return this.add(key, value);
                     node.value = value;
                     return node.index;
                 }
-                set(key, value, index) {
-                    this.put(key, value, index);
-                    return this;
-                }
-                search(key, cursor = this.CURSOR) {
+                find(key, index = this.CURSOR) {
                     var _a;
-                    const nodes = this.nodes;
                     let node;
-                    node = nodes[cursor];
+                    node = this.node(index);
                     if (node && (0, compare_1.equal)(node.key, key))
-                        return this.CURSOR = cursor, node;
+                        return this.CURSOR = index, node;
                     if (!this.index)
-                        throw new Error(`Spica: IxList: Invalid index.`);
+                        throw new Error(`Spica: IxList: Need the index but not given.`);
                     if (node ? this.length === 1 : this.length === 0)
                         return;
-                    node = nodes[cursor = (_a = this.index.get(key)) !== null && _a !== void 0 ? _a : this.capacity];
+                    node = this.node(index = (_a = this.index.get(key)) !== null && _a !== void 0 ? _a : -1);
                     if (node)
-                        return this.CURSOR = cursor, node;
+                        return this.CURSOR = index, node;
                 }
-                find(key, index) {
-                    return this.search(key, index);
+                get(index) {
+                    return this.node(index);
                 }
-                get(key, index) {
+                has(index) {
+                    return this.node(index) !== undefined;
+                }
+                del(index) {
                     var _a;
-                    return (_a = this.search(key, index)) === null || _a === void 0 ? void 0 : _a.value;
-                }
-                has(key, index) {
-                    return this.search(key, index) !== undefined;
-                }
-                del(key, index) {
-                    var _a;
-                    const cursor = this.CURSOR;
-                    const node = this.search(key, index);
+                    const node = this.node(index);
                     if (!node)
                         return;
-                    this.CURSOR = cursor;
                     --this.LENGTH;
-                    this.buffers.push(node.index);
+                    this.heap.push(node.index);
                     (_a = this.index) === null || _a === void 0 ? void 0 : _a.delete(node.key, node.index);
                     const nodes = this.nodes;
                     nodes[node.prev].next = node.next;
@@ -1949,7 +1943,8 @@ require = function () {
                     return node;
                 }
                 delete(key, index) {
-                    return this.del(key, index) !== undefined;
+                    var _a, _b;
+                    return this.del((_b = (_a = this.find(key, index)) === null || _a === void 0 ? void 0 : _a.index) !== null && _b !== void 0 ? _b : -1);
                 }
                 insert(key, value, before) {
                     const head = this.HEAD;
@@ -1979,7 +1974,7 @@ require = function () {
                 }
                 shift() {
                     const node = this.head;
-                    return node && this.del(node.key, node.index);
+                    return node && this.del(node.index);
                 }
                 push(key, value) {
                     return this.insert(key, value, this.HEAD);
@@ -2000,10 +1995,10 @@ require = function () {
                 }
                 pop() {
                     const node = this.last;
-                    return node && this.del(node.key, node.index);
+                    return node && this.del(node.index);
                 }
                 replace(index, key, value) {
-                    const node = this.nodes[index];
+                    const node = this.node(index);
                     if (!node)
                         return;
                     if (this.index && !(0, compare_1.equal)(node.key, key)) {
@@ -2024,15 +2019,15 @@ require = function () {
                 move(index, before) {
                     if (index === before)
                         return false;
-                    const nodes = this.nodes;
-                    const a1 = nodes[index];
+                    const a1 = this.node(index);
                     if (!a1)
                         return false;
-                    const b1 = nodes[before];
+                    const b1 = this.node(before);
                     if (!b1)
                         return false;
                     if (a1.next === b1.index)
                         return false;
+                    const nodes = this.nodes;
                     const b0 = nodes[b1.prev];
                     const a0 = nodes[a1.prev];
                     const a2 = nodes[a1.next];
@@ -2050,17 +2045,18 @@ require = function () {
                 }
                 moveToLast(index) {
                     this.move(index, this.HEAD);
+                    this.HEAD = index === this.HEAD ? this.head.next : this.HEAD;
                 }
                 swap(index1, index2) {
                     if (index1 === index2)
                         return false;
-                    const nodes = this.nodes;
-                    const node1 = nodes[index1];
+                    const node1 = this.node(index1);
                     if (!node1)
                         return false;
-                    const node2 = nodes[index2];
+                    const node2 = this.node(index2);
                     if (!node2)
                         return false;
+                    const nodes = this.nodes;
                     const node3 = nodes[node2.next];
                     this.move(node2.index, node1.index);
                     this.move(node1.index, node3.index);
@@ -2090,6 +2086,7 @@ require = function () {
             exports.List = List;
         },
         {
+            '../alias': 4,
             '../compare': 11,
             '../global': 20,
             '../stack': 91
@@ -4003,7 +4000,7 @@ require = function () {
                         const cnt = this.refsBelow_(node.value, type, acc)[1];
                         count += cnt;
                         if (cnt === 0 && this.settings.cleanup) {
-                            node = children.node(children.del(node.key, node.index).next);
+                            node = children.node(children.del(node.index).next);
                             if (!node)
                                 break;
                             --i;
@@ -4015,11 +4012,12 @@ require = function () {
                     ];
                 }
                 seekNode(namespace, mode) {
+                    var _a;
                     let node = this.node;
                     for (let i = 0; i < namespace.length; ++i) {
                         const name = namespace[i];
                         const {children} = node;
-                        let child = children.get(name);
+                        let child = (_a = children.find(name)) === null || _a === void 0 ? void 0 : _a.value;
                         if (!child) {
                             switch (mode) {
                             case 1:
@@ -4040,7 +4038,7 @@ require = function () {
                 for (let node = children.last, i = 0; node && i < children.length; (node = children.node(node.prev)) && ++i) {
                     if (!clear(node.value))
                         continue;
-                    node = children.node(children.del(node.key, node.index).next);
+                    node = children.node(children.del(node.index).next);
                     if (!node)
                         break;
                     --i;
@@ -5234,7 +5232,7 @@ require = function () {
             const cache_1 = _dereq_('../cache');
             function standardize(url, base) {
                 const u = new ReadonlyURL(url, base);
-                url = u.origin !== 'null' ? u.origin.toLowerCase() + u.href.slice(u.origin.length) : u.protocol.toLowerCase() + u.href.slice(u.protocol.length);
+                url = u.origin === 'null' ? u.protocol.toLowerCase() + u.href.slice(u.protocol.length) : u.origin.toLowerCase() + u.href.slice(u.origin.length);
                 return encode(url);
             }
             exports.standardize = standardize;
@@ -5245,16 +5243,26 @@ require = function () {
             const internal = Symbol.for('spica/url::internal');
             class ReadonlyURL {
                 constructor(source, base) {
-                    var _a, _b;
                     this.source = source;
                     this.base = base;
-                    const i = (_a = base === null || base === void 0 ? void 0 : base.indexOf('#')) !== null && _a !== void 0 ? _a : -1;
-                    if (i > -1) {
-                        base = base === null || base === void 0 ? void 0 : base.slice(0, i);
-                    }
-                    const j = (_b = base === null || base === void 0 ? void 0 : base.indexOf('?')) !== null && _b !== void 0 ? _b : -1;
-                    if (i > -1 && source.indexOf('#') === -1) {
-                        base = base === null || base === void 0 ? void 0 : base.slice(0, j);
+                    switch (source.slice(0, source.lastIndexOf('://', 9) + 1).toLowerCase()) {
+                    case 'http:':
+                    case 'https:':
+                        base = void 0;
+                        break;
+                    default:
+                        switch (base === null || base === void 0 ? void 0 : base.slice(0, base.lastIndexOf('://', 9) + 1).toLowerCase()) {
+                        case 'http:':
+                        case 'https:':
+                            const i = base.indexOf('#');
+                            if (i > -1) {
+                                base = base.slice(0, i);
+                            }
+                            const j = base.indexOf('?');
+                            if (i > -1 && source.indexOf('#') === -1) {
+                                base = base.slice(0, j);
+                            }
+                        }
                     }
                     this[internal] = {
                         share: ReadonlyURL.get(source, base),
