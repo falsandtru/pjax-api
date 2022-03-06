@@ -1314,12 +1314,16 @@ require = function () {
             var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
                 if (k2 === undefined)
                     k2 = k;
-                Object.defineProperty(o, k2, {
-                    enumerable: true,
-                    get: function () {
-                        return m[k];
-                    }
-                });
+                var desc = Object.getOwnPropertyDescriptor(m, k);
+                if (!desc || ('get' in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+                    desc = {
+                        enumerable: true,
+                        get: function () {
+                            return m[k];
+                        }
+                    };
+                }
+                Object.defineProperty(o, k2, desc);
             } : function (o, m, k, k2) {
                 if (k2 === undefined)
                     k2 = k;
@@ -1488,12 +1492,16 @@ require = function () {
             var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
                 if (k2 === undefined)
                     k2 = k;
-                Object.defineProperty(o, k2, {
-                    enumerable: true,
-                    get: function () {
-                        return m[k];
-                    }
-                });
+                var desc = Object.getOwnPropertyDescriptor(m, k);
+                if (!desc || ('get' in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+                    desc = {
+                        enumerable: true,
+                        get: function () {
+                            return m[k];
+                        }
+                    };
+                }
+                Object.defineProperty(o, k2, desc);
             } : function (o, m, k, k2) {
                 if (k2 === undefined)
                     k2 = k;
@@ -1515,12 +1523,16 @@ require = function () {
             var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
                 if (k2 === undefined)
                     k2 = k;
-                Object.defineProperty(o, k2, {
-                    enumerable: true,
-                    get: function () {
-                        return m[k];
-                    }
-                });
+                var desc = Object.getOwnPropertyDescriptor(m, k);
+                if (!desc || ('get' in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+                    desc = {
+                        enumerable: true,
+                        get: function () {
+                            return m[k];
+                        }
+                    };
+                }
+                Object.defineProperty(o, k2, desc);
             } : function (o, m, k, k2) {
                 if (k2 === undefined)
                     k2 = k;
@@ -1542,12 +1554,16 @@ require = function () {
             var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
                 if (k2 === undefined)
                     k2 = k;
-                Object.defineProperty(o, k2, {
-                    enumerable: true,
-                    get: function () {
-                        return m[k];
-                    }
-                });
+                var desc = Object.getOwnPropertyDescriptor(m, k);
+                if (!desc || ('get' in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+                    desc = {
+                        enumerable: true,
+                        get: function () {
+                            return m[k];
+                        }
+                    };
+                }
+                Object.defineProperty(o, k2, desc);
             } : function (o, m, k, k2) {
                 if (k2 === undefined)
                     k2 = k;
@@ -2098,12 +2114,16 @@ require = function () {
             var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
                 if (k2 === undefined)
                     k2 = k;
-                Object.defineProperty(o, k2, {
-                    enumerable: true,
-                    get: function () {
-                        return m[k];
-                    }
-                });
+                var desc = Object.getOwnPropertyDescriptor(m, k);
+                if (!desc || ('get' in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+                    desc = {
+                        enumerable: true,
+                        get: function () {
+                            return m[k];
+                        }
+                    };
+                }
+                Object.defineProperty(o, k2, desc);
             } : function (o, m, k, k2) {
                 if (k2 === undefined)
                     k2 = k;
@@ -2300,12 +2320,16 @@ require = function () {
             var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
                 if (k2 === undefined)
                     k2 = k;
-                Object.defineProperty(o, k2, {
-                    enumerable: true,
-                    get: function () {
-                        return m[k];
-                    }
-                });
+                var desc = Object.getOwnPropertyDescriptor(m, k);
+                if (!desc || ('get' in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+                    desc = {
+                        enumerable: true,
+                        get: function () {
+                            return m[k];
+                        }
+                    };
+                }
+                Object.defineProperty(o, k2, desc);
             } : function (o, m, k, k2) {
                 if (k2 === undefined)
                     k2 = k;
@@ -2515,12 +2539,16 @@ require = function () {
             var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
                 if (k2 === undefined)
                     k2 = k;
-                Object.defineProperty(o, k2, {
-                    enumerable: true,
-                    get: function () {
-                        return m[k];
-                    }
-                });
+                var desc = Object.getOwnPropertyDescriptor(m, k);
+                if (!desc || ('get' in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+                    desc = {
+                        enumerable: true,
+                        get: function () {
+                            return m[k];
+                        }
+                    };
+                }
+                Object.defineProperty(o, k2, desc);
             } : function (o, m, k, k2) {
                 if (k2 === undefined)
                     k2 = k;
@@ -4413,12 +4441,16 @@ require = function () {
             var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
                 if (k2 === undefined)
                     k2 = k;
-                Object.defineProperty(o, k2, {
-                    enumerable: true,
-                    get: function () {
-                        return m[k];
-                    }
-                });
+                var desc = Object.getOwnPropertyDescriptor(m, k);
+                if (!desc || ('get' in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+                    desc = {
+                        enumerable: true,
+                        get: function () {
+                            return m[k];
+                        }
+                    };
+                }
+                Object.defineProperty(o, k2, desc);
             } : function (o, m, k, k2) {
                 if (k2 === undefined)
                     k2 = k;
@@ -6302,7 +6334,7 @@ require = function () {
                             [privates.scope](child) {
                                 if (child.element.tagName !== 'STYLE')
                                     return;
-                                const target = /(^|[,}])(\s*)\$scope(?![\w-])(?=[^;{}]*{)/g;
+                                const target = /(^|[,}]|\*\/)(\s*)\$scope(?=[\s~+[{:>,])/g;
                                 const style = child.element.innerHTML;
                                 if (!target.test(style))
                                     return;
@@ -7729,12 +7761,16 @@ require = function () {
             var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
                 if (k2 === undefined)
                     k2 = k;
-                Object.defineProperty(o, k2, {
-                    enumerable: true,
-                    get: function () {
-                        return m[k];
-                    }
-                });
+                var desc = Object.getOwnPropertyDescriptor(m, k);
+                if (!desc || ('get' in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+                    desc = {
+                        enumerable: true,
+                        get: function () {
+                            return m[k];
+                        }
+                    };
+                }
+                Object.defineProperty(o, k2, desc);
             } : function (o, m, k, k2) {
                 if (k2 === undefined)
                     k2 = k;
@@ -8050,12 +8086,16 @@ require = function () {
             var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
                 if (k2 === undefined)
                     k2 = k;
-                Object.defineProperty(o, k2, {
-                    enumerable: true,
-                    get: function () {
-                        return m[k];
-                    }
-                });
+                var desc = Object.getOwnPropertyDescriptor(m, k);
+                if (!desc || ('get' in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+                    desc = {
+                        enumerable: true,
+                        get: function () {
+                            return m[k];
+                        }
+                    };
+                }
+                Object.defineProperty(o, k2, desc);
             } : function (o, m, k, k2) {
                 if (k2 === undefined)
                     k2 = k;
@@ -8744,12 +8784,16 @@ require = function () {
             var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
                 if (k2 === undefined)
                     k2 = k;
-                Object.defineProperty(o, k2, {
-                    enumerable: true,
-                    get: function () {
-                        return m[k];
-                    }
-                });
+                var desc = Object.getOwnPropertyDescriptor(m, k);
+                if (!desc || ('get' in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+                    desc = {
+                        enumerable: true,
+                        get: function () {
+                            return m[k];
+                        }
+                    };
+                }
+                Object.defineProperty(o, k2, desc);
             } : function (o, m, k, k2) {
                 if (k2 === undefined)
                     k2 = k;
