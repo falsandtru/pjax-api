@@ -58,6 +58,7 @@ export function xhr(
           if (method === 'GET') {
             const cc = new Map<string, string>(
               xhr.getResponseHeader('Cache-Control')
+                // eslint-disable-next-line redos/no-vulnerable
                 ? xhr.getResponseHeader('Cache-Control')!.trim().split(/\s*,\s*/)
                     .filter(v => v.length > 0)
                     .map(v => v.split('=').concat('') as [string, string])
@@ -135,6 +136,7 @@ function match(actualContentType: string | null, expectedContentType: string): b
     .length > 0;
 
   function parse(headerValue: string): string[] {
+    // eslint-disable-next-line redos/no-vulnerable
     return headerValue.split(/\s*;\s*/)
       .filter(v => v.length > 0);
   }

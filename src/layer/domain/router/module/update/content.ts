@@ -80,6 +80,7 @@ export function separate(
 }
 
 function split(area: string): Maybe<string[]> {
+  // eslint-disable-next-line redos/no-vulnerable
   return (area.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g) || [])
     .map(area => area.trim())
     .reduce((m, area) =>
