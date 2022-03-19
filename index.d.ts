@@ -63,5 +63,3 @@ declare global {
   }
 
 }
-
-export function router<T>(config: Record<string, (path: string) => T>): (url: string) => T;

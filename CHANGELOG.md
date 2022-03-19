@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.34.0
+
+- Move router function to spica.
+
 ## 3.33.5
 
 - Update dependencies.
