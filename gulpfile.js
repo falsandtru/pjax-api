@@ -126,7 +126,7 @@ gulp.task('ts:dist', () =>
     .pipe(gulp.dest(config.ts.dist.dest)));
 
 gulp.task('ts:view', () =>
-  gulp.watch(config.ts.dist.src, { ignoreInitial: false }, () =>
+  gulp.watch(config.ts.test.src, { ignoreInitial: false }, () =>
     compile(config.ts.dist.src, true)
       .pipe($.unassert())
       .pipe($.header(config.banner))
