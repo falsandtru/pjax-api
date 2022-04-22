@@ -209,7 +209,7 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            exports.template = exports.overwrite = exports.inherit = exports.merge = exports.extend = exports.clone = exports.assign = void 0;
+            exports.template = exports.inherit = exports.merge = exports.extend = exports.overwrite = exports.clone = exports.assign = void 0;
             const global_1 = _dereq_('./global');
             const alias_1 = _dereq_('./alias');
             const type_1 = _dereq_('./type');
@@ -230,6 +230,21 @@ require = function () {
                     return target[prop] = source[prop];
                 }
             });
+            exports.overwrite = template((prop, target, source) => {
+                switch ((0, type_1.type)(source[prop])) {
+                case 'Array':
+                    return target[prop] = source[prop];
+                case 'Object':
+                    switch ((0, type_1.type)(target[prop])) {
+                    case 'Object':
+                        return (0, exports.overwrite)(target[prop], source[prop]);
+                    default:
+                        return target[prop] = (0, exports.overwrite)(empty(source[prop]), source[prop]);
+                    }
+                default:
+                    return target[prop] = source[prop];
+                }
+            });
             exports.extend = template((prop, target, source) => {
                 switch ((0, type_1.type)(source[prop])) {
                 case 'undefined':
@@ -239,7 +254,7 @@ require = function () {
                 case 'Object':
                     switch ((0, type_1.type)(target[prop])) {
                     case 'Object':
-                        return target[prop] = (0, exports.extend)(target[prop], source[prop]);
+                        return (0, exports.extend)(target[prop], source[prop]);
                     default:
                         return target[prop] = (0, exports.extend)(empty(source[prop]), source[prop]);
                     }
@@ -261,7 +276,7 @@ require = function () {
                 case 'Object':
                     switch ((0, type_1.type)(target[prop])) {
                     case 'Object':
-                        return target[prop] = (0, exports.merge)(target[prop], source[prop]);
+                        return (0, exports.merge)(target[prop], source[prop]);
                     default:
                         return target[prop] = (0, exports.merge)(empty(source[prop]), source[prop]);
                     }
@@ -278,24 +293,9 @@ require = function () {
                 case 'Object':
                     switch ((0, type_1.type)(target[prop])) {
                     case 'Object':
-                        return target[prop] = (0, alias_1.hasOwnProperty)(target, prop) ? (0, exports.inherit)(target[prop], source[prop]) : (0, exports.inherit)((0, alias_1.ObjectCreate)(target[prop]), source[prop]);
+                        return (0, alias_1.hasOwnProperty)(target, prop) ? (0, exports.inherit)(target[prop], source[prop]) : target[prop] = (0, exports.inherit)((0, alias_1.ObjectCreate)(target[prop]), source[prop]);
                     default:
                         return target[prop] = (0, alias_1.ObjectCreate)(source[prop]);
-                    }
-                default:
-                    return target[prop] = source[prop];
-                }
-            });
-            exports.overwrite = template((prop, target, source) => {
-                switch ((0, type_1.type)(source[prop])) {
-                case 'Array':
-                    return target[prop] = source[prop];
-                case 'Object':
-                    switch ((0, type_1.type)(target[prop])) {
-                    case 'Object':
-                        return target[prop] = (0, exports.overwrite)(target[prop], source[prop]);
-                    default:
-                        return target[prop] = (0, exports.overwrite)(empty(source[prop]), source[prop]);
                     }
                 default:
                     return target[prop] = source[prop];
@@ -322,14 +322,7 @@ require = function () {
             }
             exports.template = template;
             function empty(source) {
-                switch ((0, type_1.type)(source)) {
-                case 'Array':
-                    return [];
-                case 'Object':
-                    return source instanceof global_1.Object ? {} : (0, alias_1.ObjectCreate)(null);
-                default:
-                    return source;
-                }
+                return source instanceof global_1.Object ? {} : (0, alias_1.ObjectCreate)(null);
             }
         },
         {
@@ -370,7 +363,7 @@ require = function () {
                     this.indexes = {
                         LRU: new invlist_1.List(),
                         LFU: new invlist_1.List(),
-                        OVF: new invlist_1.List()
+                        OVL: new invlist_1.List()
                     };
                     this.stats = {
                         LRU: (0, tuple_1.tuple)(0, 0),
@@ -393,13 +386,13 @@ require = function () {
                         opts = capacity;
                         capacity = (_a = opts.capacity) !== null && _a !== void 0 ? _a : 0;
                     }
-                    const settings = (0, assign_1.extend)(this.settings, opts, { capacity });
-                    this.capacity = settings.capacity;
+                    (0, assign_1.extend)(this.settings, opts, { capacity });
+                    this.capacity = this.settings.capacity;
                     if (this.capacity >= 1 === false)
                         throw new Error(`Spica: Cache: Capacity must be 1 or more.`);
-                    this.space = settings.space;
-                    this.life = this.capacity * settings.life;
-                    this.limit = settings.limit;
+                    this.space = this.settings.space;
+                    this.life = this.capacity * this.settings.life;
+                    this.limit = this.settings.limit;
                 }
                 get length() {
                     return this.indexes.LRU.length + this.indexes.LFU.length;
@@ -413,7 +406,7 @@ require = function () {
                     callback && (callback = !!this.settings.disposer);
                     record = callback ? record !== null && record !== void 0 ? record : this.memory.get(index.key) : record;
                     node.delete();
-                    (_a = node.value.overflow) === null || _a === void 0 ? void 0 : _a.delete();
+                    (_a = node.value.overlap) === null || _a === void 0 ? void 0 : _a.delete();
                     this.memory.delete(index.key);
                     this.SIZE -= index.size;
                     callback && ((_c = (_b = this.settings).disposer) === null || _c === void 0 ? void 0 : _c.call(_b, record.value, index.key));
@@ -427,25 +420,30 @@ require = function () {
                     let size = (_a = skip === null || skip === void 0 ? void 0 : skip.value.size) !== null && _a !== void 0 ? _a : 0;
                     if (margin - size <= 0)
                         return;
-                    const {LRU, LFU, OVF} = this.indexes;
+                    const {LRU, LFU, OVL} = this.indexes;
                     while (this.length === this.capacity || this.size + margin - size > this.space) {
-                        const lastNode = (_b = OVF.last) !== null && _b !== void 0 ? _b : LFU.last;
+                        const lastNode = (_b = OVL.last) !== null && _b !== void 0 ? _b : LFU.last;
                         const lastIndex = lastNode === null || lastNode === void 0 ? void 0 : lastNode.value;
                         let target;
                         switch (true) {
                         case lastIndex && lastIndex.clock < this.clock - this.life:
                         case lastIndex && lastIndex.expiry !== global_1.Infinity && lastIndex.expiry < (0, clock_1.now)():
-                            target = lastNode.list === OVF ? lastNode.value.parent : lastNode;
+                            target = lastNode.list === OVL ? lastNode.value.node : lastNode;
                             break;
                         case LRU.length === 0:
                             target = LFU.last !== skip ? LFU.last : LFU.last.prev;
                             break;
                         case LFU.length > this.capacity * this.ratio / 100:
-                            LRU.unshiftNode(LFU.last);
-                            LRU.head.value.parent = LRU.head;
-                            LRU.head.value.overflow = OVF.unshift(LRU.head.value);
+                            target = LFU.last !== skip ? LFU.last : LFU.length >= 2 ? LFU.last.prev : skip;
+                            if (target !== skip) {
+                                if (this.ratio >= 50)
+                                    break;
+                                LRU.unshiftNode(target);
+                                LRU.head.value.node = LRU.head;
+                                LRU.head.value.overlap = OVL.unshift(LRU.head.value);
+                            }
                         default:
-                            target = LRU.last !== skip ? LRU.last : LRU.last.prev !== skip ? LRU.last.prev : LFU.last;
+                            target = LRU.last !== skip ? LRU.last : LRU.length >= 2 ? LRU.last.prev : LFU.last;
                         }
                         this.evict(target, void 0, true);
                         skip = (skip === null || skip === void 0 ? void 0 : skip.list) && skip;
@@ -536,7 +534,7 @@ require = function () {
                     this.stats.clear();
                     this.indexes.LRU.clear();
                     this.indexes.LFU.clear();
-                    this.indexes.OVF.clear();
+                    this.indexes.OVL.clear();
                     if (!this.settings.disposer || !this.settings.capture.clear)
                         return void this.memory.clear();
                     const memory = this.memory;
@@ -563,7 +561,7 @@ require = function () {
                         return;
                     const lenR = indexes.LRU.length;
                     const lenF = indexes.LFU.length;
-                    const lenV = indexes.OVF.length;
+                    const lenV = indexes.OVL.length;
                     const r = (lenF + lenV) * 1000 / (lenR + lenF) | 0;
                     const rateR0 = rate(window, LRU[0], LRU[0] + LFU[0], LRU[1], LRU[1] + LFU[1], 0) * (1 + r);
                     const rateF0 = rate(window, LFU[0], LRU[0] + LFU[0], LFU[1], LRU[1] + LFU[1], 0) * (1001 - r);
@@ -586,14 +584,14 @@ require = function () {
                     const index = node.value;
                     const {LRU, LFU} = this.indexes;
                     ++this.stats[index.region][0];
-                    if (!index.overflow && index.clock >= this.clockR - LRU.length / 3 && this.capacity > 3) {
+                    if (!index.overlap && index.clock >= this.clockR - LRU.length / 3 && this.capacity > 3) {
                         index.clock = ++this.clockR;
                         node.moveToHead();
                         return true;
                     }
                     index.clock = ++this.clock;
                     index.region = 'LFU';
-                    (_a = index.overflow) === null || _a === void 0 ? void 0 : _a.delete();
+                    (_a = index.overlap) === null || _a === void 0 ? void 0 : _a.delete();
                     LFU.unshiftNode(node);
                     return true;
                 }
@@ -839,17 +837,16 @@ require = function () {
             const global_1 = _dereq_('./global');
             const alias_1 = _dereq_('./alias');
             const exception_1 = _dereq_('./exception');
-            let now_;
+            let mem;
             let count = 0;
-            function now() {
-                if (now_ === void 0) {
-                    tick(() => now_ = void 0);
-                } else {
-                    if (++count !== 100)
-                        return now_;
-                    count = 0;
+            function now(nocache = false) {
+                if (mem === void 0) {
+                    tick(() => mem = void 0);
+                } else if (!nocache && ++count !== 100) {
+                    return mem;
                 }
-                return now_ = global_1.Date.now();
+                count = 0;
+                return mem = global_1.Date.now();
             }
             exports.now = now;
             exports.clock = Promise.resolve(void 0);
@@ -964,7 +961,6 @@ require = function () {
             const promise_1 = _dereq_('./promise');
             const future_1 = _dereq_('./future');
             const channel_1 = _dereq_('./channel');
-            const assign_1 = _dereq_('./assign');
             const exception_1 = _dereq_('./exception');
             const noop_1 = _dereq_('./noop');
             const alive = Symbol.for('spica/Coroutine.alive');
@@ -1127,7 +1123,7 @@ require = function () {
             class Internal {
                 constructor(opts) {
                     this.opts = opts;
-                    this.settings = (0, assign_1.extend)({
+                    this.settings = (0, alias_1.ObjectAssign)({
                         run: true,
                         delay: true,
                         capacity: -1,
@@ -1277,7 +1273,6 @@ require = function () {
         },
         {
             './alias': 4,
-            './assign': 6,
             './channel': 9,
             './clock': 10,
             './exception': 16,
@@ -2145,12 +2140,29 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.reduce = exports.memoize = void 0;
             const global_1 = _dereq_('./global');
+            const alias_1 = _dereq_('./alias');
             const compare_1 = _dereq_('./compare');
             function memoize(f, identify = (...as) => as[0], memory) {
                 if (typeof identify === 'object')
                     return memoize(f, void 0, identify);
                 if (memory === void 0)
                     return memoize(f, identify, new global_1.Map());
+                if ((0, alias_1.isArray)(memory))
+                    return memoize(f, identify, {
+                        has(key) {
+                            return memory[key] !== void 0;
+                        },
+                        get(key) {
+                            return memory[key];
+                        },
+                        set(key, value) {
+                            memory[key] = value;
+                            return this;
+                        },
+                        delete() {
+                            throw 0;
+                        }
+                    });
                 let nullish = false;
                 return (...as) => {
                     const b = identify(...as);
@@ -2179,6 +2191,7 @@ require = function () {
             exports.reduce = reduce;
         },
         {
+            './alias': 4,
             './compare': 11,
             './global': 20
         }
@@ -3857,8 +3870,8 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.Observation = void 0;
             const global_1 = _dereq_('./global');
+            const alias_1 = _dereq_('./alias');
             const ixlist_1 = _dereq_('./ixlist');
-            const assign_1 = _dereq_('./assign');
             const function_1 = _dereq_('./function');
             const array_1 = _dereq_('./array');
             const exception_1 = _dereq_('./exception');
@@ -3880,7 +3893,7 @@ require = function () {
                         cleanup: false
                     };
                     this.relaies = new global_1.WeakSet();
-                    (0, assign_1.extend)(this.settings, opts);
+                    (0, alias_1.ObjectAssign)(this.settings, opts);
                 }
                 monitor(namespace, monitor, options = {}) {
                     if (typeof monitor !== 'function')
@@ -4076,8 +4089,8 @@ require = function () {
             }
         },
         {
+            './alias': 4,
             './array': 5,
-            './assign': 6,
             './exception': 16,
             './function': 18,
             './global': 20,
@@ -4439,62 +4452,78 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            exports._match = exports._expand = exports.compare = exports.router = void 0;
+            exports.router = void 0;
             const alias_1 = _dereq_('./alias');
             const url_1 = _dereq_('./url');
             const sequence_1 = _dereq_('./sequence');
             const curry_1 = _dereq_('./curry');
             const flip_1 = _dereq_('./flip');
             const memoize_1 = _dereq_('./memoize');
+            const cache_1 = _dereq_('./cache');
             function router(config) {
+                const {compare} = router.helpers();
                 return url => {
                     const {path, pathname} = new url_1.URL((0, url_1.standardize)(url, window.location.href));
                     return sequence_1.Sequence.from((0, alias_1.ObjectKeys)(config).filter(p => p[0] === '/').sort().reverse()).filter((0, curry_1.curry)((0, flip_1.flip)(compare))(pathname)).map(pattern => config[pattern]).take(1).extract().pop().call(config, path);
                 };
             }
             exports.router = router;
-            function compare(pattern, path) {
-                const regSegment = /\/|[^/]+\/?/g;
-                const regTrailingSlash = /\/$/;
-                return sequence_1.Sequence.zip(sequence_1.Sequence.from(expand(pattern)), sequence_1.Sequence.cycle([path])).map(([pattern, path]) => [
-                    pattern.match(regSegment) || [],
-                    pattern.match(regTrailingSlash) ? path.match(regSegment) || [] : path.replace(regTrailingSlash, '').match(regSegment) || []
-                ]).filter(([ps, ss]) => ps.length <= ss.length && sequence_1.Sequence.zip(sequence_1.Sequence.from(ps), sequence_1.Sequence.from(ss)).dropWhile(([a, b]) => match(a, b)).take(1).extract().length === 0).take(1).extract().length > 0;
-            }
-            exports.compare = compare;
-            const expand = (0, memoize_1.memoize)(pattern => {
-                if (pattern.match(/\*\*|[\[\]]/))
-                    throw new Error(`Invalid pattern: ${ pattern }`);
-                return pattern === '' ? [pattern] : sequence_1.Sequence.from(pattern.match(/{[^{}]*}|.[^{]*/g)).map(p => p.match(/^{[^{}]*}$/) ? p.slice(1, -1).split(',') : [p]).mapM(sequence_1.Sequence.from).map(ps => ps.join('')).bind(p => p === pattern ? sequence_1.Sequence.from([p]) : sequence_1.Sequence.from(expand(p))).unique().extract();
-            });
-            exports._expand = expand;
-            const match = (0, memoize_1.memoize)((pattern, segment) => {
-                if (segment[0] === '.' && [...'?*'].includes(pattern[0]))
-                    return false;
-                return match(optimize(pattern), segment);
-                function match(pattern, segment) {
-                    const [p = '', ...ps] = [...pattern];
-                    const [s = '', ...ss] = [...segment];
-                    switch (p) {
-                    case '':
-                        return s === '';
-                    case '?':
-                        return s !== '' && s !== '/' && match(ps.join(''), ss.join(''));
-                    case '*':
-                        return s === '/' ? match(ps.join(''), segment) : sequence_1.Sequence.zip(sequence_1.Sequence.cycle([ps.join('')]), sequence_1.Sequence.from(segment).tails().map(ss => ss.join(''))).filter(([a, b]) => match(a, b)).take(1).extract().length > 0;
-                    default:
-                        return s === p && match(ps.join(''), ss.join(''));
+            (function (router) {
+                function helpers() {
+                    function compare(pattern, path) {
+                        const regSegment = /\/|[^/]+\/?/g;
+                        const regTrailingSlash = /\/$/;
+                        return sequence_1.Sequence.zip(sequence_1.Sequence.from(expand(pattern)), sequence_1.Sequence.cycle([path])).map(([pattern, path]) => [
+                            pattern.match(regSegment) || [],
+                            pattern.match(regTrailingSlash) ? path.match(regSegment) || [] : path.replace(regTrailingSlash, '').match(regSegment) || []
+                        ]).filter(([ps, ss]) => ps.length <= ss.length && sequence_1.Sequence.zip(sequence_1.Sequence.from(ps), sequence_1.Sequence.from(ss)).dropWhile(([a, b]) => match(a, b)).take(1).extract().length === 0).take(1).extract().length > 0;
                     }
+                    function match(pattern, segment) {
+                        if (segment[0] === '.' && [
+                                '?',
+                                '*'
+                            ].includes(pattern[0]))
+                            return false;
+                        return match_(optimize(pattern), segment);
+                    }
+                    const match_ = (0, memoize_1.memoize)((pattern, segment) => {
+                        const [p = '', ...ps] = [...pattern];
+                        const [s = '', ...ss] = [...segment];
+                        switch (p) {
+                        case '':
+                            return s === '';
+                        case '?':
+                            return s !== '' && s !== '/' && match_(ps.join(''), ss.join(''));
+                        case '*':
+                            return s === '/' ? match_(ps.join(''), segment) : sequence_1.Sequence.zip(sequence_1.Sequence.cycle([ps.join('')]), sequence_1.Sequence.from(segment).tails().map(ss => ss.join(''))).filter(([a, b]) => match_(a, b)).take(1).extract().length > 0;
+                        default:
+                            return s === p && match_(ps.join(''), ss.join(''));
+                        }
+                    }, (pat, seg) => `${ pat }\n${ seg }`, new cache_1.Cache(10000));
+                    function expand(pattern) {
+                        if (pattern.match(/\*\*|[\[\]]/))
+                            throw new Error(`Invalid pattern: ${ pattern }`);
+                        return expand_(pattern);
+                    }
+                    const expand_ = (0, memoize_1.memoize)(pattern => {
+                        return pattern === '' ? [pattern] : sequence_1.Sequence.from(pattern.match(/{[^{}]*}|.[^{]*/g)).map(p => p.match(/^{[^{}]*}$/) ? p.slice(1, -1).split(',') : [p]).mapM(sequence_1.Sequence.from).map(ps => ps.join('')).bind(p => p === pattern ? sequence_1.Sequence.from([p]) : sequence_1.Sequence.from(expand_(p))).unique().extract();
+                    });
+                    return {
+                        compare,
+                        match,
+                        expand
+                    };
                 }
-                function optimize(pattern) {
-                    const pat = pattern.replace(/\*(\?+)\*?/g, '$1*');
-                    return pat === pattern ? pat : optimize(pat);
-                }
-            }, (pat, seg) => `${ pat }\n${ seg }`);
-            exports._match = match;
+                router.helpers = helpers;
+            }(router = exports.router || (exports.router = {})));
+            function optimize(pattern) {
+                const p = pattern.replace(/\*(\?+)\*?/g, '$1*');
+                return p === pattern ? p : optimize(p);
+            }
         },
         {
             './alias': 4,
+            './cache': 7,
             './curry': 14,
             './flip': 17,
             './memoize': 29,
@@ -4630,7 +4659,6 @@ require = function () {
                     const future_1 = _dereq_('./future');
                     const observer_1 = _dereq_('./observer');
                     const array_1 = _dereq_('./array');
-                    const assign_1 = _dereq_('./assign');
                     const sqid_1 = _dereq_('./sqid');
                     const exception_1 = _dereq_('./exception');
                     const noop_1 = _dereq_('./noop');
@@ -4668,7 +4696,7 @@ require = function () {
                             };
                             this.scheduled = false;
                             this.messages = [];
-                            void (0, assign_1.extend)(this.settings, opts);
+                            (0, alias_1.ObjectAssign)(this.settings, opts);
                             this.name = this.settings.name;
                             if (this.constructor === Supervisor)
                                 throw new global_1.Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: Cannot instantiate abstract classes.`);
@@ -5057,7 +5085,6 @@ require = function () {
         {
             './alias': 4,
             './array': 5,
-            './assign': 6,
             './clock': 10,
             './coroutine': 13,
             './exception': 16,
@@ -5483,1498 +5510,183 @@ require = function () {
     ],
     100: [
         function (_dereq_, module, exports) {
-            _dereq_ = function () {
-                function r(e, n, t) {
-                    function o(i, f) {
-                        if (!n[i]) {
-                            if (!e[i]) {
-                                var c = 'function' == typeof _dereq_ && _dereq_;
-                                if (!f && c)
-                                    return c(i, !0);
-                                if (u)
-                                    return u(i, !0);
-                                var a = new Error('Cannot find module \'' + i + '\'');
-                                throw a.code = 'MODULE_NOT_FOUND', a;
-                            }
-                            var p = n[i] = { exports: {} };
-                            e[i][0].call(p.exports, function (r) {
-                                var n = e[i][1][r];
-                                return o(n || r);
-                            }, p, p.exports, r, e, n, t);
-                        }
-                        return n[i].exports;
-                    }
-                    for (var u = 'function' == typeof _dereq_ && _dereq_, i = 0; i < t.length; i++)
-                        o(t[i]);
-                    return o;
+            'use strict';
+            Object.defineProperty(exports, '__esModule', { value: true });
+            exports.defrag = exports.isChildren = exports.define = exports.element = exports.text = exports.svg = exports.html = exports.frag = exports.shadow = void 0;
+            const global_1 = _dereq_('spica/global');
+            const alias_1 = _dereq_('spica/alias');
+            const memoize_1 = _dereq_('spica/memoize');
+            var caches;
+            (function (caches) {
+                caches.shadows = new WeakMap();
+                caches.fragment = global_1.document.createDocumentFragment();
+            }(caches || (caches = {})));
+            function shadow(el, children, opts) {
+                var _a, _b;
+                if (typeof el === 'string')
+                    return shadow((0, exports.html)(el), children, opts);
+                if (children && !isChildren(children))
+                    return shadow(el, void 0, children);
+                const root = opts === void 0 ? (_a = el.shadowRoot) !== null && _a !== void 0 ? _a : caches.shadows.get(el) : opts.mode === 'open' ? (_b = el.shadowRoot) !== null && _b !== void 0 ? _b : void 0 : caches.shadows.get(el);
+                return defineChildren(!opts || opts.mode === 'open' ? root !== null && root !== void 0 ? root : el.attachShadow(opts !== null && opts !== void 0 ? opts : { mode: 'open' }) : root !== null && root !== void 0 ? root : caches.shadows.set(el, el.attachShadow(opts)).get(el), !root && children === void 0 ? el.childNodes : children);
+            }
+            exports.shadow = shadow;
+            function frag(children) {
+                return defineChildren(caches.fragment.cloneNode(true), children);
+            }
+            exports.frag = frag;
+            exports.html = element(global_1.document, 'HTML');
+            exports.svg = element(global_1.document, 'SVG');
+            function text(source) {
+                return global_1.document.createTextNode(source);
+            }
+            exports.text = text;
+            function element(context, ns) {
+                const cache = (0, memoize_1.memoize)(elem, (_, ns, tag) => `${ ns }:${ tag }`);
+                return (tag, attrs, children) => {
+                    const el = tag.includes('-') ? elem(context, ns, tag) : cache(context, ns, tag).cloneNode(true);
+                    return isChildren(attrs) ? defineChildren(el, attrs) : defineChildren(defineAttrs(el, attrs), children);
+                };
+            }
+            exports.element = element;
+            function elem(context, ns, tag) {
+                if (!('createElement' in context))
+                    throw new Error(`TypedDOM: Scoped custom elements are not supported on this browser.`);
+                switch (ns) {
+                case 'HTML':
+                    return context.createElement(tag);
+                case 'SVG':
+                    return context.createElementNS('http://www.w3.org/2000/svg', tag);
                 }
-                return r;
-            }()({
-                1: [
-                    function (_dereq_, module, exports) {
-                    },
-                    {}
-                ],
-                2: [
-                    function (_dereq_, module, exports) {
-                        arguments[4][1][0].apply(exports, arguments);
-                    },
-                    { 'dup': 1 }
-                ],
-                3: [
-                    function (_dereq_, module, exports) {
-                        'use strict';
-                        Object.defineProperty(exports, '__esModule', { value: true });
-                    },
-                    {}
-                ],
-                4: [
-                    function (_dereq_, module, exports) {
-                        'use strict';
-                        Object.defineProperty(exports, '__esModule', { value: true });
-                        exports.isArray = exports.ObjectValues = exports.ObjectSetPrototypeOf = exports.ObjectSeal = exports.ObjectPreventExtensions = exports.ObjectKeys = exports.isSealed = exports.isFrozen = exports.isExtensible = exports.ObjectIs = exports.ObjectGetPrototypeOf = exports.ObjectGetOwnPropertySymbols = exports.ObjectGetOwnPropertyNames = exports.ObjectGetOwnPropertyDescriptors = exports.ObjectGetOwnPropertyDescriptor = exports.ObjectFromEntries = exports.ObjectFreeze = exports.ObjectEntries = exports.ObjectDefineProperty = exports.ObjectDefineProperties = exports.ObjectCreate = exports.ObjectAssign = exports.toString = exports.isEnumerable = exports.isPrototypeOf = exports.hasOwnProperty = exports.SymbolKeyFor = exports.SymbolFor = exports.sign = exports.round = exports.random = exports.min = exports.max = exports.floor = exports.ceil = exports.abs = exports.parseInt = exports.parseFloat = exports.isSafeInteger = exports.isNaN = exports.isInteger = exports.isFinite = exports.NaN = void 0;
-                        exports.NaN = Number.NaN, exports.isFinite = Number.isFinite, exports.isInteger = Number.isInteger, exports.isNaN = Number.isNaN, exports.isSafeInteger = Number.isSafeInteger, exports.parseFloat = Number.parseFloat, exports.parseInt = Number.parseInt;
-                        exports.abs = Math.abs, exports.ceil = Math.ceil, exports.floor = Math.floor, exports.max = Math.max, exports.min = Math.min, exports.random = Math.random, exports.round = Math.round, exports.sign = Math.sign;
-                        exports.SymbolFor = Symbol.for;
-                        exports.SymbolKeyFor = Symbol.keyFor;
-                        exports.hasOwnProperty = Object.prototype.hasOwnProperty.call.bind(Object.prototype.hasOwnProperty);
-                        exports.isPrototypeOf = Object.prototype.isPrototypeOf.call.bind(Object.prototype.isPrototypeOf);
-                        exports.isEnumerable = Object.prototype.propertyIsEnumerable.call.bind(Object.prototype.propertyIsEnumerable);
-                        exports.toString = Object.prototype.toString.call.bind(Object.prototype.toString);
-                        exports.ObjectAssign = Object.assign;
-                        exports.ObjectCreate = Object.create;
-                        exports.ObjectDefineProperties = Object.defineProperties;
-                        exports.ObjectDefineProperty = Object.defineProperty;
-                        exports.ObjectEntries = Object.entries;
-                        exports.ObjectFreeze = Object.freeze;
-                        exports.ObjectFromEntries = Object.fromEntries;
-                        exports.ObjectGetOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
-                        exports.ObjectGetOwnPropertyDescriptors = Object.getOwnPropertyDescriptors;
-                        exports.ObjectGetOwnPropertyNames = Object.getOwnPropertyNames;
-                        exports.ObjectGetOwnPropertySymbols = Object.getOwnPropertySymbols;
-                        exports.ObjectGetPrototypeOf = Object.getPrototypeOf;
-                        exports.ObjectIs = Object.is;
-                        exports.isExtensible = Object.isExtensible;
-                        exports.isFrozen = Object.isFrozen;
-                        exports.isSealed = Object.isSealed;
-                        exports.ObjectKeys = Object.keys;
-                        exports.ObjectPreventExtensions = Object.preventExtensions;
-                        exports.ObjectSeal = Object.seal;
-                        exports.ObjectSetPrototypeOf = Object.setPrototypeOf;
-                        exports.ObjectValues = Object.values;
-                        exports.isArray = Array.isArray;
-                    },
-                    {}
-                ],
-                5: [
-                    function (_dereq_, module, exports) {
-                        'use strict';
-                        Object.defineProperty(exports, '__esModule', { value: true });
-                        exports.join = exports.splice = exports.pop = exports.push = exports.shift = exports.unshift = exports.indexOf = void 0;
-                        const global_1 = _dereq_('./global');
-                        function indexOf(as, a) {
-                            if (as.length === 0)
-                                return -1;
-                            return a === a ? as.indexOf(a) : as.findIndex(a => a !== a);
-                        }
-                        exports.indexOf = indexOf;
-                        function unshift(as, bs) {
-                            if ('length' in as) {
-                                for (let i = as.length - 1; i >= 0; --i) {
-                                    bs.unshift(as[i]);
-                                }
-                            } else {
-                                bs.unshift(...as);
-                            }
-                            return bs;
-                        }
-                        exports.unshift = unshift;
-                        function shift(as, count) {
-                            if (count < 0)
-                                throw new Error('Unexpected negative number');
-                            return count === void 0 ? [
-                                as.shift(),
-                                as
-                            ] : [
-                                splice(as, 0, count),
-                                as
-                            ];
-                        }
-                        exports.shift = shift;
-                        function push(as, bs) {
-                            if ('length' in bs) {
-                                for (let i = 0, len = bs.length; i < len; ++i) {
-                                    as.push(bs[i]);
-                                }
-                            } else {
-                                for (const b of bs) {
-                                    as.push(b);
-                                }
-                            }
-                            return as;
-                        }
-                        exports.push = push;
-                        function pop(as, count) {
-                            if (count < 0)
-                                throw new Error('Unexpected negative number');
-                            return count === void 0 ? [
-                                as,
-                                as.pop()
-                            ] : [
-                                as,
-                                splice(as, as.length - count, count)
-                            ];
-                        }
-                        exports.pop = pop;
-                        function splice(as, index, count, ...inserts) {
-                            if (count === 0 && inserts.length === 0)
-                                return [];
-                            count = count > as.length ? as.length : count;
-                            switch (index) {
-                            case 0:
-                                switch (count) {
-                                case 0:
-                                    return [
-                                        [],
-                                        unshift(inserts, as)
-                                    ][0];
-                                case 1:
-                                    return as.length === 0 ? [
-                                        [],
-                                        unshift(inserts, as)
-                                    ][0] : [
-                                        [as.shift()],
-                                        unshift(inserts, as)
-                                    ][0];
-                                case void 0:
-                                    if (as.length > 1 || arguments.length > 2)
-                                        break;
-                                    return as.length === 0 ? [] : splice(as, index, 1);
-                                }
-                                break;
-                            case -1:
-                            case as.length - 1:
-                                switch (count) {
-                                case 1:
-                                    return as.length === 0 ? [
-                                        [],
-                                        push(as, inserts)
-                                    ][0] : [
-                                        [as.pop()],
-                                        push(as, inserts)
-                                    ][0];
-                                case void 0:
-                                    if (as.length > 1 || arguments.length > 2)
-                                        break;
-                                    return as.length === 0 ? [] : splice(as, index, 1);
-                                }
-                                break;
-                            case as.length:
-                            case global_1.Infinity:
-                                return [
-                                    [],
-                                    push(as, inserts)
-                                ][0];
-                            }
-                            return arguments.length > 2 ? as.splice(index, count, ...inserts) : as.splice(index);
-                        }
-                        exports.splice = splice;
-                        function join(as, sep = '') {
-                            let acc = '';
-                            for (let i = 0; i < as.length; ++i) {
-                                acc += i === 0 ? as[i] : sep + as[i];
-                            }
-                            return acc;
-                        }
-                        exports.join = join;
-                    },
-                    { './global': 8 }
-                ],
-                6: [
-                    function (_dereq_, module, exports) {
-                        'use strict';
-                        Object.defineProperty(exports, '__esModule', { value: true });
-                        exports.equal = void 0;
-                        function equal(a, b) {
-                            return a === a ? a === b : b !== b;
-                        }
-                        exports.equal = equal;
-                    },
-                    {}
-                ],
-                7: [
-                    function (_dereq_, module, exports) {
-                        'use strict';
-                        Object.defineProperty(exports, '__esModule', { value: true });
-                        exports.clear = exports.singleton = void 0;
-                        const noop_1 = _dereq_('./noop');
-                        function singleton(f) {
-                            let result;
-                            return function (...as) {
-                                if (f === noop_1.noop)
-                                    return result;
-                                result = f.call(this, ...as);
-                                f = noop_1.noop;
-                                return result;
-                            };
-                        }
-                        exports.singleton = singleton;
-                        function clear(f) {
-                            return (...as) => void f(...as);
-                        }
-                        exports.clear = clear;
-                    },
-                    { './noop': 10 }
-                ],
-                8: [
-                    function (_dereq_, module, exports) {
-                        'use strict';
-                        const global = void 0 || typeof globalThis !== 'undefined' && globalThis || typeof self !== 'undefined' && self || Function('return this')();
-                        eval('global.global = global');
-                        module.exports = global;
-                    },
-                    {}
-                ],
-                9: [
-                    function (_dereq_, module, exports) {
-                        'use strict';
-                        Object.defineProperty(exports, '__esModule', { value: true });
-                        exports.reduce = exports.memoize = void 0;
-                        const global_1 = _dereq_('./global');
-                        const compare_1 = _dereq_('./compare');
-                        function memoize(f, identify = (...as) => as[0], memory) {
-                            if (typeof identify === 'object')
-                                return memoize(f, void 0, identify);
-                            if (memory === void 0)
-                                return memoize(f, identify, new global_1.Map());
-                            let nullish = false;
-                            return (...as) => {
-                                const b = identify(...as);
-                                let z = memory.get(b);
-                                if (z !== void 0 || nullish && memory.has(b))
-                                    return z;
-                                z = f(...as);
-                                nullish || (nullish = z === void 0);
-                                memory.set(b, z);
-                                return z;
-                            };
-                        }
-                        exports.memoize = memoize;
-                        function reduce(f, identify = (...as) => as[0]) {
-                            let key = [];
-                            let val = [];
-                            return (...as) => {
-                                const b = identify(...as);
-                                if (!(0, compare_1.equal)(key, b)) {
-                                    key = b;
-                                    val = f(...as);
-                                }
-                                return val;
-                            };
-                        }
-                        exports.reduce = reduce;
-                    },
-                    {
-                        './compare': 6,
-                        './global': 8
-                    }
-                ],
-                10: [
-                    function (_dereq_, module, exports) {
-                        'use strict';
-                        Object.defineProperty(exports, '__esModule', { value: true });
-                        exports.noop = void 0;
-                        function noop() {
-                        }
-                        exports.noop = noop;
-                    },
-                    {}
-                ],
-                11: [
-                    function (_dereq_, module, exports) {
-                        'use strict';
-                        var _a, _b;
-                        Object.defineProperty(exports, '__esModule', { value: true });
-                        exports.never = exports.isPromiseLike = exports.Internal = exports.AtomicPromise = void 0;
-                        const global_1 = _dereq_('./global');
-                        const alias_1 = _dereq_('./alias');
-                        const noop_1 = _dereq_('./noop');
-                        const internal = Symbol.for('spica/promise::internal');
-                        class AtomicPromise {
-                            constructor(executor) {
-                                this[_a] = 'Promise';
-                                this[_b] = new Internal();
-                                try {
-                                    executor(value => void this[internal].resolve(value), reason => void this[internal].reject(reason));
-                                } catch (reason) {
-                                    this[internal].reject(reason);
-                                }
-                            }
-                            static get [Symbol.species]() {
-                                return AtomicPromise;
-                            }
-                            static all(vs) {
-                                return new AtomicPromise((resolve, reject) => {
-                                    const values = (0, alias_1.isArray)(vs) ? vs : [...vs];
-                                    const results = (0, global_1.Array)(values.length);
-                                    let done = false;
-                                    let count = 0;
-                                    for (let i = 0; !done && i < values.length; ++i) {
-                                        const value = values[i];
-                                        if (!isPromiseLike(value)) {
-                                            results[i] = value;
-                                            ++count;
-                                            continue;
-                                        }
-                                        if (isAtomicPromiseLike(value)) {
-                                            const {status} = value[internal];
-                                            switch (status.state) {
-                                            case 2:
-                                                results[i] = status.value;
-                                                ++count;
-                                                continue;
-                                            case 3:
-                                                return reject(status.reason);
-                                            }
-                                        }
-                                        value.then(value => {
-                                            results[i] = value;
-                                            ++count;
-                                            count === values.length && resolve(results);
-                                        }, reason => {
-                                            reject(reason);
-                                            done = true;
-                                        });
-                                    }
-                                    count === values.length && resolve(results);
-                                });
-                            }
-                            static race(vs) {
-                                return new AtomicPromise((resolve, reject) => {
-                                    const values = (0, alias_1.isArray)(vs) ? vs : [...vs];
-                                    for (let i = 0; i < values.length; ++i) {
-                                        const value = values[i];
-                                        if (!isPromiseLike(value)) {
-                                            return resolve(value);
-                                        }
-                                        if (isAtomicPromiseLike(value)) {
-                                            const {status} = value[internal];
-                                            switch (status.state) {
-                                            case 2:
-                                                return resolve(status.value);
-                                            case 3:
-                                                return reject(status.reason);
-                                            }
-                                        }
-                                    }
-                                    let done = false;
-                                    for (let i = 0; !done && i < values.length; ++i) {
-                                        const value = values[i];
-                                        value.then(value => {
-                                            resolve(value);
-                                            done = true;
-                                        }, reason => {
-                                            reject(reason);
-                                            done = true;
-                                        });
-                                    }
-                                });
-                            }
-                            static allSettled(vs) {
-                                return new AtomicPromise(resolve => {
-                                    const values = (0, alias_1.isArray)(vs) ? vs : [...vs];
-                                    const results = (0, global_1.Array)(values.length);
-                                    let count = 0;
-                                    for (let i = 0; i < values.length; ++i) {
-                                        const value = values[i];
-                                        if (!isPromiseLike(value)) {
-                                            results[i] = {
-                                                status: 'fulfilled',
-                                                value: value
-                                            };
-                                            ++count;
-                                            continue;
-                                        }
-                                        if (isAtomicPromiseLike(value)) {
-                                            const {status} = value[internal];
-                                            switch (status.state) {
-                                            case 2:
-                                                results[i] = {
-                                                    status: 'fulfilled',
-                                                    value: status.value
-                                                };
-                                                ++count;
-                                                continue;
-                                            case 3:
-                                                results[i] = {
-                                                    status: 'rejected',
-                                                    reason: status.reason
-                                                };
-                                                ++count;
-                                                continue;
-                                            }
-                                        }
-                                        value.then(value => {
-                                            results[i] = {
-                                                status: 'fulfilled',
-                                                value: value
-                                            };
-                                            ++count;
-                                            count === values.length && resolve(results);
-                                        }, reason => {
-                                            results[i] = {
-                                                status: 'rejected',
-                                                reason
-                                            };
-                                            ++count;
-                                            count === values.length && resolve(results);
-                                        });
-                                    }
-                                    count === values.length && resolve(results);
-                                });
-                            }
-                            static any(vs) {
-                                return new AtomicPromise((resolve, reject) => {
-                                    const values = (0, alias_1.isArray)(vs) ? vs : [...vs];
-                                    const reasons = (0, global_1.Array)(values.length);
-                                    let done = false;
-                                    let count = 0;
-                                    for (let i = 0; !done && i < values.length; ++i) {
-                                        const value = values[i];
-                                        if (!isPromiseLike(value)) {
-                                            return resolve(value);
-                                        }
-                                        if (isAtomicPromiseLike(value)) {
-                                            const {status} = value[internal];
-                                            switch (status.state) {
-                                            case 2:
-                                                return resolve(status.value);
-                                            case 3:
-                                                reasons[i] = status.reason;
-                                                ++count;
-                                                continue;
-                                            }
-                                        }
-                                        value.then(value => {
-                                            resolve(value);
-                                            done = true;
-                                        }, reason => {
-                                            reasons[i] = reason;
-                                            ++count;
-                                            count === values.length && reject(new AggregateError(reasons, 'All promises were rejected'));
-                                        });
-                                    }
-                                    count === values.length && reject(new AggregateError(reasons, 'All promises were rejected'));
-                                });
-                            }
-                            static resolve(value) {
-                                return new AtomicPromise(resolve => resolve(value));
-                            }
-                            static reject(reason) {
-                                return new AtomicPromise((_, reject) => reject(reason));
-                            }
-                            then(onfulfilled, onrejected) {
-                                return new AtomicPromise((resolve, reject) => this[internal].then(resolve, reject, onfulfilled, onrejected));
-                            }
-                            catch(onrejected) {
-                                return this.then(void 0, onrejected);
-                            }
-                            finally(onfinally) {
-                                return this.then(onfinally, onfinally).then(() => this);
-                            }
-                        }
-                        exports.AtomicPromise = AtomicPromise;
-                        _a = Symbol.toStringTag, _b = internal;
-                        class Internal {
-                            constructor() {
-                                this.status = { state: 0 };
-                                this.fulfillReactions = [];
-                                this.rejectReactions = [];
-                            }
-                            get isPending() {
-                                return this.status.state === 0;
-                            }
-                            resolve(value) {
-                                if (this.status.state !== 0)
-                                    return;
-                                if (!isPromiseLike(value)) {
-                                    this.status = {
-                                        state: 2,
-                                        value: value
-                                    };
-                                    return this.resume();
-                                }
-                                if (isAtomicPromiseLike(value)) {
-                                    const core = value[internal];
-                                    switch (core.status.state) {
-                                    case 2:
-                                    case 3:
-                                        this.status = core.status;
-                                        return this.resume();
-                                    default:
-                                        return core.then(() => (this.status = core.status, this.resume()), () => (this.status = core.status, this.resume()));
-                                    }
-                                }
-                                this.status = {
-                                    state: 1,
-                                    promise: value
-                                };
-                                return void value.then(value => {
-                                    this.status = {
-                                        state: 2,
-                                        value
-                                    };
-                                    this.resume();
-                                }, reason => {
-                                    this.status = {
-                                        state: 3,
-                                        reason
-                                    };
-                                    this.resume();
-                                });
-                            }
-                            reject(reason) {
-                                if (this.status.state !== 0)
-                                    return;
-                                this.status = {
-                                    state: 3,
-                                    reason
-                                };
-                                return this.resume();
-                            }
-                            then(resolve, reject, onfulfilled, onrejected) {
-                                const {status, fulfillReactions, rejectReactions} = this;
-                                switch (status.state) {
-                                case 2:
-                                    if (fulfillReactions.length !== 0)
-                                        break;
-                                    return call(resolve, reject, resolve, onfulfilled, status.value);
-                                case 3:
-                                    if (rejectReactions.length !== 0)
-                                        break;
-                                    return call(resolve, reject, reject, onrejected, status.reason);
-                                }
-                                fulfillReactions.push([
-                                    resolve,
-                                    reject,
-                                    resolve,
-                                    onfulfilled
-                                ]);
-                                rejectReactions.push([
-                                    resolve,
-                                    reject,
-                                    reject,
-                                    onrejected
-                                ]);
-                            }
-                            resume() {
-                                const {status, fulfillReactions, rejectReactions} = this;
-                                switch (status.state) {
-                                case 0:
-                                case 1:
-                                    return;
-                                case 2:
-                                    if (rejectReactions.length !== 0) {
-                                        this.rejectReactions = [];
-                                    }
-                                    if (fulfillReactions.length === 0)
-                                        return;
-                                    react(fulfillReactions, status.value);
-                                    this.fulfillReactions = [];
-                                    return;
-                                case 3:
-                                    if (fulfillReactions.length !== 0) {
-                                        this.fulfillReactions = [];
-                                    }
-                                    if (rejectReactions.length === 0)
-                                        return;
-                                    react(rejectReactions, status.reason);
-                                    this.rejectReactions = [];
-                                    return;
-                                }
-                            }
-                        }
-                        exports.Internal = Internal;
-                        function react(reactions, param) {
-                            for (let i = 0; i < reactions.length; ++i) {
-                                const reaction = reactions[i];
-                                call(reaction[0], reaction[1], reaction[2], reaction[3], param);
-                            }
-                        }
-                        function call(resolve, reject, cont, callback, param) {
-                            if (!callback)
-                                return cont(param);
-                            try {
-                                resolve(callback(param));
-                            } catch (reason) {
-                                reject(reason);
-                            }
-                        }
-                        function isPromiseLike(value) {
-                            return value !== null && typeof value === 'object' && typeof value.then === 'function';
-                        }
-                        exports.isPromiseLike = isPromiseLike;
-                        function isAtomicPromiseLike(value) {
-                            return internal in value;
-                        }
-                        exports.never = new class Never extends Promise {
-                            static get [Symbol.species]() {
-                                return Never;
-                            }
-                            constructor() {
-                                super(noop_1.noop);
-                            }
-                            then() {
-                                return this;
-                            }
-                            catch() {
-                                return this;
-                            }
-                            finally() {
-                                return this;
-                            }
-                        }();
-                    },
-                    {
-                        './alias': 4,
-                        './global': 8,
-                        './noop': 10
-                    }
-                ],
-                12: [
-                    function (_dereq_, module, exports) {
-                        'use strict';
-                        Object.defineProperty(exports, '__esModule', { value: true });
-                        exports.unique = exports.rnd0Z = exports.rnd0z = exports.rnd0f = exports.rnd64 = exports.rnd62 = exports.rnd36 = exports.rnd32 = exports.rnd16 = void 0;
-                        const global_1 = _dereq_('./global');
-                        const bases = [...Array(7)].map((_, i) => 1 << i);
-                        const dict = [
-                            ...[...Array(36)].map((_, i) => i.toString(36)),
-                            ...[...Array(36)].map((_, i) => i.toString(36).toUpperCase()).slice(-26)
-                        ];
-                        exports.rnd16 = cons(16);
-                        exports.rnd32 = cons(32);
-                        exports.rnd36 = cons(36);
-                        exports.rnd62 = cons(62);
-                        exports.rnd64 = cons(64);
-                        exports.rnd0f = conv(exports.rnd16);
-                        exports.rnd0z = conv(exports.rnd36);
-                        exports.rnd0Z = conv(exports.rnd62);
-                        function unique(rnd, len, mem) {
-                            const clear = !mem;
-                            mem !== null && mem !== void 0 ? mem : mem = new global_1.Set();
-                            let limit = 5;
-                            return () => {
-                                while (true) {
-                                    for (let i = 0; i < limit; ++i) {
-                                        const r = rnd(len);
-                                        if (mem.has(r))
-                                            continue;
-                                        mem.add(r);
-                                        return r;
-                                    }
-                                    clear && mem.clear();
-                                    ++len;
-                                    limit = len < 3 ? limit : 3;
-                                }
-                            };
-                        }
-                        exports.unique = unique;
-                        function cons(radix) {
-                            const base = bases.find(base => base >= radix);
-                            const len = bases.indexOf(base);
-                            return () => {
-                                while (true) {
-                                    const r = random(len);
-                                    if (r < radix)
-                                        return r;
-                                }
-                            };
-                        }
-                        function conv(rnd) {
-                            return (len = 1) => {
-                                let acc = '';
-                                while (len--) {
-                                    acc += dict[rnd()];
-                                }
-                                return acc;
-                            };
-                        }
-                        const buffer = new Uint16Array(512);
-                        const digit = 16;
-                        const masks = bases.map((_, i) => +`0b${ '1'.repeat(i) || 0 }`);
-                        let index = buffer.length;
-                        let offset = digit;
-                        function random(len) {
-                            if (index === buffer.length) {
-                                global_1.crypto.getRandomValues(buffer);
-                                index = 0;
-                            }
-                            if (offset === len) {
-                                offset = digit;
-                                return buffer[index++] & masks[len];
-                            } else if (offset > len) {
-                                offset -= len;
-                                return buffer[index] >> offset & masks[len];
-                            } else {
-                                offset = digit;
-                                ++index;
-                                return random(len);
-                            }
-                        }
-                    },
-                    { './global': 8 }
-                ],
-                13: [
-                    function (_dereq_, module, exports) {
-                        'use strict';
-                        Object.defineProperty(exports, '__esModule', { value: true });
-                        exports.SVG = exports.HTML = exports.Shadow = exports.API = void 0;
-                        const alias_1 = _dereq_('spica/alias');
-                        const proxy_1 = _dereq_('./proxy');
-                        const dom_1 = _dereq_('./util/dom');
-                        function API(baseFactory, formatter = el => el) {
-                            return new Proxy(() => void 0, handle(baseFactory, formatter));
-                        }
-                        exports.API = API;
-                        exports.Shadow = API(dom_1.html, dom_1.shadow);
-                        exports.HTML = API(dom_1.html);
-                        exports.SVG = API(dom_1.svg);
-                        function handle(baseFactory, formatter) {
-                            return {
-                                apply(target, _, [prop, ...args]) {
-                                    return this.get(target, prop, target)(...args);
-                                },
-                                get: (target, prop) => target[prop] || prop in target || typeof prop !== 'string' ? target[prop] : target[prop] = builder(prop, baseFactory)
-                            };
-                            function builder(tag, baseFactory) {
-                                return function build(attrs, children, factory) {
-                                    if (typeof attrs === 'function')
-                                        return build(void 0, void 0, attrs);
-                                    if (typeof children === 'function')
-                                        return build(attrs, void 0, children);
-                                    if (attrs !== void 0 && isElChildren(attrs))
-                                        return build(void 0, attrs, factory);
-                                    const node = formatter(elem(factory, attrs, children));
-                                    return node.nodeType === 1 ? new proxy_1.Elem(node, children) : new proxy_1.Elem(node.host, children, node);
-                                };
-                                function isElChildren(children) {
-                                    if (typeof children !== 'object')
-                                        return true;
-                                    for (const i in children) {
-                                        if (!(0, alias_1.hasOwnProperty)(children, i))
-                                            continue;
-                                        return typeof children[i] === 'object';
-                                    }
-                                    return true;
-                                }
-                                function elem(factory, attrs, children) {
-                                    const el = factory ? (0, dom_1.define)(factory(baseFactory, tag, attrs !== null && attrs !== void 0 ? attrs : {}, children), attrs) : baseFactory(tag, attrs);
-                                    if (tag !== el.tagName.toLowerCase())
-                                        throw new Error(`TypedDOM: Expected tag name is "${ tag }" but actually "${ el.tagName.toLowerCase() }".`);
-                                    return el;
-                                }
-                            }
-                        }
-                    },
-                    {
-                        './proxy': 14,
-                        './util/dom': 15,
-                        'spica/alias': 4
-                    }
-                ],
-                14: [
-                    function (_dereq_, module, exports) {
-                        'use strict';
-                        var _a, _b, _c, _d;
-                        Object.defineProperty(exports, '__esModule', { value: true });
-                        exports.Elem = exports.proxy = void 0;
-                        const global_1 = _dereq_('spica/global');
-                        const alias_1 = _dereq_('spica/alias');
-                        const identity_1 = _dereq_('./util/identity');
-                        const dom_1 = _dereq_('./util/dom');
-                        const array_1 = _dereq_('spica/array');
-                        const proxies = new global_1.WeakMap();
-                        function proxy(el) {
-                            const proxy = proxies.get(el);
-                            if (proxy)
-                                return proxy;
-                            throw new Error(`TypedDOM: This element has no proxy.`);
-                        }
-                        exports.proxy = proxy;
-                        var privates;
-                        (function (privates) {
-                            privates.id = Symbol();
-                            privates.id_ = Symbol();
-                            privates.query = Symbol();
-                            privates.query_ = Symbol();
-                            privates.scope = Symbol();
-                            privates.observe = Symbol();
-                            privates.type = Symbol();
-                            privates.container = Symbol();
-                            privates.children = Symbol();
-                            privates.isInit = Symbol();
-                            privates.isPartialUpdate = Symbol();
-                        }(privates || (privates = {})));
-                        const tag = Symbol.for('typed-dom::tag');
-                        let id = (0, identity_1.identity)();
-                        let counter = 0;
-                        class Elem {
-                            constructor(element, children, container = element) {
-                                this.element = element;
-                                this[_a] = '';
-                                this[_b] = '';
-                                this[_c] = false;
-                                this[_d] = true;
-                                this[privates.children] = children;
-                                this[privates.container] = container;
-                                switch (true) {
-                                case children === void 0:
-                                    this[privates.type] = 0;
-                                    break;
-                                case typeof children === 'string':
-                                    this[privates.type] = 1;
-                                    break;
-                                case (0, alias_1.isArray)(children):
-                                    this[privates.type] = 2;
-                                    break;
-                                case children && typeof children === 'object':
-                                    this[privates.type] = 3;
-                                    break;
-                                default:
-                                    throw new Error(`TypedDOM: Invalid children type.`);
-                                }
-                                throwErrorIfNotUsable(this);
-                                proxies.set(this.element, this);
-                                switch (this[privates.type]) {
-                                case 0:
-                                    this[privates.isInit] = false;
-                                    return;
-                                case 1:
-                                    (0, dom_1.define)(this[privates.container], []);
-                                    this[privates.children] = this[privates.container].appendChild((0, dom_1.text)(''));
-                                    this.children = children;
-                                    this[privates.isInit] = false;
-                                    return;
-                                case 2:
-                                    (0, dom_1.define)(this[privates.container], []);
-                                    this[privates.children] = [];
-                                    this.children = children;
-                                    this[privates.isInit] = false;
-                                    return;
-                                case 3:
-                                    (0, dom_1.define)(this[privates.container], []);
-                                    this[privates.children] = this[privates.observe]({ ...children });
-                                    this.children = children;
-                                    this[privates.isInit] = false;
-                                    return;
-                                default:
-                                    throw new Error(`TypedDOM: Unreachable code.`);
-                                }
-                            }
-                            get [(_a = privates.id_, privates.id)]() {
-                                if (this[privates.id_])
-                                    return this[privates.id_];
-                                this[privates.id_] = this.element.id;
-                                if (/^[\w-]+$/.test(this[privates.id_]))
-                                    return this[privates.id_];
-                                if (counter === 999) {
-                                    id = (0, identity_1.identity)();
-                                    counter = 0;
-                                }
-                                this[privates.id_] = `rnd-${ id }-${ ++counter }`;
-                                this.element.classList.add(this[privates.id_]);
-                                return this[privates.id_];
-                            }
-                            get [(_b = privates.query_, privates.query)]() {
-                                if (this[privates.query_])
-                                    return this[privates.query_];
-                                switch (true) {
-                                case this.element !== this[privates.container]:
-                                    return this[privates.query_] = ':host';
-                                case this[privates.id] === this.element.id:
-                                    return this[privates.query_] = `#${ this[privates.id] }`;
-                                default:
-                                    return this[privates.query_] = `.${ this[privates.id] }`;
-                                }
-                            }
-                            [privates.scope](child) {
-                                if (child.element.tagName !== 'STYLE')
-                                    return;
-                                const target = /(^|[,}]|\*\/)(\s*)\$scope(?=[\s~+[{:>,])/g;
-                                const style = child.element.innerHTML;
-                                if (!target.test(style))
-                                    return;
-                                child.element.innerHTML = style.replace(target, `$1$2${ this[privates.query] }`);
-                                child.element.firstElementChild && child.element.replaceChildren();
-                            }
-                            [(_c = privates.isPartialUpdate, privates.observe)](children) {
-                                const descs = {};
-                                let i = -1;
-                                for (const name of (0, alias_1.ObjectKeys)(children)) {
-                                    if (name in {})
-                                        throw new Error(`TypedDOM: Child names must be different from the object property names.`);
-                                    ++i;
-                                    let child = children[name];
-                                    throwErrorIfNotUsable(child);
-                                    if (child.element !== this[privates.container].children[i]) {
-                                        this[privates.container].appendChild(child.element);
-                                    }
-                                    descs[name] = {
-                                        configurable: true,
-                                        enumerable: true,
-                                        get: () => {
-                                            return child;
-                                        },
-                                        set: newChild => {
-                                            const oldChild = child;
-                                            if (newChild === oldChild)
-                                                return;
-                                            if (this[privates.isPartialUpdate]) {
-                                                child = newChild;
-                                                if (newChild.element.parentNode === oldChild.element.parentNode) {
-                                                    const ref = newChild.element.nextSibling !== oldChild.element ? newChild.element.nextSibling : oldChild.element.nextSibling;
-                                                    this[privates.container].replaceChild(newChild.element, oldChild.element);
-                                                    this[privates.container].insertBefore(oldChild.element, ref);
-                                                } else {
-                                                    this[privates.container].insertBefore(newChild.element, oldChild.element);
-                                                    this[privates.container].removeChild(oldChild.element);
-                                                }
-                                            } else {
-                                                this.children = {
-                                                    ...this[privates.children],
-                                                    [name]: newChild
-                                                };
-                                            }
-                                        }
-                                    };
-                                }
-                                return (0, alias_1.ObjectDefineProperties)(children, descs);
-                            }
-                            get children() {
-                                switch (this[privates.type]) {
-                                case 1:
-                                    if (this[privates.children].parentNode !== this[privates.container]) {
-                                        this[privates.children] = void 0;
-                                        for (let ns = this[privates.container].childNodes, i = 0, len = ns.length; i < len; ++i) {
-                                            const node = ns[i];
-                                            if ('wholeText' in node === false)
-                                                continue;
-                                            this[privates.children] = node;
-                                            break;
-                                        }
-                                    }
-                                    return this[privates.children].data;
-                                default:
-                                    return this[privates.children];
-                                }
-                            }
-                            set children(children) {
-                                const removedChildren = [];
-                                const addedChildren = [];
-                                let isMutated = false;
-                                switch (this[privates.type]) {
-                                case 0:
-                                    return;
-                                case 1: {
-                                        if (!this[privates.isInit] && children === this.children)
-                                            return;
-                                        const targetChildren = this[privates.children];
-                                        const oldText = targetChildren.data;
-                                        const newText = children;
-                                        targetChildren.data = newText;
-                                        if (newText === oldText)
-                                            return;
-                                        this.element.dispatchEvent(new global_1.Event('mutate', {
-                                            bubbles: false,
-                                            cancelable: true
-                                        }));
-                                        return;
-                                    }
-                                case 2: {
-                                        const sourceChildren = children;
-                                        const targetChildren = [];
-                                        this[privates.children] = targetChildren;
-                                        const nodeChildren = this[privates.container].children;
-                                        for (let i = 0; i < sourceChildren.length; ++i) {
-                                            const newChild = sourceChildren[i];
-                                            const el = nodeChildren[i];
-                                            if (newChild.element.parentNode !== this[privates.container]) {
-                                                throwErrorIfNotUsable(newChild);
-                                            }
-                                            if (newChild.element !== el) {
-                                                if (newChild.element.parentNode !== this[privates.container]) {
-                                                    this[privates.scope](newChild);
-                                                    addedChildren.push(newChild);
-                                                }
-                                                this[privates.container].insertBefore(newChild.element, el);
-                                                isMutated = true;
-                                            }
-                                            targetChildren.push(newChild);
-                                        }
-                                        for (let i = nodeChildren.length; sourceChildren.length < i--;) {
-                                            const el = nodeChildren[sourceChildren.length];
-                                            if (!proxies.has(el))
-                                                continue;
-                                            removedChildren.push(proxy(this[privates.container].removeChild(el)));
-                                            isMutated = true;
-                                        }
-                                        break;
-                                    }
-                                case 3: {
-                                        const sourceChildren = children;
-                                        const targetChildren = this[privates.children];
-                                        for (const name of (0, alias_1.ObjectKeys)(targetChildren)) {
-                                            const oldChild = targetChildren[name];
-                                            const newChild = sourceChildren[name];
-                                            if (!this[privates.isInit] && newChild === oldChild)
-                                                continue;
-                                            if (newChild.element.parentNode !== this[privates.container]) {
-                                                throwErrorIfNotUsable(newChild);
-                                            }
-                                            if (this[privates.isInit] || newChild !== oldChild && newChild.element.parentNode !== oldChild.element.parentNode) {
-                                                this[privates.scope](newChild);
-                                                addedChildren.push(newChild);
-                                                if (!this[privates.isInit]) {
-                                                    let i = 0;
-                                                    i = removedChildren.lastIndexOf(newChild);
-                                                    i > -1 && (0, array_1.splice)(removedChildren, i, 1);
-                                                    removedChildren.push(oldChild);
-                                                    i = addedChildren.lastIndexOf(oldChild);
-                                                    i > -1 && (0, array_1.splice)(addedChildren, i, 1);
-                                                }
-                                            }
-                                            this[privates.isPartialUpdate] = true;
-                                            targetChildren[name] = sourceChildren[name];
-                                            this[privates.isPartialUpdate] = false;
-                                            isMutated = true;
-                                        }
-                                        break;
-                                    }
-                                }
-                                if (removedChildren.length) {
-                                    const ev = new global_1.Event('disconnect', {
-                                        bubbles: false,
-                                        cancelable: true
-                                    });
-                                    for (const {element} of removedChildren) {
-                                        element.dispatchEvent(ev);
-                                    }
-                                }
-                                if (addedChildren.length) {
-                                    const ev = new global_1.Event('connect', {
-                                        bubbles: false,
-                                        cancelable: true
-                                    });
-                                    for (const {element} of addedChildren) {
-                                        element.dispatchEvent(ev);
-                                    }
-                                }
-                                if (isMutated) {
-                                    this.element.dispatchEvent(new global_1.Event('mutate', {
-                                        bubbles: false,
-                                        cancelable: true
-                                    }));
-                                }
-                            }
-                        }
-                        exports.Elem = Elem;
-                        privates.type, privates.container, _d = privates.isInit, privates.children;
-                        function throwErrorIfNotUsable({element}) {
-                            if (!element.parentElement || !proxies.has(element.parentElement))
-                                return;
-                            throw new Error(`TypedDOM: Typed DOM children must not be used to another typed DOM.`);
-                        }
-                    },
-                    {
-                        './util/dom': 15,
-                        './util/identity': 16,
-                        'spica/alias': 4,
-                        'spica/array': 5,
-                        'spica/global': 8
-                    }
-                ],
-                15: [
-                    function (_dereq_, module, exports) {
-                        'use strict';
-                        Object.defineProperty(exports, '__esModule', { value: true });
-                        exports.defrag = exports.isChildren = exports.define = exports.element = exports.text = exports.svg = exports.html = exports.frag = exports.shadow = void 0;
-                        const global_1 = _dereq_('spica/global');
-                        const alias_1 = _dereq_('spica/alias');
-                        const memoize_1 = _dereq_('spica/memoize');
-                        var caches;
-                        (function (caches) {
-                            caches.shadows = new WeakMap();
-                            caches.fragment = global_1.document.createDocumentFragment();
-                        }(caches || (caches = {})));
-                        function shadow(el, children, opts) {
-                            var _a, _b;
-                            if (typeof el === 'string')
-                                return shadow((0, exports.html)(el), children, opts);
-                            if (children && !isChildren(children))
-                                return shadow(el, void 0, children);
-                            const root = opts === void 0 ? (_a = el.shadowRoot) !== null && _a !== void 0 ? _a : caches.shadows.get(el) : opts.mode === 'open' ? (_b = el.shadowRoot) !== null && _b !== void 0 ? _b : void 0 : caches.shadows.get(el);
-                            return defineChildren(!opts || opts.mode === 'open' ? root !== null && root !== void 0 ? root : el.attachShadow(opts !== null && opts !== void 0 ? opts : { mode: 'open' }) : root !== null && root !== void 0 ? root : caches.shadows.set(el, el.attachShadow(opts)).get(el), !root && children === void 0 ? el.childNodes : children);
-                        }
-                        exports.shadow = shadow;
-                        function frag(children) {
-                            return defineChildren(caches.fragment.cloneNode(true), children);
-                        }
-                        exports.frag = frag;
-                        exports.html = element(global_1.document, 'HTML');
-                        exports.svg = element(global_1.document, 'SVG');
-                        function text(source) {
-                            return global_1.document.createTextNode(source);
-                        }
-                        exports.text = text;
-                        function element(context, ns) {
-                            const cache = (0, memoize_1.memoize)(elem, (_, ns, tag) => `${ ns }:${ tag }`);
-                            return (tag, attrs, children) => {
-                                const el = tag.includes('-') ? elem(context, ns, tag) : cache(context, ns, tag).cloneNode(true);
-                                return isChildren(attrs) ? defineChildren(el, attrs) : defineChildren(defineAttrs(el, attrs), children);
-                            };
-                        }
-                        exports.element = element;
-                        function elem(context, ns, tag) {
-                            if (!('createElement' in context))
-                                throw new Error(`TypedDOM: Scoped custom elements are not supported on this browser.`);
-                            switch (ns) {
-                            case 'HTML':
-                                return context.createElement(tag);
-                            case 'SVG':
-                                return context.createElementNS('http://www.w3.org/2000/svg', tag);
-                            }
-                        }
-                        function define(node, attrs, children) {
-                            return isChildren(attrs) ? defineChildren(node, attrs) : defineChildren(defineAttrs(node, attrs), children);
-                        }
-                        exports.define = define;
-                        function defineAttrs(el, attrs) {
-                            if (!attrs)
-                                return el;
-                            for (let i = 0, names = (0, alias_1.ObjectKeys)(attrs); i < names.length; ++i) {
-                                const name = names[i];
-                                const value = attrs[name];
-                                switch (typeof value) {
-                                case 'string':
-                                    el.setAttribute(name, value);
-                                    continue;
-                                case 'function':
-                                    if (name.length < 3)
-                                        throw new Error(`TypedDOM: Attribute names for event listeners must have an event name but got "${ name }".`);
-                                    const names = name.split(/\s+/);
-                                    for (let i = 0; i < names.length; ++i) {
-                                        const name = names[i];
-                                        if (name.slice(0, 2) !== 'on')
-                                            throw new Error(`TypedDOM: Attribute names for event listeners must start with "on" but got "${ name }".`);
-                                        el.addEventListener(name.slice(2), value, {
-                                            passive: [
-                                                'wheel',
-                                                'mousewheel',
-                                                'touchstart',
-                                                'touchmove',
-                                                'touchend',
-                                                'touchcancel'
-                                            ].includes(name.slice(2))
-                                        });
-                                    }
-                                    continue;
-                                case 'object':
-                                    el.removeAttribute(name);
-                                    continue;
-                                default:
-                                    continue;
-                                }
-                            }
-                            return el;
-                        }
-                        function defineChildren(node, children) {
-                            if (children === void 0)
-                                return node;
-                            node.replaceChildren(...typeof children === 'string' ? [children] : children);
-                            return node;
-                        }
-                        function isChildren(o) {
-                            return !!(o === null || o === void 0 ? void 0 : o[global_1.Symbol.iterator]);
-                        }
-                        exports.isChildren = isChildren;
-                        function defrag(nodes) {
-                            const acc = [];
-                            for (let i = 0; i < nodes.length; ++i) {
-                                const node = nodes[i];
-                                if (node === '')
-                                    continue;
-                                acc.length > 0 && typeof node === 'string' && typeof nodes[i - 1] === 'string' ? acc[acc.length - 1] += node : acc.push(node);
-                            }
-                            return acc;
-                        }
-                        exports.defrag = defrag;
-                    },
-                    {
-                        'spica/alias': 4,
-                        'spica/global': 8,
-                        'spica/memoize': 9
-                    }
-                ],
-                16: [
-                    function (_dereq_, module, exports) {
-                        'use strict';
-                        var _a;
-                        Object.defineProperty(exports, '__esModule', { value: true });
-                        exports.identity = void 0;
-                        const global_1 = _dereq_('spica/global');
-                        const random_1 = _dereq_('spica/random');
-                        const ids = Symbol.for('typed-dom::ids');
-                        exports.identity = (0, random_1.unique)(random_1.rnd0Z, 2, (_a = global_1.global[ids]) !== null && _a !== void 0 ? _a : global_1.global[ids] = new global_1.Set());
-                    },
-                    {
-                        'spica/global': 8,
-                        'spica/random': 12
-                    }
-                ],
-                17: [
-                    function (_dereq_, module, exports) {
-                        'use strict';
-                        Object.defineProperty(exports, '__esModule', { value: true });
-                        exports.bind = exports.delegate = exports.wait = exports.once = exports.listen = exports.currentTarget = void 0;
-                        const promise_1 = _dereq_('spica/promise');
-                        const function_1 = _dereq_('spica/function');
-                        const noop_1 = _dereq_('spica/noop');
-                        exports.currentTarget = Symbol.for('typed-dom::currentTarget');
-                        function listen(target, a, b, c = false, d = {}) {
-                            return typeof b === 'string' ? delegate(target, a, b, c, d) : bind(target, a, b, c);
-                        }
-                        exports.listen = listen;
-                        function once(target, a, b, c = false, d = {}) {
-                            return typeof b === 'string' ? delegate(target, a, b, c, {
-                                ...typeof d === 'boolean' ? { capture: d } : d,
-                                once: true
-                            }) : bind(target, a, b, {
-                                ...typeof c === 'boolean' ? { capture: c } : c,
-                                once: true
+            }
+            function define(node, attrs, children) {
+                return isChildren(attrs) ? defineChildren(node, attrs) : defineChildren(defineAttrs(node, attrs), children);
+            }
+            exports.define = define;
+            function defineAttrs(el, attrs) {
+                if (!attrs)
+                    return el;
+                for (let i = 0, names = (0, alias_1.ObjectKeys)(attrs); i < names.length; ++i) {
+                    const name = names[i];
+                    const value = attrs[name];
+                    switch (typeof value) {
+                    case 'string':
+                        el.setAttribute(name, value);
+                        continue;
+                    case 'function':
+                        if (name.length < 3)
+                            throw new Error(`TypedDOM: Attribute names for event listeners must have an event name but got "${ name }".`);
+                        const names = name.split(/\s+/);
+                        for (let i = 0; i < names.length; ++i) {
+                            const name = names[i];
+                            if (name.slice(0, 2) !== 'on')
+                                throw new Error(`TypedDOM: Attribute names for event listeners must start with "on" but got "${ name }".`);
+                            el.addEventListener(name.slice(2), value, {
+                                passive: [
+                                    'wheel',
+                                    'mousewheel',
+                                    'touchstart',
+                                    'touchmove',
+                                    'touchend',
+                                    'touchcancel'
+                                ].includes(name.slice(2))
                             });
                         }
-                        exports.once = once;
-                        function wait(target, a, b = false, c = {}) {
-                            return new promise_1.AtomicPromise(resolve => typeof b === 'string' ? once(target, a, b, resolve, c) : once(target, a, resolve, b));
-                        }
-                        exports.wait = wait;
-                        function delegate(target, selector, type, listener, option = {}) {
-                            let unbind = noop_1.noop;
-                            return bind(target, type, ev => {
-                                var _a, _b;
-                                unbind();
-                                const cx = ev.target.shadowRoot ? (_a = ev.composedPath()[0]) === null || _a === void 0 ? void 0 : _a.closest(selector) : (_b = ev.target) === null || _b === void 0 ? void 0 : _b.closest(selector);
-                                return cx ? unbind = once(cx, type, listener, option) : void 0;
-                            }, {
-                                ...option,
-                                capture: true
-                            });
-                        }
-                        exports.delegate = delegate;
-                        function bind(target, type, listener, option = false) {
-                            target.addEventListener(type, handler, option);
-                            return (0, function_1.singleton)(() => void target.removeEventListener(type, handler, option));
-                            function handler(ev) {
-                                ev[exports.currentTarget] = ev.currentTarget;
-                                return listener(ev);
-                            }
-                        }
-                        exports.bind = bind;
-                    },
-                    {
-                        'spica/function': 7,
-                        'spica/noop': 10,
-                        'spica/promise': 11
+                        continue;
+                    case 'object':
+                        el.removeAttribute(name);
+                        continue;
+                    default:
+                        continue;
                     }
-                ],
-                18: [
-                    function (_dereq_, module, exports) {
-                        'use strict';
-                        Object.defineProperty(exports, '__esModule', { value: true });
-                        exports.apply = void 0;
-                        const dom_1 = _dereq_('./dom');
-                        function apply(node, selector, attrs) {
-                            const ns = node.querySelectorAll(selector);
-                            for (let i = 0, len = ns.length; i < len; ++i) {
-                                (0, dom_1.define)(ns[i], attrs);
-                            }
-                            return ns;
-                        }
-                        exports.apply = apply;
-                    },
-                    { './dom': 15 }
-                ],
-                'typed-dom': [
-                    function (_dereq_, module, exports) {
-                        'use strict';
-                        Object.defineProperty(exports, '__esModule', { value: true });
-                        exports.identity = exports.apply = exports.currentTarget = exports.wait = exports.once = exports.bind = exports.delegate = exports.listen = exports.defrag = exports.define = exports.element = exports.text = exports.svg = exports.html = exports.frag = exports.shadow = exports.proxy = exports.API = exports.SVG = exports.HTML = exports.Shadow = void 0;
-                        _dereq_('spica/global');
-                        var builder_1 = _dereq_('./src/builder');
-                        Object.defineProperty(exports, 'Shadow', {
-                            enumerable: true,
-                            get: function () {
-                                return builder_1.Shadow;
-                            }
-                        });
-                        Object.defineProperty(exports, 'HTML', {
-                            enumerable: true,
-                            get: function () {
-                                return builder_1.HTML;
-                            }
-                        });
-                        Object.defineProperty(exports, 'SVG', {
-                            enumerable: true,
-                            get: function () {
-                                return builder_1.SVG;
-                            }
-                        });
-                        Object.defineProperty(exports, 'API', {
-                            enumerable: true,
-                            get: function () {
-                                return builder_1.API;
-                            }
-                        });
-                        var proxy_1 = _dereq_('./src/proxy');
-                        Object.defineProperty(exports, 'proxy', {
-                            enumerable: true,
-                            get: function () {
-                                return proxy_1.proxy;
-                            }
-                        });
-                        var dom_1 = _dereq_('./src/util/dom');
-                        Object.defineProperty(exports, 'shadow', {
-                            enumerable: true,
-                            get: function () {
-                                return dom_1.shadow;
-                            }
-                        });
-                        Object.defineProperty(exports, 'frag', {
-                            enumerable: true,
-                            get: function () {
-                                return dom_1.frag;
-                            }
-                        });
-                        Object.defineProperty(exports, 'html', {
-                            enumerable: true,
-                            get: function () {
-                                return dom_1.html;
-                            }
-                        });
-                        Object.defineProperty(exports, 'svg', {
-                            enumerable: true,
-                            get: function () {
-                                return dom_1.svg;
-                            }
-                        });
-                        Object.defineProperty(exports, 'text', {
-                            enumerable: true,
-                            get: function () {
-                                return dom_1.text;
-                            }
-                        });
-                        Object.defineProperty(exports, 'element', {
-                            enumerable: true,
-                            get: function () {
-                                return dom_1.element;
-                            }
-                        });
-                        Object.defineProperty(exports, 'define', {
-                            enumerable: true,
-                            get: function () {
-                                return dom_1.define;
-                            }
-                        });
-                        Object.defineProperty(exports, 'defrag', {
-                            enumerable: true,
-                            get: function () {
-                                return dom_1.defrag;
-                            }
-                        });
-                        var listener_1 = _dereq_('./src/util/listener');
-                        Object.defineProperty(exports, 'listen', {
-                            enumerable: true,
-                            get: function () {
-                                return listener_1.listen;
-                            }
-                        });
-                        Object.defineProperty(exports, 'delegate', {
-                            enumerable: true,
-                            get: function () {
-                                return listener_1.delegate;
-                            }
-                        });
-                        Object.defineProperty(exports, 'bind', {
-                            enumerable: true,
-                            get: function () {
-                                return listener_1.bind;
-                            }
-                        });
-                        Object.defineProperty(exports, 'once', {
-                            enumerable: true,
-                            get: function () {
-                                return listener_1.once;
-                            }
-                        });
-                        Object.defineProperty(exports, 'wait', {
-                            enumerable: true,
-                            get: function () {
-                                return listener_1.wait;
-                            }
-                        });
-                        Object.defineProperty(exports, 'currentTarget', {
-                            enumerable: true,
-                            get: function () {
-                                return listener_1.currentTarget;
-                            }
-                        });
-                        var query_1 = _dereq_('./src/util/query');
-                        Object.defineProperty(exports, 'apply', {
-                            enumerable: true,
-                            get: function () {
-                                return query_1.apply;
-                            }
-                        });
-                        var identity_1 = _dereq_('./src/util/identity');
-                        Object.defineProperty(exports, 'identity', {
-                            enumerable: true,
-                            get: function () {
-                                return identity_1.identity;
-                            }
-                        });
-                    },
-                    {
-                        './src/builder': 13,
-                        './src/proxy': 14,
-                        './src/util/dom': 15,
-                        './src/util/identity': 16,
-                        './src/util/listener': 17,
-                        './src/util/query': 18,
-                        'spica/global': 8
-                    }
-                ]
-            }, {}, [
-                1,
-                2,
-                'typed-dom',
-                3
-            ]);
-            (function (root, factory) {
-                if (typeof define === 'function' && define.amd) {
-                    define([], factory);
-                } else if (typeof module === 'object' && module.exports) {
-                    module.exports = factory();
-                } else {
-                    root.commonJsStrict = factory();
                 }
-            }(typeof self !== 'undefined' ? self : this, function () {
-                return _dereq_('typed-dom');
-            }));
+                return el;
+            }
+            function defineChildren(node, children) {
+                if (children === void 0)
+                    return node;
+                node.replaceChildren(...typeof children === 'string' ? [children] : children);
+                return node;
+            }
+            function isChildren(param) {
+                return !!(param === null || param === void 0 ? void 0 : param[global_1.Symbol.iterator]);
+            }
+            exports.isChildren = isChildren;
+            function defrag(nodes) {
+                const acc = [];
+                for (let i = 0; i < nodes.length; ++i) {
+                    const node = nodes[i];
+                    if (node === '')
+                        continue;
+                    acc.length > 0 && typeof node === 'string' && typeof nodes[i - 1] === 'string' ? acc[acc.length - 1] += node : acc.push(node);
+                }
+                return acc;
+            }
+            exports.defrag = defrag;
         },
-        { 'typed-dom': 100 }
+        {
+            'spica/alias': 4,
+            'spica/global': 20,
+            'spica/memoize': 29
+        }
     ],
     101: [
+        function (_dereq_, module, exports) {
+            'use strict';
+            Object.defineProperty(exports, '__esModule', { value: true });
+            exports.bind = exports.delegate = exports.wait = exports.once = exports.listen = exports.currentTarget = void 0;
+            const promise_1 = _dereq_('spica/promise');
+            const function_1 = _dereq_('spica/function');
+            const noop_1 = _dereq_('spica/noop');
+            exports.currentTarget = Symbol.for('typed-dom::currentTarget');
+            function listen(target, a, b, c = false, d = {}) {
+                return typeof b === 'string' ? delegate(target, a, b, c, d) : bind(target, a, b, c);
+            }
+            exports.listen = listen;
+            function once(target, a, b, c = false, d = {}) {
+                return typeof b === 'string' ? delegate(target, a, b, c, {
+                    ...typeof d === 'boolean' ? { capture: d } : d,
+                    once: true
+                }) : bind(target, a, b, {
+                    ...typeof c === 'boolean' ? { capture: c } : c,
+                    once: true
+                });
+            }
+            exports.once = once;
+            function wait(target, a, b = false, c = {}) {
+                return new promise_1.AtomicPromise(resolve => typeof b === 'string' ? once(target, a, b, resolve, c) : once(target, a, resolve, b));
+            }
+            exports.wait = wait;
+            function delegate(target, selector, type, listener, option = {}) {
+                let unbind = noop_1.noop;
+                return bind(target, type, ev => {
+                    var _a, _b;
+                    unbind();
+                    const cx = ev.target.shadowRoot ? (_a = ev.composedPath()[0]) === null || _a === void 0 ? void 0 : _a.closest(selector) : (_b = ev.target) === null || _b === void 0 ? void 0 : _b.closest(selector);
+                    return cx ? unbind = once(cx, type, listener, option) : void 0;
+                }, {
+                    ...option,
+                    capture: true
+                });
+            }
+            exports.delegate = delegate;
+            function bind(target, type, listener, option = false) {
+                target.addEventListener(type, handler, option);
+                return (0, function_1.singleton)(() => void target.removeEventListener(type, handler, option));
+                function handler(ev) {
+                    ev[exports.currentTarget] = ev.currentTarget;
+                    return listener(ev);
+                }
+            }
+            exports.bind = bind;
+        },
+        {
+            'spica/function': 18,
+            'spica/noop': 86,
+            'spica/promise': 88
+        }
+    ],
+    102: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6993,9 +5705,9 @@ require = function () {
                 }
             });
         },
-        { './layer/interface/service/gui': 130 }
+        { './layer/interface/service/gui': 131 }
     ],
-    102: [
+    103: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7039,12 +5751,12 @@ require = function () {
             exports.route = route;
         },
         {
-            '../domain/data/config': 105,
-            '../domain/event/router': 107,
-            '../domain/router/api': 108
+            '../domain/data/config': 106,
+            '../domain/event/router': 108,
+            '../domain/router/api': 109
         }
     ],
-    103: [
+    104: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7063,9 +5775,9 @@ require = function () {
                 }
             });
         },
-        { '../domain/store/path': 124 }
+        { '../domain/store/path': 125 }
     ],
-    104: [
+    105: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7123,7 +5835,7 @@ require = function () {
         },
         {}
     ],
-    105: [
+    106: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7220,12 +5932,12 @@ require = function () {
             }
         },
         {
-            './config/scope': 106,
+            './config/scope': 107,
             'spica/alias': 4,
             'spica/assign': 6
         }
     ],
-    106: [
+    107: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7236,18 +5948,19 @@ require = function () {
             const sequence_1 = _dereq_('spica/sequence');
             const maybe_1 = _dereq_('spica/maybe');
             const assign_1 = _dereq_('spica/assign');
+            const {compare} = router_1.router.helpers();
             function scope(config, path) {
                 var _a;
                 const scope = {
                     '/': {},
                     ...config.scope
                 };
-                return (_a = sequence_1.Sequence.from((0, alias_1.ObjectKeys)(scope).sort().reverse()).dropWhile(pattern => !!!(0, router_1.compare)(pattern, path.orig) && !(0, router_1.compare)(pattern, path.dest)).take(1).filter(pattern => !!(0, router_1.compare)(pattern, path.orig) && (0, router_1.compare)(pattern, path.dest)).map(pattern => scope[pattern]).map(option => option ? (0, maybe_1.Just)(new config_1.Config((0, assign_1.extend)({ scope: option.scope && (0, assign_1.overwrite)(config.scope, option.scope) }, config, option))) : maybe_1.Nothing).extract()[0]) !== null && _a !== void 0 ? _a : maybe_1.Nothing;
+                return (_a = sequence_1.Sequence.from((0, alias_1.ObjectKeys)(scope).sort().reverse()).dropWhile(pattern => !!!compare(pattern, path.orig) && !compare(pattern, path.dest)).take(1).filter(pattern => !!compare(pattern, path.orig) && compare(pattern, path.dest)).map(pattern => scope[pattern]).map(option => option ? (0, maybe_1.Just)(new config_1.Config((0, assign_1.extend)({ scope: option.scope && (0, assign_1.overwrite)(config.scope, option.scope) }, config, option))) : maybe_1.Nothing).extract()[0]) !== null && _a !== void 0 ? _a : maybe_1.Nothing;
             }
             exports.scope = scope;
         },
         {
-            '../../../domain/data/config': 105,
+            '../../../domain/data/config': 106,
             'spica/alias': 4,
             'spica/assign': 6,
             'spica/maybe': 28,
@@ -7255,7 +5968,7 @@ require = function () {
             'spica/sequence': 90
         }
     ],
-    107: [
+    108: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7263,12 +5976,12 @@ require = function () {
             const alias_1 = _dereq_('spica/alias');
             const dom_1 = _dereq_('../../../lib/dom');
             const url_1 = _dereq_('spica/url');
-            const typed_dom_1 = _dereq_('typed-dom');
+            const listener_1 = _dereq_('typed-dom/listener');
             class RouterEvent {
                 constructor(original) {
                     this.original = original;
                     this.type = this.original.type.toLowerCase();
-                    this.source = this.original[typed_dom_1.currentTarget];
+                    this.source = this.original[listener_1.currentTarget];
                     this.request = new RouterEventRequest(this.source);
                     this.location = new RouterEventLocation(this.request.url);
                     void (0, alias_1.ObjectFreeze)(this);
@@ -7335,13 +6048,13 @@ require = function () {
             exports.RouterEventLocation = RouterEventLocation;
         },
         {
-            '../../../lib/dom': 137,
+            '../../../lib/dom': 138,
             'spica/alias': 4,
             'spica/url': 98,
-            'typed-dom': 100
+            'typed-dom/listener': 101
         }
     ],
-    108: [
+    109: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7379,15 +6092,15 @@ require = function () {
             exports.route = route;
         },
         {
-            '../store/path': 124,
-            './model/eav/entity': 109,
-            './module/fetch': 111,
-            './module/update': 113,
-            './module/update/content': 115,
+            '../store/path': 125,
+            './model/eav/entity': 110,
+            './module/fetch': 112,
+            './module/update': 114,
+            './module/update/content': 116,
             'spica/either': 15
         }
     ],
-    109: [
+    110: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7413,7 +6126,7 @@ require = function () {
         },
         { 'spica/alias': 4 }
     ],
-    110: [
+    111: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7442,12 +6155,12 @@ require = function () {
             exports.FetchResponse = FetchResponse;
         },
         {
-            '../../../../../../lib/html': 139,
+            '../../../../../../lib/html': 140,
             'spica/alias': 4,
             'spica/url': 98
         }
     ],
-    111: [
+    112: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7477,11 +6190,11 @@ require = function () {
             exports.fetch = fetch;
         },
         {
-            '../module/fetch/xhr': 112,
+            '../module/fetch/xhr': 113,
             'spica/timer': 95
         }
     ],
-    112: [
+    113: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7574,7 +6287,7 @@ require = function () {
             exports.match_ = match;
         },
         {
-            '../../model/eav/value/fetch': 110,
+            '../../model/eav/value/fetch': 111,
             'spica/cache': 7,
             'spica/either': 15,
             'spica/promise': 88,
@@ -7582,7 +6295,7 @@ require = function () {
             'spica/url': 98
         }
     ],
-    113: [
+    114: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7655,23 +6368,23 @@ require = function () {
             exports.update = update;
         },
         {
-            '../../event/router': 107,
-            '../../store/path': 124,
-            '../module/update/blur': 114,
-            '../module/update/content': 115,
-            '../module/update/css': 116,
-            '../module/update/focus': 117,
-            '../module/update/head': 118,
-            '../module/update/script': 119,
-            '../module/update/scroll': 120,
-            '../module/update/title': 122,
-            '../module/update/url': 123,
+            '../../event/router': 108,
+            '../../store/path': 125,
+            '../module/update/blur': 115,
+            '../module/update/content': 116,
+            '../module/update/css': 117,
+            '../module/update/focus': 118,
+            '../module/update/head': 119,
+            '../module/update/script': 120,
+            '../module/update/scroll': 121,
+            '../module/update/title': 123,
+            '../module/update/url': 124,
             'spica/either': 15,
             'spica/hlist': 22,
             'spica/promise': 88
         }
     ],
-    114: [
+    115: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7686,7 +6399,7 @@ require = function () {
         },
         {}
     ],
-    115: [
+    116: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7695,7 +6408,7 @@ require = function () {
             const promise_1 = _dereq_('spica/promise');
             const maybe_1 = _dereq_('spica/maybe');
             const array_1 = _dereq_('spica/array');
-            const typed_dom_1 = _dereq_('typed-dom');
+            const listener_1 = _dereq_('typed-dom/listener');
             function content(documents, areas, io = { replace: (src, dst) => void dst.parentNode.replaceChild(src, dst) }) {
                 return [
                     areas.map(r => r.dst).reduce(array_1.push, []),
@@ -7736,22 +6449,22 @@ require = function () {
             exports._split = split;
             function wait(el) {
                 return promise_1.AtomicPromise.race([
-                    new promise_1.AtomicPromise(resolve => void (0, typed_dom_1.once)(el, 'load', resolve)),
-                    new promise_1.AtomicPromise(resolve => void (0, typed_dom_1.once)(el, 'abort', resolve)),
-                    new promise_1.AtomicPromise(resolve => void (0, typed_dom_1.once)(el, 'error', resolve))
+                    new promise_1.AtomicPromise(resolve => void (0, listener_1.once)(el, 'load', resolve)),
+                    new promise_1.AtomicPromise(resolve => void (0, listener_1.once)(el, 'abort', resolve)),
+                    new promise_1.AtomicPromise(resolve => void (0, listener_1.once)(el, 'error', resolve))
                 ]);
             }
             exports._wait = wait;
         },
         {
-            './script': 119,
+            './script': 120,
             'spica/array': 5,
             'spica/maybe': 28,
             'spica/promise': 88,
-            'typed-dom': 100
+            'typed-dom/listener': 101
         }
     ],
-    116: [
+    117: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7772,9 +6485,9 @@ require = function () {
             }
             exports.css = css;
         },
-        { './sync': 121 }
+        { './sync': 122 }
     ],
-    117: [
+    118: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7793,9 +6506,9 @@ require = function () {
             }
             exports.focus = focus;
         },
-        { '../../../event/router': 107 }
+        { '../../../event/router': 108 }
     ],
-    118: [
+    119: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7810,9 +6523,9 @@ require = function () {
             }
             exports.head = head;
         },
-        { './sync': 121 }
+        { './sync': 122 }
     ],
-    119: [
+    120: [
         function (_dereq_, module, exports) {
             'use strict';
             var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
@@ -7863,7 +6576,7 @@ require = function () {
             const array_1 = _dereq_('spica/array');
             const tuple_1 = _dereq_('spica/tuple');
             const timer_1 = _dereq_('spica/timer');
-            const typed_dom_1 = _dereq_('typed-dom');
+            const dom_1 = _dereq_('typed-dom/dom');
             function script(documents, skip, selector, timeout, cancellation, io = {
                 fetch,
                 evaluate
@@ -7971,12 +6684,12 @@ require = function () {
             function retry(script) {
                 if (new url_1.URL((0, url_1.standardize)(script.src)).origin === new url_1.URL((0, url_1.standardize)(window.location.href)).origin)
                     return promise_1.AtomicPromise.reject(new Error());
-                script = (0, typed_dom_1.html)('script', (0, alias_1.ObjectValues)(script.attributes).reduce((o, {name, value}) => (o[name] = value, o), {}), [...script.childNodes]);
+                script = (0, dom_1.html)('script', (0, alias_1.ObjectValues)(script.attributes).reduce((o, {name, value}) => (o[name] = value, o), {}), [...script.childNodes]);
                 return new promise_1.AtomicPromise((resolve, reject) => (void script.addEventListener('load', () => void resolve(global_1.undefined)), void script.addEventListener('error', reject), void document.body.appendChild(script), void script.remove()));
             }
         },
         {
-            '../../../../../lib/error': 138,
+            '../../../../../lib/error': 139,
             'spica/alias': 4,
             'spica/array': 5,
             'spica/either': 15,
@@ -7985,10 +6698,10 @@ require = function () {
             'spica/timer': 95,
             'spica/tuple': 96,
             'spica/url': 98,
-            'typed-dom': 100
+            'typed-dom/dom': 100
         }
     ],
-    120: [
+    121: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -8031,9 +6744,9 @@ require = function () {
             }
             exports._hash = hash;
         },
-        { '../../../event/router': 107 }
+        { '../../../event/router': 108 }
     ],
-    121: [
+    122: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -8074,7 +6787,7 @@ require = function () {
             'spica/either': 15
         }
     ],
-    122: [
+    123: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -8086,14 +6799,14 @@ require = function () {
         },
         {}
     ],
-    123: [
+    124: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             exports._isReplaceable = exports._isRegisterable = exports.url = void 0;
             const router_1 = _dereq_('../../../event/router');
-            const typed_dom_1 = _dereq_('typed-dom');
-            void (0, typed_dom_1.bind)(document, 'pjax:ready', () => void window.history.replaceState(window.history.state, window.document.title));
+            const listener_1 = _dereq_('typed-dom/listener');
+            void (0, listener_1.bind)(document, 'pjax:ready', () => void window.history.replaceState(window.history.state, window.document.title));
             function url(location, title, type, source, replaceable) {
                 switch (true) {
                 case isReplaceable(type, source, replaceable):
@@ -8133,11 +6846,11 @@ require = function () {
             exports._isReplaceable = isReplaceable;
         },
         {
-            '../../../event/router': 107,
-            'typed-dom': 100
+            '../../../event/router': 108,
+            'typed-dom/listener': 101
         }
     ],
-    124: [
+    125: [
         function (_dereq_, module, exports) {
             'use strict';
             var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
@@ -8166,19 +6879,19 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             __exportStar(_dereq_('../../data/store/state'), exports);
         },
-        { '../../data/store/state': 104 }
+        { '../../data/store/state': 105 }
     ],
-    125: [
+    126: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.ClickView = void 0;
             const coroutine_1 = _dereq_('spica/coroutine');
-            const typed_dom_1 = _dereq_('typed-dom');
+            const listener_1 = _dereq_('typed-dom/listener');
             class ClickView extends coroutine_1.Coroutine {
                 constructor(document, selector, listener) {
                     super(async function* () {
-                        return this.finally((0, typed_dom_1.delegate)(document, selector, 'click', ev => {
+                        return this.finally((0, listener_1.delegate)(document, selector, 'click', ev => {
                             if (!(ev.currentTarget instanceof HTMLAnchorElement || ev.currentTarget instanceof HTMLAreaElement))
                                 return;
                             void listener(ev);
@@ -8190,10 +6903,10 @@ require = function () {
         },
         {
             'spica/coroutine': 13,
-            'typed-dom': 100
+            'typed-dom/listener': 101
         }
     ],
-    126: [
+    127: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -8202,11 +6915,11 @@ require = function () {
             const state_1 = _dereq_('../../../data/store/state');
             const coroutine_1 = _dereq_('spica/coroutine');
             const url_1 = _dereq_('spica/url');
-            const typed_dom_1 = _dereq_('typed-dom');
+            const listener_1 = _dereq_('typed-dom/listener');
             class NavigationView extends coroutine_1.Coroutine {
                 constructor(window, listener) {
                     super(async function* () {
-                        return this.finally((0, typed_dom_1.bind)(window, 'popstate', ev => {
+                        return this.finally((0, listener_1.bind)(window, 'popstate', ev => {
                             if (!(0, state_1.isTransitable)(page_1.page.state) || !(0, state_1.isTransitable)(window.history.state))
                                 return;
                             if ((0, url_1.standardize)(window.location.href) === page_1.page.href)
@@ -8219,14 +6932,14 @@ require = function () {
             exports.NavigationView = NavigationView;
         },
         {
-            '../../../data/store/state': 104,
-            '../../service/state/page': 133,
+            '../../../data/store/state': 105,
+            '../../service/state/page': 134,
             'spica/coroutine': 13,
             'spica/url': 98,
-            'typed-dom': 100
+            'typed-dom/listener': 101
         }
     ],
-    127: [
+    128: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -8235,11 +6948,11 @@ require = function () {
             const coroutine_1 = _dereq_('spica/coroutine');
             const url_1 = _dereq_('spica/url');
             const throttle_1 = _dereq_('spica/throttle');
-            const typed_dom_1 = _dereq_('typed-dom');
+            const listener_1 = _dereq_('typed-dom/listener');
             class ScrollView extends coroutine_1.Coroutine {
                 constructor(window, listener) {
                     super(async function* () {
-                        return this.finally((0, typed_dom_1.bind)(window, 'scroll', (0, throttle_1.debounce)(100, ev => {
+                        return this.finally((0, listener_1.bind)(window, 'scroll', (0, throttle_1.debounce)(100, ev => {
                             if ((0, url_1.standardize)(window.location.href) !== page_1.page.href)
                                 return;
                             void listener(ev);
@@ -8250,24 +6963,24 @@ require = function () {
             exports.ScrollView = ScrollView;
         },
         {
-            '../../service/state/page': 133,
+            '../../service/state/page': 134,
             'spica/coroutine': 13,
             'spica/throttle': 94,
             'spica/url': 98,
-            'typed-dom': 100
+            'typed-dom/listener': 101
         }
     ],
-    128: [
+    129: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.SubmitView = void 0;
             const coroutine_1 = _dereq_('spica/coroutine');
-            const typed_dom_1 = _dereq_('typed-dom');
+            const listener_1 = _dereq_('typed-dom/listener');
             class SubmitView extends coroutine_1.Coroutine {
                 constructor(document, selector, listener) {
                     super(async function* () {
-                        return this.finally((0, typed_dom_1.delegate)(document, selector, 'submit', ev => {
+                        return this.finally((0, listener_1.delegate)(document, selector, 'submit', ev => {
                             if (!(ev.currentTarget instanceof HTMLFormElement))
                                 return;
                             void listener(ev);
@@ -8279,10 +6992,10 @@ require = function () {
         },
         {
             'spica/coroutine': 13,
-            'typed-dom': 100
+            'typed-dom/listener': 101
         }
     ],
-    129: [
+    130: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -8292,7 +7005,7 @@ require = function () {
             const state_1 = _dereq_('../../data/store/state');
             const html_1 = _dereq_('../../../lib/html');
             const assign_1 = _dereq_('spica/assign');
-            const typed_dom_1 = _dereq_('typed-dom');
+            const listener_1 = _dereq_('typed-dom/listener');
             class API {
                 static assign(url, option, io = {
                     document: window.document,
@@ -8330,21 +7043,21 @@ require = function () {
                 const el = document.createElement('a');
                 el.href = url;
                 void (0, html_1.parse)('').extract().body.appendChild(el);
-                void (0, typed_dom_1.once)(el, 'click', callback);
-                void (0, typed_dom_1.once)(el, 'click', ev => void ev.preventDefault());
+                void (0, listener_1.once)(el, 'click', callback);
+                void (0, listener_1.once)(el, 'click', ev => void ev.preventDefault());
                 void el.click();
             }
         },
         {
-            '../../../lib/html': 139,
-            '../../data/store/state': 104,
-            './router': 131,
-            './state/process': 134,
+            '../../../lib/html': 140,
+            '../../data/store/state': 105,
+            './router': 132,
+            './state/process': 135,
             'spica/assign': 6,
-            'typed-dom': 100
+            'typed-dom/listener': 101
         }
     ],
-    130: [
+    131: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -8396,20 +7109,20 @@ require = function () {
             }
         },
         {
-            '../../application/store': 103,
-            '../module/view/click': 125,
-            '../module/view/navigation': 126,
-            '../module/view/scroll': 127,
-            '../module/view/submit': 128,
-            './api': 129,
-            './router': 131,
-            './state/process': 134,
-            './state/scroll-restoration': 136,
+            '../../application/store': 104,
+            '../module/view/click': 126,
+            '../module/view/navigation': 127,
+            '../module/view/scroll': 128,
+            '../module/view/submit': 129,
+            './api': 130,
+            './router': 132,
+            './state/process': 135,
+            './state/scroll-restoration': 137,
             'spica/copropagator': 12,
             'spica/supervisor': 93
         }
     ],
-    131: [
+    132: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -8441,8 +7154,8 @@ require = function () {
             const cancellation_1 = _dereq_('spica/cancellation');
             const maybe_1 = _dereq_('spica/maybe');
             const promise_1 = _dereq_('spica/promise');
-            const typed_dom_1 = _dereq_('typed-dom');
-            void (0, typed_dom_1.bind)(window, 'pjax:unload', () => window.history.scrollRestoration = 'auto', true);
+            const listener_1 = _dereq_('typed-dom/listener');
+            void (0, listener_1.bind)(window, 'pjax:unload', () => window.history.scrollRestoration = 'auto', true);
             function route(config, event, process, io) {
                 switch (event.type) {
                 case router_1.RouterEventType.Click:
@@ -8533,19 +7246,19 @@ require = function () {
             }
         },
         {
-            '../../../lib/error': 138,
-            '../../application/router': 102,
-            '../../application/store': 103,
-            '../service/state/env': 132,
-            './state/page': 133,
+            '../../../lib/error': 139,
+            '../../application/router': 103,
+            '../../application/store': 104,
+            '../service/state/env': 133,
+            './state/page': 134,
             'spica/cancellation': 8,
             'spica/maybe': 28,
             'spica/promise': 88,
             'spica/url': 98,
-            'typed-dom': 100
+            'typed-dom/listener': 101
         }
     ],
-    132: [
+    133: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -8556,9 +7269,9 @@ require = function () {
                 new Promise(r => void setTimeout(r))
             ]);
         },
-        { './script': 135 }
+        { './script': 136 }
     ],
-    133: [
+    134: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -8566,9 +7279,9 @@ require = function () {
             const global_1 = _dereq_('spica/global');
             const state_1 = _dereq_('../../../data/store/state');
             const url_1 = _dereq_('spica/url');
-            const typed_dom_1 = _dereq_('typed-dom');
-            void (0, typed_dom_1.bind)(global_1.window, 'hashchange', () => void exports.page.sync());
-            void (0, typed_dom_1.bind)(global_1.window, 'popstate', () => (0, state_1.isTransitable)(exports.page.state) && (0, state_1.isTransitable)(global_1.window.history.state) || void exports.page.sync());
+            const listener_1 = _dereq_('typed-dom/listener');
+            void (0, listener_1.bind)(global_1.window, 'hashchange', () => void exports.page.sync());
+            void (0, listener_1.bind)(global_1.window, 'popstate', () => (0, state_1.isTransitable)(exports.page.state) && (0, state_1.isTransitable)(global_1.window.history.state) || void exports.page.sync());
             exports.page = new class {
                 constructor() {
                     this.url = (0, url_1.standardize)(global_1.window.location.href);
@@ -8587,13 +7300,13 @@ require = function () {
             }();
         },
         {
-            '../../../data/store/state': 104,
+            '../../../data/store/state': 105,
             'spica/global': 20,
             'spica/url': 98,
-            'typed-dom': 100
+            'typed-dom/listener': 101
         }
     ],
-    134: [
+    135: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -8604,31 +7317,31 @@ require = function () {
         },
         { 'spica/supervisor': 93 }
     ],
-    135: [
+    136: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.scripts = void 0;
             const url_1 = _dereq_('spica/url');
-            const typed_dom_1 = _dereq_('typed-dom');
+            const listener_1 = _dereq_('typed-dom/listener');
             exports.scripts = new Set();
-            void (0, typed_dom_1.bind)(window, 'pjax:unload', () => void document.querySelectorAll('script[src]').forEach(script => void exports.scripts.add(new url_1.URL((0, url_1.standardize)(script.src)).href)));
+            void (0, listener_1.bind)(window, 'pjax:unload', () => void document.querySelectorAll('script[src]').forEach(script => void exports.scripts.add(new url_1.URL((0, url_1.standardize)(script.src)).href)));
         },
         {
             'spica/url': 98,
-            'typed-dom': 100
+            'typed-dom/listener': 101
         }
     ],
-    136: [
+    137: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            const typed_dom_1 = _dereq_('typed-dom');
-            void (0, typed_dom_1.bind)(window, 'unload', () => window.history.scrollRestoration = 'auto', false);
+            const listener_1 = _dereq_('typed-dom/listener');
+            void (0, listener_1.bind)(window, 'unload', () => window.history.scrollRestoration = 'auto', false);
         },
-        { 'typed-dom': 100 }
+        { 'typed-dom/listener': 101 }
     ],
-    137: [
+    138: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -8672,7 +7385,7 @@ require = function () {
         },
         {}
     ],
-    138: [
+    139: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -8688,7 +7401,7 @@ require = function () {
         },
         {}
     ],
-    139: [
+    140: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -8808,7 +7521,7 @@ require = function () {
             });
             __exportStar(_dereq_('./src/export'), exports);
         },
-        { './src/export': 101 }
+        { './src/export': 102 }
     ]
 }, {}, [
     1,
