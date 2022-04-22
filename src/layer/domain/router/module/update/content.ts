@@ -2,7 +2,7 @@ import { escape } from './script';
 import { AtomicPromise } from 'spica/promise';
 import { Maybe, Just, Nothing} from 'spica/maybe';
 import { push } from 'spica/array';
-import { once } from 'typed-dom';
+import { once } from 'typed-dom/listener';
 
 type DocumentRecord = { src: Document; dst: Document; };
 type AreaRecord = { src: HTMLElement[]; dst: HTMLElement[]; };

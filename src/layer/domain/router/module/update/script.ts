@@ -8,7 +8,7 @@ import { URL, StandardURL, standardize } from 'spica/url';
 import { push } from 'spica/array';
 import { tuple } from 'spica/tuple';
 import { wait } from 'spica/timer';
-import { html } from 'typed-dom';
+import { html } from 'typed-dom/dom';
 
 type Result = Either<Error, readonly [HTMLScriptElement[], Promise<Either<Error, HTMLScriptElement[]>>]>;
 type FetchData = readonly [HTMLScriptElement, string];

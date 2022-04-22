@@ -1,7 +1,7 @@
 import { ObjectFreeze } from 'spica/alias';
 import { serialize } from '../../../lib/dom';
 import { URL, StandardURL, standardize } from 'spica/url';
-import { currentTarget } from 'typed-dom';
+import { currentTarget } from 'typed-dom/listener';
 
 export class RouterEvent {
   constructor(

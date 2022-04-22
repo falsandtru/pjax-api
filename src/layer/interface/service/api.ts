@@ -4,7 +4,7 @@ import { process } from './state/process';
 import { savePjax, isTransitable } from '../../data/store/state';
 import { parse } from '../../../lib/html';
 import { assign } from 'spica/assign';
-import { once } from 'typed-dom';
+import { once } from 'typed-dom/listener';
 
 export class API {
   public static assign(url: string, option: Option, io = { document: window.document, router: route }): boolean {

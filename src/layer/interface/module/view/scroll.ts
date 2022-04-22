@@ -2,7 +2,7 @@ import { page } from '../../service/state/page';
 import { Coroutine } from 'spica/coroutine';
 import { standardize } from 'spica/url';
 import { debounce } from 'spica/throttle';
-import { bind } from 'typed-dom';
+import { bind } from 'typed-dom/listener';
 
 export class ScrollView extends Coroutine<never> {
   constructor(

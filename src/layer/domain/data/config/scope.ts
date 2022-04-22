@@ -1,11 +1,13 @@
 import { ObjectKeys } from 'spica/alias';
 import { Config as Option } from '../../../../../';
 import { Config } from '../../../domain/data/config';
-import { compare } from 'spica/router';
+import { router } from 'spica/router';
 import { URL, StandardURL } from 'spica/url';
 import { Sequence } from 'spica/sequence';
 import { Maybe, Just, Nothing } from 'spica/maybe';
 import { extend, overwrite } from 'spica/assign';
+
+const { compare } = router.helpers();
 
 export function scope(
   config: Config,

@@ -1,5 +1,5 @@
 import { Coroutine } from 'spica/coroutine';
-import { delegate } from 'typed-dom';
+import { delegate } from 'typed-dom/listener';
 
 export class ClickView extends Coroutine<never> {
   constructor(

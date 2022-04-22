@@ -2,7 +2,7 @@ import { page } from '../../service/state/page';
 import { isTransitable } from '../../../data/store/state';
 import { Coroutine } from 'spica/coroutine';
 import { standardize } from 'spica/url';
-import { bind } from 'typed-dom';
+import { bind } from 'typed-dom/listener';
 
 export class NavigationView extends Coroutine<never> {
   constructor(

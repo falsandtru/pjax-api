@@ -1,7 +1,7 @@
 import { window } from 'spica/global';
 import { isTransitable } from '../../../data/store/state';
 import { StandardURL, standardize } from 'spica/url';
-import { bind } from 'typed-dom';
+import { bind } from 'typed-dom/listener';
 
 void bind(window, 'hashchange', () =>
   void page.sync());

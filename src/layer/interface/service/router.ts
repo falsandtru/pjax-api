@@ -9,7 +9,7 @@ import { Supervisor } from 'spica/supervisor';
 import { Cancellation } from 'spica/cancellation';
 import { Just } from 'spica/maybe';
 import { never } from 'spica/promise';
-import { bind } from 'typed-dom';
+import { bind } from 'typed-dom/listener';
 
 void bind(window, 'pjax:unload', () =>
   window.history.scrollRestoration = 'auto', true);

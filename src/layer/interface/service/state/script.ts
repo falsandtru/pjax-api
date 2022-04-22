@@ -1,5 +1,5 @@
 import { URL, StandardURL, standardize } from 'spica/url';
-import { bind } from 'typed-dom';
+import { bind } from 'typed-dom/listener';
 
 export const scripts = new Set<URL.Href<StandardURL>>();
 
