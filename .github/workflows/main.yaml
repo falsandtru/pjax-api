@@ -54,7 +54,6 @@ jobs:
           gulp dist
           sed -i 's/"private":\ true/"private":\ false/' package.json
           sed -i -E 's/^dist\/?.*$//' .gitignore
-          cp -r src/* .
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
