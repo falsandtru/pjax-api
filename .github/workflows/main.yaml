@@ -92,7 +92,7 @@ jobs:
           cat package.json | json version
           OLD_VERSION=$(cat package.json | json version)
           git checkout $GITHUB_SHA package.json
-          node -e 'if (!require("semver").gte(process.argv[1], process.argv[2])) process.exit(1)' $NEW_VERSION $OLD_VERSION || travis_terminate 0
+          node -e 'if (!require("semver").gte(process.argv[1], process.argv[2])) process.exit(1)' $NEW_VERSION $OLD_VERSION || exit 0
           git fetch --depth 1 origin gh-pages:gh-pages
           git checkout --orphan gh-pages || true
           git checkout -f gh-pages
