@@ -2,7 +2,7 @@ import { Pjax } from '../../../index';
 import { route as router } from '../../../src/layer/interface/service/router';
 import { parse } from '../../../src/lib/html';
 import { wait as delay } from 'spica/timer';
-import { once, wait } from 'typed-dom';
+import { once } from 'typed-dom';
 
 describe('Integration: Usecase', function () {
   afterEach(() => {
@@ -31,7 +31,7 @@ describe('Integration: Usecase', function () {
       Pjax.assign(url1, { fallback: done }, { document, router });
       Pjax.assign(url2, { fallback: done }, { document, router });
       Promise.race([
-        wait(document, 'pjax:ready'),
+        once(document, 'pjax:ready'),
         delay(1000)
       ]).then(done);
     });

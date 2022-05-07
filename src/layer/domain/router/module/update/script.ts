@@ -147,7 +147,7 @@ function evaluate(
 ): Either<AtomicPromise<Either<Error, HTMLScriptElement>>, AtomicPromise<Either<Error, HTMLScriptElement>>> {
   assert(script.hasAttribute('src') ? script.childNodes.length === 0 : script.text === code);
   assert(script.textContent === script.text);
-  assert(cancellation.alive);
+  assert(cancellation.isAlive);
   script = script.ownerDocument === document
     ? script // only for testing
     : document.importNode(script.cloneNode(true), true) as HTMLScriptElement;
@@ -169,7 +169,7 @@ function evaluate(
     : Left(result);
 
   function evaluate(): AtomicPromise<Either<Error, HTMLScriptElement>> {
-    if (!cancellation.alive) throw new FatalError('Expired.');
+    if (!cancellation.isAlive) throw new FatalError('Expired.');
     if (script.matches('[type="module"][src]')) {
       return AtomicPromise.resolve(import(script.src))
         .catch((reason: Error) =>
