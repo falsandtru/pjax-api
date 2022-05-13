@@ -329,7 +329,7 @@ require = function () {
             './alias': 4,
             './array': 5,
             './global': 20,
-            './type': 97
+            './type': 95
         }
     ],
     7: [
@@ -622,36 +622,44 @@ require = function () {
             './clock': 10,
             './global': 20,
             './invlist': 23,
-            './tuple': 96
+            './tuple': 94
         }
     ],
     8: [
         function (_dereq_, module, exports) {
             'use strict';
+            var _a, _b;
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.Cancellation = void 0;
-            const global_1 = _dereq_('./global');
-            const function_1 = _dereq_('./function');
-            const noop_1 = _dereq_('./noop');
             const promise_1 = _dereq_('./promise');
+            const future_1 = _dereq_('./future');
             const exception_1 = _dereq_('./exception');
             const maybe_1 = _dereq_('./maybe');
             const either_1 = _dereq_('./either');
+            const function_1 = _dereq_('./function');
             const internal = Symbol.for('spica/cancellation::internal');
-            class Cancellation extends promise_1.AtomicPromise {
+            class Cancellation {
                 constructor(cancellees = []) {
-                    super(res => resolve = res);
-                    var resolve;
-                    this[internal] = new Internal(resolve);
+                    this[_a] = 'Cancellation';
+                    this[_b] = new Internal();
                     for (const cancellee of cancellees) {
                         cancellee.register(this.cancel);
                     }
                 }
-                get alive() {
-                    return this[internal].alive;
+                get [(_a = Symbol.toStringTag, _b = internal, promise_1.internal)]() {
+                    return this[internal].promise[promise_1.internal];
                 }
-                get cancelled() {
-                    return this[internal].cancelled;
+                get isAlive() {
+                    return this[internal].reason.length === 0;
+                }
+                get isCancelled() {
+                    return this[internal].reason.length === 1;
+                }
+                get isClosed() {
+                    return this[internal].reason.length === 2;
+                }
+                get isFinished() {
+                    return this[internal].reason.length !== 0;
                 }
                 get register() {
                     return listener => this[internal].register(listener);
@@ -662,34 +670,51 @@ require = function () {
                 get close() {
                     return reason => this[internal].close(reason);
                 }
+                get then() {
+                    return this[internal].promise.then;
+                }
+                get catch() {
+                    return this[internal].promise.catch;
+                }
+                get finally() {
+                    return this[internal].promise.finally;
+                }
                 get promise() {
-                    return val => this[internal].promise(val);
+                    return val => this.isCancelled ? promise_1.AtomicPromise.reject(this[internal].reason[0]) : promise_1.AtomicPromise.resolve(val);
                 }
                 get maybe() {
-                    return val => this[internal].maybe(val);
+                    return val => (0, maybe_1.Just)(val).bind(val => this.isCancelled ? maybe_1.Nothing : (0, maybe_1.Just)(val));
                 }
                 get either() {
-                    return val => this[internal].either(val);
+                    return val => (0, either_1.Right)(val).bind(val => this.isCancelled ? (0, either_1.Left)(this[internal].reason[0]) : (0, either_1.Right)(val));
                 }
             }
             exports.Cancellation = Cancellation;
             class Internal {
-                constructor(resolve) {
-                    this.resolve = resolve;
-                    this.alive = true;
-                    this.available = true;
-                    this.listeners = new global_1.Set();
+                constructor() {
+                    this.isFinished = false;
+                    this.reason = [];
+                    this.listeners = [];
                 }
-                get cancelled() {
-                    return 'reason' in this;
+                get promise() {
+                    if (!this.future) {
+                        this.future = new future_1.AtomicFuture();
+                        switch (this.reason.length) {
+                        case 1:
+                            return this.future.bind(this.reason[0]);
+                        case 2:
+                            return this.future.bind(promise_1.AtomicPromise.reject(this.reason[1]));
+                        }
+                    }
+                    return this.future;
                 }
                 register(listener) {
-                    if (!this.alive) {
-                        this.cancelled && handler(this.reason);
-                        return noop_1.noop;
+                    if (this.isFinished) {
+                        this.reason.length === 1 && handler(this.reason[0]);
+                        return function_1.noop;
                     }
-                    this.listeners.add(handler);
-                    return (0, function_1.singleton)(() => void this.listeners.delete(handler));
+                    const i = this.listeners.push(handler) - 1;
+                    return () => this.listeners[i] = void 0;
                     function handler(reason) {
                         try {
                             listener(reason);
@@ -699,31 +724,26 @@ require = function () {
                     }
                 }
                 cancel(reason) {
-                    if (!this.available)
+                    var _c, _d;
+                    if (this.reason.length !== 0)
                         return;
-                    this.available = false;
-                    this.reason = reason;
-                    for (const listener of this.listeners) {
-                        listener(reason);
+                    this.reason = [reason];
+                    for (let i = 0, {listeners} = this; i < listeners.length; ++i) {
+                        (_c = listeners[i]) === null || _c === void 0 ? void 0 : _c.call(listeners, reason);
                     }
-                    this.resolve(this.reason);
-                    this.alive = false;
+                    (_d = this.future) === null || _d === void 0 ? void 0 : _d.bind(reason);
+                    this.isFinished = true;
                 }
                 close(reason) {
-                    if (!this.available)
+                    var _c;
+                    if (this.reason.length !== 0)
                         return;
-                    this.available = false;
-                    this.resolve(promise_1.AtomicPromise.reject(reason));
-                    this.alive = false;
-                }
-                promise(val) {
-                    return this.cancelled ? promise_1.AtomicPromise.reject(this.reason) : promise_1.AtomicPromise.resolve(val);
-                }
-                maybe(val) {
-                    return (0, maybe_1.Just)(val).bind(val => this.cancelled ? maybe_1.Nothing : (0, maybe_1.Just)(val));
-                }
-                either(val) {
-                    return (0, either_1.Right)(val).bind(val => this.cancelled ? (0, either_1.Left)(this.reason) : (0, either_1.Right)(val));
+                    this.reason = [
+                        ,
+                        reason
+                    ];
+                    (_c = this.future) === null || _c === void 0 ? void 0 : _c.bind(promise_1.AtomicPromise.reject(reason));
+                    this.isFinished = true;
                 }
             }
         },
@@ -731,10 +751,9 @@ require = function () {
             './either': 15,
             './exception': 16,
             './function': 18,
-            './global': 20,
+            './future': 19,
             './maybe': 28,
-            './noop': 86,
-            './promise': 88
+            './promise': 87
         }
     ],
     9: [
@@ -750,15 +769,15 @@ require = function () {
                 constructor(capacity = 0) {
                     this[internal] = new Internal(capacity);
                 }
-                get alive() {
-                    return this[internal].alive;
+                get isAlive() {
+                    return this[internal].isAlive;
                 }
                 close(finalizer) {
-                    if (!this.alive)
+                    if (!this.isAlive)
                         return;
                     const core = this[internal];
                     const {buffer, producers, consumers} = core;
-                    core.alive = false;
+                    core.isAlive = false;
                     while (producers.length || consumers.length) {
                         producers.length && producers.shift().bind(fail());
                         consumers.length && consumers.shift().bind(fail());
@@ -768,7 +787,7 @@ require = function () {
                     }
                 }
                 put(msg) {
-                    if (!this.alive)
+                    if (!this.isAlive)
                         return fail();
                     const {capacity, buffer, producers, consumers} = this[internal];
                     switch (true) {
@@ -782,7 +801,7 @@ require = function () {
                     }
                 }
                 take() {
-                    if (!this.alive)
+                    if (!this.isAlive)
                         return fail();
                     const {buffer, producers, consumers} = this[internal];
                     switch (true) {
@@ -803,11 +822,11 @@ require = function () {
                 }
                 async *[Symbol.asyncIterator]() {
                     try {
-                        while (this.alive) {
+                        while (this.isAlive) {
                             yield this.take();
                         }
                     } catch (reason) {
-                        if (this.alive)
+                        if (this.isAlive)
                             throw reason;
                     }
                     return;
@@ -817,7 +836,7 @@ require = function () {
             class Internal {
                 constructor(capacity = 0) {
                     this.capacity = capacity;
-                    this.alive = true;
+                    this.isAlive = true;
                     this.buffer = [];
                     this.producers = [];
                     this.consumers = [];
@@ -826,7 +845,7 @@ require = function () {
         },
         {
             './future': 19,
-            './promise': 88
+            './promise': 87
         }
     ],
     10: [
@@ -868,7 +887,7 @@ require = function () {
                 ];
                 for (let i = 0; i < count; ++i) {
                     try {
-                        jobs[i]();
+                        (void 0, jobs[i])();
                         jobs[i] = void 0;
                     } catch (reason) {
                         (0, exception_1.causeAsyncException)(reason);
@@ -907,17 +926,17 @@ require = function () {
             class Copropagator extends coroutine_1.Coroutine {
                 constructor(coroutines, reducer = results => results[0], opts) {
                     super(async function* () {
-                        void this.then(result => {
+                        this.then(result => {
                             for (const co of coroutines) {
-                                void co[coroutine_1.Coroutine.exit](result);
+                                co[coroutine_1.Coroutine.exit](result);
                             }
                         }, reason => {
                             const rejection = promise_1.AtomicPromise.reject(reason);
                             for (const co of coroutines) {
-                                void co[coroutine_1.Coroutine.exit](rejection);
+                                co[coroutine_1.Coroutine.exit](rejection);
                             }
                         });
-                        void all(coroutines).then(results => results.length === 0 ? void this[coroutine_1.Coroutine.terminate](new global_1.Error(`Spica: Copropagator: No result.`)) : void this[coroutine_1.Coroutine.exit](reducer(results)), reason => void this[coroutine_1.Coroutine.terminate](reason));
+                        all(coroutines).then(results => results.length === 0 ? void this[coroutine_1.Coroutine.terminate](new global_1.Error(`Spica: Copropagator: No result.`)) : void this[coroutine_1.Coroutine.exit](reducer(results)), reason => void this[coroutine_1.Coroutine.terminate](reason));
                         return promise_1.never;
                     }, {
                         delay: false,
@@ -935,7 +954,7 @@ require = function () {
                         return values;
                     memory !== null && memory !== void 0 ? memory : memory = new global_1.Map();
                     for (let i = 0; i < values.length; ++i) {
-                        void memory.set(before[i], values[i]);
+                        memory.set(before[i], values[i]);
                     }
                     return same ? [...memory.values()] : all(after, memory);
                 });
@@ -945,7 +964,7 @@ require = function () {
             './alias': 4,
             './coroutine': 13,
             './global': 20,
-            './promise': 88
+            './promise': 87
         }
     ],
     13: [
@@ -957,13 +976,13 @@ require = function () {
             const global_1 = _dereq_('./global');
             const alias_1 = _dereq_('./alias');
             const clock_1 = _dereq_('./clock');
-            const timer_1 = _dereq_('./timer');
             const promise_1 = _dereq_('./promise');
             const future_1 = _dereq_('./future');
             const channel_1 = _dereq_('./channel');
+            const timer_1 = _dereq_('./timer');
+            const function_1 = _dereq_('./function');
             const exception_1 = _dereq_('./exception');
-            const noop_1 = _dereq_('./noop');
-            const alive = Symbol.for('spica/Coroutine.alive');
+            const isAlive = Symbol.for('spica/Coroutine.isAlive');
             const init = Symbol.for('spica/Coroutine.init');
             const exit = Symbol.for('spica/Coroutine.exit');
             const terminate = Symbol.for('spica/Coroutine.terminate');
@@ -978,21 +997,21 @@ require = function () {
                     let count = 0;
                     this[Coroutine.init] = async () => {
                         const core = this[internal];
-                        if (!core.alive)
+                        if (!core.isAlive)
                             return;
                         if (count !== 0)
                             return;
-                        let reply = noop_1.noop;
+                        let reply = function_1.noop;
                         try {
                             const iter = gen.call(this);
-                            while (core.alive) {
+                            while (core.isAlive) {
                                 const [[msg, rpy]] = ++count === 1 ? [[
                                         void 0,
-                                        noop_1.noop
+                                        function_1.noop
                                     ]] : await global_1.Promise.all([
                                     core.settings.capacity < 0 ? [
                                         void 0,
-                                        noop_1.noop
+                                        function_1.noop
                                     ] : core.sendBuffer.take(),
                                     global_1.Promise.all([
                                         core.settings.resume(),
@@ -1000,7 +1019,7 @@ require = function () {
                                     ])
                                 ]);
                                 reply = rpy;
-                                if (!core.alive)
+                                if (!core.isAlive)
                                     break;
                                 const result = await iter.next(msg);
                                 if (!result.done) {
@@ -1008,7 +1027,7 @@ require = function () {
                                     await core.recvBuffer.put({ ...result });
                                     continue;
                                 } else {
-                                    core.alive = false;
+                                    core.isAlive = false;
                                     reply({ ...result });
                                     core.recvBuffer.put({ ...result });
                                     core.result.bind(result);
@@ -1070,17 +1089,17 @@ require = function () {
                         this[internal].settings.delay ? (0, clock_1.tick)(this[Coroutine.init]) : this[Coroutine.init]();
                     }
                 }
-                get [alive]() {
-                    return this[internal].alive;
+                get [isAlive]() {
+                    return this[internal].isAlive;
                 }
                 [exit](result) {
-                    if (!this[internal].alive)
+                    if (!this[internal].isAlive)
                         return;
                     promise_1.AtomicPromise.resolve(result).then(result => {
                         const core = this[internal];
-                        if (!core.alive)
+                        if (!core.isAlive)
                             return;
-                        core.alive = false;
+                        core.isAlive = false;
                         core.recvBuffer.put({
                             value: void 0,
                             done: true
@@ -1088,9 +1107,9 @@ require = function () {
                         core.result.bind({ value: result });
                     }, reason => {
                         const core = this[internal];
-                        if (!core.alive)
+                        if (!core.isAlive)
                             return;
-                        core.alive = false;
+                        core.isAlive = false;
                         core.recvBuffer.put({
                             value: void 0,
                             done: true
@@ -1104,7 +1123,7 @@ require = function () {
                 async *[Symbol.asyncIterator]() {
                     const core = this[internal];
                     const port = this[Coroutine.port];
-                    while (core.alive) {
+                    while (core.isAlive) {
                         const result = await port.recv();
                         if (result.done)
                             return result.value;
@@ -1115,7 +1134,7 @@ require = function () {
             }
             exports.Coroutine = Coroutine;
             _a = port;
-            Coroutine.alive = alive;
+            Coroutine.isAlive = isAlive;
             Coroutine.init = init;
             Coroutine.exit = exit;
             Coroutine.terminate = terminate;
@@ -1128,10 +1147,10 @@ require = function () {
                         delay: true,
                         capacity: -1,
                         interval: 0,
-                        resume: noop_1.noop,
+                        resume: function_1.noop,
                         trigger: void 0
                     }, this.opts);
-                    this.alive = true;
+                    this.isAlive = true;
                     this.reception = 0;
                     this.sendBuffer = this.settings.capacity >= 0 ? new channel_1.Channel(this.settings.capacity) : void 0;
                     this.recvBuffer = this.settings.capacity >= 0 ? new channel_1.Channel(0) : new BroadcastChannel();
@@ -1158,7 +1177,7 @@ require = function () {
                 }
                 ask(msg) {
                     const core = this[internal].co[internal];
-                    if (!core.alive)
+                    if (!core.isAlive)
                         return promise_1.AtomicPromise.reject(new global_1.Error(`Spica: Coroutine: Canceled.`));
                     if (core.settings.capacity < 0)
                         return promise_1.AtomicPromise.reject(new global_1.Error(`Spica: Coroutine: Overflowed.`));
@@ -1179,7 +1198,7 @@ require = function () {
                 }
                 recv() {
                     const core = this[internal].co[internal];
-                    if (!core.alive)
+                    if (!core.isAlive)
                         return promise_1.AtomicPromise.reject(new global_1.Error(`Spica: Coroutine: Canceled.`));
                     ++core.reception;
                     return global_1.Promise.resolve(core.recvBuffer.take()).then(result => result.done ? core.result.then(({value}) => ({
@@ -1189,7 +1208,7 @@ require = function () {
                 }
                 send(msg) {
                     const core = this[internal].co[internal];
-                    if (!core.alive)
+                    if (!core.isAlive)
                         return promise_1.AtomicPromise.reject(new global_1.Error(`Spica: Coroutine: Canceled.`));
                     if (core.settings.capacity < 0)
                         return promise_1.AtomicPromise.reject(new global_1.Error(`Spica: Coroutine: Overflowed.`));
@@ -1202,7 +1221,7 @@ require = function () {
                 }
                 connect(com) {
                     const core = this[internal].co[internal];
-                    if (!core.alive)
+                    if (!core.isAlive)
                         return promise_1.AtomicPromise.reject(new global_1.Error(`Spica: Coroutine: Canceled.`));
                     return (async () => {
                         core.settings.capacity >= 0 && core.reception === 0 && ++core.reception && core.recvBuffer.take();
@@ -1218,23 +1237,23 @@ require = function () {
                 }
             }
             function isCoroutine(target) {
-                return typeof target === 'object' && target !== null && typeof target.constructor === 'function' && typeof target.constructor['alive'] === 'symbol' && typeof target[target.constructor['alive']] === 'boolean' && typeof target.constructor['init'] === 'symbol' && typeof target[target.constructor['init']] === 'function' && typeof target.constructor['exit'] === 'symbol' && typeof target[target.constructor['exit']] === 'function' && typeof target.constructor['terminate'] === 'symbol' && typeof target[target.constructor['terminate']] === 'function' && typeof target.constructor['port'] === 'symbol' && typeof target[target.constructor['port']] === 'object';
+                return typeof target === 'object' && target !== null && typeof target.constructor === 'function' && typeof target.constructor['isAlive'] === 'symbol' && typeof target[target.constructor['isAlive']] === 'boolean' && typeof target.constructor['init'] === 'symbol' && typeof target[target.constructor['init']] === 'function' && typeof target.constructor['exit'] === 'symbol' && typeof target[target.constructor['exit']] === 'function' && typeof target.constructor['terminate'] === 'symbol' && typeof target[target.constructor['terminate']] === 'function' && typeof target.constructor['port'] === 'symbol' && typeof target[target.constructor['port']] === 'object';
             }
             exports.isCoroutine = isCoroutine;
             class BroadcastChannel {
                 constructor() {
                     this[_b] = new BroadcastChannel.Internal();
                 }
-                get alive() {
-                    return this[internal].alive;
+                get isAlive() {
+                    return this[internal].isAlive;
                 }
                 close(finalizer) {
                     var _c;
-                    if (!this.alive)
+                    if (!this.isAlive)
                         return;
                     const core = this[internal];
                     const {consumers} = core;
-                    core.alive = false;
+                    core.isAlive = false;
                     for (let i = 0; consumers[i]; ++i) {
                         (_c = consumers[i]) === null || _c === void 0 ? void 0 : _c.bind(BroadcastChannel.fail());
                     }
@@ -1244,7 +1263,7 @@ require = function () {
                     }
                 }
                 put(msg) {
-                    if (!this.alive)
+                    if (!this.isAlive)
                         return BroadcastChannel.fail();
                     const {consumers} = this[internal];
                     while (consumers.length > 0) {
@@ -1253,7 +1272,7 @@ require = function () {
                     return promise_1.AtomicPromise.resolve();
                 }
                 take() {
-                    if (!this.alive)
+                    if (!this.isAlive)
                         return BroadcastChannel.fail();
                     const {consumers} = this[internal];
                     return consumers[consumers.push(new future_1.AtomicFuture()) - 1].then();
@@ -1264,7 +1283,7 @@ require = function () {
                 BroadcastChannel.fail = () => promise_1.AtomicPromise.reject(new global_1.Error('Spica: Channel: Closed.'));
                 class Internal {
                     constructor() {
-                        this.alive = true;
+                        this.isAlive = true;
                         this.consumers = [];
                     }
                 }
@@ -1276,11 +1295,11 @@ require = function () {
             './channel': 9,
             './clock': 10,
             './exception': 16,
+            './function': 18,
             './future': 19,
             './global': 20,
-            './noop': 86,
-            './promise': 88,
-            './timer': 95
+            './promise': 87,
+            './timer': 93
         }
     ],
     14: [
@@ -1339,12 +1358,13 @@ require = function () {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.causeAsyncException = void 0;
+            const global_1 = _dereq_('./global');
             function causeAsyncException(reason) {
-                void Promise.reject(reason);
+                global_1.Promise.reject(reason);
             }
             exports.causeAsyncException = causeAsyncException;
         },
-        {}
+        { './global': 20 }
     ],
     17: [
         function (_dereq_, module, exports) {
@@ -1363,16 +1383,14 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            exports.clear = exports.singleton = void 0;
-            const noop_1 = _dereq_('./noop');
+            exports.noop = exports.id = exports.clear = exports.singleton = void 0;
             function singleton(f) {
                 let result;
                 return function (...as) {
-                    if (f === noop_1.noop)
-                        return result;
-                    result = f.call(this, ...as);
-                    f = noop_1.noop;
-                    return result;
+                    if (result)
+                        return result[0];
+                    result = [f.call(this, ...as)];
+                    return result[0];
                 };
             }
             exports.singleton = singleton;
@@ -1380,8 +1398,15 @@ require = function () {
                 return (...as) => void f(...as);
             }
             exports.clear = clear;
+            function id(a) {
+                return a;
+            }
+            exports.id = id;
+            function noop() {
+            }
+            exports.noop = noop;
         },
-        { './noop': 86 }
+        {}
     ],
     19: [
         function (_dereq_, module, exports) {
@@ -1391,13 +1416,12 @@ require = function () {
             exports.AtomicFuture = exports.Future = void 0;
             const global_1 = _dereq_('./global');
             const promise_1 = _dereq_('./promise');
-            const internal = Symbol.for('spica/promise::internal');
             class Future {
                 constructor(strict = true) {
                     this[_a] = 'Promise';
                     this[_b] = new promise_1.Internal();
                     this.bind = value => {
-                        const core = this[internal];
+                        const core = this[promise_1.internal];
                         if (!core.isPending && !strict)
                             return this;
                         if (!core.isPending)
@@ -1410,7 +1434,7 @@ require = function () {
                     return global_1.Promise;
                 }
                 then(onfulfilled, onrejected) {
-                    return new global_1.Promise((resolve, reject) => this[internal].then(resolve, reject, onfulfilled, onrejected));
+                    return new global_1.Promise((resolve, reject) => this[promise_1.internal].then(resolve, reject, onfulfilled, onrejected));
                 }
                 catch(onrejected) {
                     return this.then(void 0, onrejected);
@@ -1420,13 +1444,13 @@ require = function () {
                 }
             }
             exports.Future = Future;
-            _a = Symbol.toStringTag, _b = internal;
+            _a = Symbol.toStringTag, _b = promise_1.internal;
             class AtomicFuture {
                 constructor(strict = true) {
                     this[_c] = 'Promise';
                     this[_d] = new promise_1.Internal();
                     this.bind = value => {
-                        const core = this[internal];
+                        const core = this[promise_1.internal];
                         if (!core.isPending && !strict)
                             return this;
                         if (!core.isPending)
@@ -1439,7 +1463,7 @@ require = function () {
                     return promise_1.AtomicPromise;
                 }
                 then(onfulfilled, onrejected) {
-                    return new promise_1.AtomicPromise((resolve, reject) => this[internal].then(resolve, reject, onfulfilled, onrejected));
+                    return new promise_1.AtomicPromise((resolve, reject) => this[promise_1.internal].then(resolve, reject, onfulfilled, onrejected));
                 }
                 catch(onrejected) {
                     return this.then(void 0, onrejected);
@@ -1449,11 +1473,11 @@ require = function () {
                 }
             }
             exports.AtomicFuture = AtomicFuture;
-            _c = Symbol.toStringTag, _d = internal;
+            _c = Symbol.toStringTag, _d = promise_1.internal;
         },
         {
             './global': 20,
-            './promise': 88
+            './promise': 87
         }
     ],
     20: [
@@ -1472,8 +1496,8 @@ require = function () {
             exports.compose = void 0;
             function compose(target, ...sources) {
                 return sources.reduce((b, d) => {
-                    void Object.getOwnPropertyNames(d.prototype).filter(p => !(p in b.prototype)).forEach(p => b.prototype[p] = d.prototype[p]);
-                    void Object.getOwnPropertyNames(d).filter(p => !(p in b)).forEach(p => b[p] = d[p]);
+                    Object.getOwnPropertyNames(d.prototype).filter(p => !(p in b.prototype)).forEach(p => b.prototype[p] = d.prototype[p]);
+                    Object.getOwnPropertyNames(d).filter(p => !(p in b)).forEach(p => b[p] = d[p]);
                     return b;
                 }, target);
             }
@@ -2100,7 +2124,7 @@ require = function () {
             '../alias': 4,
             '../compare': 11,
             '../global': 20,
-            '../stack': 92
+            '../stack': 90
         }
     ],
     28: [
@@ -2225,7 +2249,7 @@ require = function () {
             exports.Right = exports.Left = exports.Either = void 0;
             const monad_1 = _dereq_('./monad');
             const promise_1 = _dereq_('../promise');
-            const noop_1 = _dereq_('../noop');
+            const function_1 = _dereq_('../function');
             class Either extends monad_1.Monad {
                 constructor(thunk) {
                     super(thunk);
@@ -2267,7 +2291,7 @@ require = function () {
                         } = iter.next(val);
                         if (done)
                             return m;
-                        const r = m.extract(noop_1.noop, a => [a]);
+                        const r = m.extract(function_1.noop, a => [a]);
                         if (!r)
                             return m;
                         val = r[0];
@@ -2322,8 +2346,8 @@ require = function () {
             }
         },
         {
-            '../noop': 86,
-            '../promise': 88,
+            '../function': 18,
+            '../promise': 87,
             './monad': 37
         }
     ],
@@ -2370,10 +2394,10 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.Right = exports.Left = exports.Either = void 0;
             const Monad = __importStar(_dereq_('./either.impl'));
-            const noop_1 = _dereq_('../noop');
+            const function_1 = _dereq_('../function');
             class Either extends Monad.Either {
                 constructor() {
-                    super(noop_1.noop);
+                    super(function_1.noop);
                 }
             }
             exports.Either = Either;
@@ -2387,7 +2411,7 @@ require = function () {
             exports.Right = Right;
         },
         {
-            '../noop': 86,
+            '../function': 18,
             './either.impl': 31
         }
     ],
@@ -2417,11 +2441,11 @@ require = function () {
             class Lazy {
                 constructor(thunk) {
                     this.thunk = thunk;
-                    this.memory_ = void 0;
+                    this.$memory = void 0;
                 }
                 evaluate() {
                     var _a;
-                    return (_a = this.memory_) !== null && _a !== void 0 ? _a : this.memory_ = this.thunk();
+                    return (_a = this.$memory) !== null && _a !== void 0 ? _a : this.$memory = this.thunk();
                 }
             }
             exports.Lazy = Lazy;
@@ -2435,7 +2459,7 @@ require = function () {
             exports.Nothing = exports.Just = exports.Maybe = void 0;
             const monadplus_1 = _dereq_('./monadplus');
             const promise_1 = _dereq_('../promise');
-            const noop_1 = _dereq_('../noop');
+            const function_1 = _dereq_('../function');
             class Maybe extends monadplus_1.MonadPlus {
                 constructor(thunk) {
                     super(thunk);
@@ -2480,7 +2504,7 @@ require = function () {
                         } = iter.next(val);
                         if (done)
                             return m;
-                        const r = m.extract(noop_1.noop, a => [a]);
+                        const r = m.extract(function_1.noop, a => [a]);
                         if (!r)
                             return m;
                         val = r[0];
@@ -2524,7 +2548,7 @@ require = function () {
                 }
                 extract(nothing) {
                     if (!nothing)
-                        throw void 0;
+                        throw new Error(`Spica: Maybe: Nothig value is extracted.`);
                     return nothing();
                 }
             }
@@ -2541,8 +2565,8 @@ require = function () {
             }
         },
         {
-            '../noop': 86,
-            '../promise': 88,
+            '../function': 18,
+            '../promise': 87,
             './monadplus': 38
         }
     ],
@@ -2589,10 +2613,10 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.Nothing = exports.Just = exports.Maybe = void 0;
             const Monad = __importStar(_dereq_('./maybe.impl'));
-            const noop_1 = _dereq_('../noop');
+            const function_1 = _dereq_('../function');
             class Maybe extends Monad.Maybe {
                 constructor() {
-                    super(noop_1.noop);
+                    super(function_1.noop);
                 }
             }
             exports.Maybe = Maybe;
@@ -2603,7 +2627,7 @@ require = function () {
             exports.Nothing = Monad.Maybe.mzero;
         },
         {
-            '../noop': 86,
+            '../function': 18,
             './maybe.impl': 35
         }
     ],
@@ -2949,7 +2973,7 @@ require = function () {
                         const thunk = iter();
                         if (!core_1.Sequence.isIterable(thunk))
                             return acc;
-                        void acc.push(core_1.Sequence.Thunk.value(thunk));
+                        acc.push(core_1.Sequence.Thunk.value(thunk));
                         iter = core_1.Sequence.Thunk.iterator(thunk);
                     }
                 }
@@ -3857,17 +3881,6 @@ require = function () {
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            exports.noop = void 0;
-            function noop() {
-            }
-            exports.noop = noop;
-        },
-        {}
-    ],
-    87: [
-        function (_dereq_, module, exports) {
-            'use strict';
-            Object.defineProperty(exports, '__esModule', { value: true });
             exports.Observation = void 0;
             const global_1 = _dereq_('./global');
             const alias_1 = _dereq_('./alias');
@@ -4097,24 +4110,24 @@ require = function () {
             './ixlist': 24
         }
     ],
-    88: [
+    87: [
         function (_dereq_, module, exports) {
             'use strict';
             var _a, _b;
             Object.defineProperty(exports, '__esModule', { value: true });
-            exports.never = exports.isPromiseLike = exports.Internal = exports.AtomicPromise = void 0;
+            exports.never = exports.isPromiseLike = exports.Internal = exports.AtomicPromise = exports.internal = void 0;
             const global_1 = _dereq_('./global');
             const alias_1 = _dereq_('./alias');
-            const noop_1 = _dereq_('./noop');
-            const internal = Symbol.for('spica/promise::internal');
+            const function_1 = _dereq_('./function');
+            exports.internal = Symbol.for('spica/promise::internal');
             class AtomicPromise {
                 constructor(executor) {
                     this[_a] = 'Promise';
                     this[_b] = new Internal();
                     try {
-                        executor(value => void this[internal].resolve(value), reason => void this[internal].reject(reason));
+                        executor(value => void this[exports.internal].resolve(value), reason => void this[exports.internal].reject(reason));
                     } catch (reason) {
-                        this[internal].reject(reason);
+                        this[exports.internal].reject(reason);
                     }
                 }
                 static get [Symbol.species]() {
@@ -4134,7 +4147,7 @@ require = function () {
                                 continue;
                             }
                             if (isAtomicPromiseLike(value)) {
-                                const {status} = value[internal];
+                                const {status} = value[exports.internal];
                                 switch (status.state) {
                                 case 2:
                                     results[i] = status.value;
@@ -4165,7 +4178,7 @@ require = function () {
                                 return resolve(value);
                             }
                             if (isAtomicPromiseLike(value)) {
-                                const {status} = value[internal];
+                                const {status} = value[exports.internal];
                                 switch (status.state) {
                                 case 2:
                                     return resolve(status.value);
@@ -4203,7 +4216,7 @@ require = function () {
                                 continue;
                             }
                             if (isAtomicPromiseLike(value)) {
-                                const {status} = value[internal];
+                                const {status} = value[exports.internal];
                                 switch (status.state) {
                                 case 2:
                                     results[i] = {
@@ -4252,7 +4265,7 @@ require = function () {
                                 return resolve(value);
                             }
                             if (isAtomicPromiseLike(value)) {
-                                const {status} = value[internal];
+                                const {status} = value[exports.internal];
                                 switch (status.state) {
                                 case 2:
                                     return resolve(status.value);
@@ -4281,7 +4294,7 @@ require = function () {
                     return new AtomicPromise((_, reject) => reject(reason));
                 }
                 then(onfulfilled, onrejected) {
-                    return new AtomicPromise((resolve, reject) => this[internal].then(resolve, reject, onfulfilled, onrejected));
+                    return new AtomicPromise((resolve, reject) => this[exports.internal].then(resolve, reject, onfulfilled, onrejected));
                 }
                 catch(onrejected) {
                     return this.then(void 0, onrejected);
@@ -4291,7 +4304,7 @@ require = function () {
                 }
             }
             exports.AtomicPromise = AtomicPromise;
-            _a = Symbol.toStringTag, _b = internal;
+            _a = Symbol.toStringTag, _b = exports.internal;
             class Internal {
                 constructor() {
                     this.status = { state: 0 };
@@ -4312,7 +4325,7 @@ require = function () {
                         return this.resume();
                     }
                     if (isAtomicPromiseLike(value)) {
-                        const core = value[internal];
+                        const core = value[exports.internal];
                         switch (core.status.state) {
                         case 2:
                         case 3:
@@ -4422,14 +4435,14 @@ require = function () {
             }
             exports.isPromiseLike = isPromiseLike;
             function isAtomicPromiseLike(value) {
-                return internal in value;
+                return exports.internal in value;
             }
             exports.never = new class Never extends Promise {
                 static get [Symbol.species]() {
                     return Never;
                 }
                 constructor() {
-                    super(noop_1.noop);
+                    super(function_1.noop);
                 }
                 then() {
                     return this;
@@ -4444,11 +4457,11 @@ require = function () {
         },
         {
             './alias': 4,
-            './global': 20,
-            './noop': 86
+            './function': 18,
+            './global': 20
         }
     ],
-    89: [
+    88: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4484,29 +4497,29 @@ require = function () {
                                 '*'
                             ].includes(pattern[0]))
                             return false;
-                        return match_(optimize(pattern), segment);
+                        return match$(optimize(pattern), segment);
                     }
-                    const match_ = (0, memoize_1.memoize)((pattern, segment) => {
+                    const match$ = (0, memoize_1.memoize)((pattern, segment) => {
                         const [p = '', ...ps] = [...pattern];
                         const [s = '', ...ss] = [...segment];
                         switch (p) {
                         case '':
                             return s === '';
                         case '?':
-                            return s !== '' && s !== '/' && match_(ps.join(''), ss.join(''));
+                            return s !== '' && s !== '/' && match$(ps.join(''), ss.join(''));
                         case '*':
-                            return s === '/' ? match_(ps.join(''), segment) : sequence_1.Sequence.zip(sequence_1.Sequence.cycle([ps.join('')]), sequence_1.Sequence.from(segment).tails().map(ss => ss.join(''))).filter(([a, b]) => match_(a, b)).take(1).extract().length > 0;
+                            return s === '/' ? match$(ps.join(''), segment) : sequence_1.Sequence.zip(sequence_1.Sequence.cycle([ps.join('')]), sequence_1.Sequence.from(segment).tails().map(ss => ss.join(''))).filter(([a, b]) => match$(a, b)).take(1).extract().length > 0;
                         default:
-                            return s === p && match_(ps.join(''), ss.join(''));
+                            return s === p && match$(ps.join(''), ss.join(''));
                         }
                     }, (pat, seg) => `${ pat }\n${ seg }`, new cache_1.Cache(10000));
                     function expand(pattern) {
                         if (pattern.match(/\*\*|[\[\]]/))
                             throw new Error(`Invalid pattern: ${ pattern }`);
-                        return expand_(pattern);
+                        return expand$(pattern);
                     }
-                    const expand_ = (0, memoize_1.memoize)(pattern => {
-                        return pattern === '' ? [pattern] : sequence_1.Sequence.from(pattern.match(/{[^{}]*}|.[^{]*/g)).map(p => p.match(/^{[^{}]*}$/) ? p.slice(1, -1).split(',') : [p]).mapM(sequence_1.Sequence.from).map(ps => ps.join('')).bind(p => p === pattern ? sequence_1.Sequence.from([p]) : sequence_1.Sequence.from(expand_(p))).unique().extract();
+                    const expand$ = (0, memoize_1.memoize)(pattern => {
+                        return pattern === '' ? [pattern] : sequence_1.Sequence.from(pattern.match(/{[^{}]*}|.[^{]*/g)).map(p => p.match(/^{[^{}]*}$/) ? p.slice(1, -1).split(',') : [p]).mapM(sequence_1.Sequence.from).map(ps => ps.join('')).bind(p => p === pattern ? sequence_1.Sequence.from([p]) : sequence_1.Sequence.from(expand$(p))).unique().extract();
                     });
                     return {
                         compare,
@@ -4527,11 +4540,11 @@ require = function () {
             './curry': 14,
             './flip': 17,
             './memoize': 29,
-            './sequence': 90,
-            './url': 98
+            './sequence': 89,
+            './url': 96
         }
     ],
-    90: [
+    89: [
         function (_dereq_, module, exports) {
             'use strict';
             var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
@@ -4562,34 +4575,7 @@ require = function () {
         },
         { './monad/sequence': 39 }
     ],
-    91: [
-        function (_dereq_, module, exports) {
-            'use strict';
-            Object.defineProperty(exports, '__esModule', { value: true });
-            exports.sqid = void 0;
-            const global_1 = _dereq_('./global');
-            const zeros = '0'.repeat(15);
-            let cnt = 0;
-            function sqid(id) {
-                if (arguments.length === 0) {
-                    if (cnt === global_1.Number.MAX_SAFE_INTEGER)
-                        throw new TypeError(`Spica: sqid: sqid reached max safe integer.`);
-                    return sqid(++cnt);
-                } else {
-                    if (typeof id !== 'number')
-                        throw new TypeError(`Spica: sqid: A parameter value must be a number: ${ id }`);
-                    if (id >= 0 === false)
-                        throw new TypeError(`Spica: sqid: A parameter value must be a positive number: ${ id }`);
-                    if (id % 1 !== 0)
-                        throw new TypeError(`Spica: sqid: A parameter value must be an integer: ${ id }`);
-                    return (zeros + id).slice(-16);
-                }
-            }
-            exports.sqid = sqid;
-        },
-        { './global': 20 }
-    ],
-    92: [
+    90: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -4643,7 +4629,7 @@ require = function () {
         },
         {}
     ],
-    93: [
+    91: [
         function (_dereq_, module, exports) {
             (function (global) {
                 (function () {
@@ -4658,40 +4644,38 @@ require = function () {
                     const promise_1 = _dereq_('./promise');
                     const future_1 = _dereq_('./future');
                     const observer_1 = _dereq_('./observer');
+                    const function_1 = _dereq_('./function');
                     const array_1 = _dereq_('./array');
-                    const sqid_1 = _dereq_('./sqid');
                     const exception_1 = _dereq_('./exception');
-                    const noop_1 = _dereq_('./noop');
                     class Supervisor extends coroutine_1.Coroutine {
                         constructor(opts = {}) {
                             super(async function* () {
                                 return this.state;
                             }, { delay: false });
                             this.state = new future_1.AtomicFuture();
-                            this.id = (0, sqid_1.sqid)();
                             this.settings = {
                                 name: '',
                                 capacity: global_1.Infinity,
                                 timeout: global_1.Infinity,
-                                destructor: noop_1.noop,
+                                destructor: function_1.noop,
                                 scheduler: clock_1.tick,
                                 resource: 10
                             };
                             this.workers = new global_1.Map();
-                            this.alive = true;
+                            this.isAlive = true;
                             this.available = true;
                             this[_a] = {
                                 ask: () => {
-                                    throw new global_1.Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: Cannot use coroutine port.`);
+                                    throw new global_1.Error(`Spica: Supervisor: <${ this.name }>: Cannot use coroutine port.`);
                                 },
                                 recv: () => {
-                                    throw new global_1.Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: Cannot use coroutine port.`);
+                                    throw new global_1.Error(`Spica: Supervisor: <${ this.name }>: Cannot use coroutine port.`);
                                 },
                                 send: () => {
-                                    throw new global_1.Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: Cannot use coroutine port.`);
+                                    throw new global_1.Error(`Spica: Supervisor: <${ this.name }>: Cannot use coroutine port.`);
                                 },
                                 connect: () => {
-                                    throw new global_1.Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: Cannot use coroutine port.`);
+                                    throw new global_1.Error(`Spica: Supervisor: <${ this.name }>: Cannot use coroutine port.`);
                                 }
                             };
                             this.scheduled = false;
@@ -4699,17 +4683,17 @@ require = function () {
                             (0, alias_1.ObjectAssign)(this.settings, opts);
                             this.name = this.settings.name;
                             if (this.constructor === Supervisor)
-                                throw new global_1.Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: Cannot instantiate abstract classes.`);
-                            void this.constructor.instances.add(this);
+                                throw new global_1.Error(`Spica: Supervisor: <${ this.name }>: Cannot instantiate abstract classes.`);
+                            this.constructor.instances.add(this);
                         }
                         static get instances() {
-                            return this.hasOwnProperty('instances_') ? this.instances_ : this.instances_ = new global_1.Set();
+                            return this.hasOwnProperty('$instances') ? this.$instances : this.$instances = new global_1.Set();
                         }
                         static get status() {
-                            if (this.hasOwnProperty('status_'))
-                                return this.status_;
+                            if (this.hasOwnProperty('$status'))
+                                return this.$status;
                             const {instances} = this;
-                            return this.status_ = {
+                            return this.$status = {
                                 get instances() {
                                     return instances.size;
                                 },
@@ -4721,45 +4705,45 @@ require = function () {
                         static clear(reason) {
                             while (this.instances.size > 0) {
                                 for (const sv of this.instances) {
-                                    void sv.terminate(reason);
+                                    sv.terminate(reason);
                                 }
                             }
                         }
                         destructor(reason) {
                             var _b;
                             this.available = false;
-                            void this.clear(reason);
-                            void (0, alias_1.ObjectFreeze)(this.workers);
+                            this.clear(reason);
+                            (0, alias_1.ObjectFreeze)(this.workers);
                             while (this.messages.length > 0) {
                                 const [names, param, , , timer] = this.messages.shift();
-                                const name = typeof names === 'string' ? names : names[global_1.Symbol.iterator]().next().value;
-                                timer && void (0, global_1.clearTimeout)(timer);
-                                void ((_b = this.events_) === null || _b === void 0 ? void 0 : _b.loss.emit([name], [
+                                const name = names[global_1.Symbol.iterator]().next().value;
+                                timer && (0, global_1.clearTimeout)(timer);
+                                (_b = this.$events) === null || _b === void 0 ? void 0 : _b.loss.emit([name], [
                                     name,
                                     param
-                                ]));
+                                ]);
                             }
-                            this.alive = false;
-                            void this.constructor.instances.delete(this);
-                            void (0, alias_1.ObjectFreeze)(this);
-                            void this.settings.destructor(reason);
-                            void this.state.bind(reason === void 0 ? void 0 : promise_1.AtomicPromise.reject(reason));
+                            this.isAlive = false;
+                            this.constructor.instances.delete(this);
+                            (0, alias_1.ObjectFreeze)(this);
+                            this.settings.destructor(reason);
+                            this.state.bind(reason === void 0 ? void 0 : promise_1.AtomicPromise.reject(reason));
                         }
                         get events() {
                             var _b;
-                            return (_b = this.events_) !== null && _b !== void 0 ? _b : this.events_ = {
+                            return (_b = this.$events) !== null && _b !== void 0 ? _b : this.$events = {
                                 init: new observer_1.Observation(),
-                                loss: new observer_1.Observation(),
-                                exit: new observer_1.Observation()
+                                exit: new observer_1.Observation(),
+                                loss: new observer_1.Observation()
                             };
                         }
                         throwErrorIfNotAvailable() {
                             if (!this.available)
-                                throw new global_1.Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: A supervisor is already terminated.`);
+                                throw new global_1.Error(`Spica: Supervisor: <${ this.name }>: Cannot use terminated supervisors.`);
                         }
                         register(name, process, state) {
                             state = state;
-                            void this.throwErrorIfNotAvailable();
+                            this.throwErrorIfNotAvailable();
                             if ((0, coroutine_1.isCoroutine)(process)) {
                                 const port = process[process.constructor.port];
                                 const proc = {
@@ -4773,15 +4757,15 @@ require = function () {
                                     ]),
                                     exit: reason => void process[process.constructor.terminate](reason)
                                 };
-                                void this.constructor.standalone.add(proc);
+                                this.constructor.standalone.add(proc);
                                 const kill = this.register(name, proc, state);
-                                void process.catch(kill);
+                                process.catch(kill);
                                 return kill;
                             }
                             if (isAsyncGeneratorFunction(process)) {
                                 let iter;
                                 return this.register(name, {
-                                    init: (state, kill) => (iter = process(state, kill), void iter.next().catch(kill), state),
+                                    init: (state, kill) => (iter = process(state, kill), iter.next().catch(kill), state),
                                     main: (param, state, kill) => promise_1.AtomicPromise.resolve(iter.next(param)).then(({
                                         value: reply,
                                         done
@@ -4789,14 +4773,14 @@ require = function () {
                                         reply,
                                         state
                                     ]),
-                                    exit: noop_1.noop
+                                    exit: function_1.noop
                                 }, state);
                             }
                             if (typeof process === 'function') {
                                 if (isGeneratorFunction(process)) {
                                     let iter;
                                     return this.register(name, {
-                                        init: (state, kill) => (iter = process(state, kill), void iter.next(), state),
+                                        init: (state, kill) => (iter = process(state, kill), iter.next(), state),
                                         main: (param, state, kill) => {
                                             const {
                                                 value: reply,
@@ -4808,20 +4792,22 @@ require = function () {
                                                 state
                                             ];
                                         },
-                                        exit: noop_1.noop
+                                        exit: function_1.noop
                                     }, state);
                                 }
                                 return this.register(name, {
                                     init: state => state,
                                     main: process,
-                                    exit: noop_1.noop
+                                    exit: function_1.noop
                                 }, state);
                             }
                             if (this.workers.has(name))
-                                throw new global_1.Error(`Spica: Supervisor: <${ this.id }/${ this.name }/${ name }>: Cannot register a process multiply with the same name.`);
-                            void this.schedule();
-                            const worker = new Worker(name, process, state, this, () => void this.schedule(), this.constructor.standalone.has(process), this.events_, () => this.workers.get(name) === worker && void this.workers.delete(name));
-                            void this.workers.set(name, worker);
+                                throw new global_1.Error(`Spica: Supervisor: <${ this.name }/${ name }>: Cannot register another process with tha same name.`);
+                            this.schedule();
+                            const worker = new Worker(name, process, state, this, () => void this.schedule(), this.constructor.standalone.has(process), this.$events, () => {
+                                this.workers.get(name) === worker && void this.workers.delete(name);
+                            });
+                            this.workers.set(name, worker);
                             return worker.terminate;
                             function isAsyncGeneratorFunction(process) {
                                 return process[global_1.Symbol.toStringTag] === 'AsyncGeneratorFunction';
@@ -4830,13 +4816,13 @@ require = function () {
                                 return process[global_1.Symbol.toStringTag] === 'GeneratorFunction';
                             }
                         }
-                        call(name, param, callback = this.settings.timeout, timeout = this.settings.timeout) {
+                        call(name, param, callback, timeout = this.settings.timeout) {
                             var _b;
                             if (typeof callback !== 'function')
-                                return new promise_1.AtomicPromise((resolve, reject) => void this.call(name, param, (result, err) => err ? reject(err) : resolve(result), callback));
-                            void this.throwErrorIfNotAvailable();
-                            void this.messages.push([
-                                typeof name === 'string' ? name : new NamePool(this.workers, name),
+                                return new promise_1.AtomicPromise((resolve, reject) => void this.call(name, param, (err, result) => err ? reject(err) : resolve(result), callback));
+                            this.throwErrorIfNotAvailable();
+                            this.messages.push([
+                                typeof name === 'string' ? [name] : new NamePool(this.workers, name),
                                 param,
                                 callback,
                                 Date.now() + timeout,
@@ -4844,45 +4830,45 @@ require = function () {
                             ]);
                             while (this.messages.length > (this.available ? this.settings.capacity : 0)) {
                                 const [names, param, callback, , timer] = this.messages.shift();
-                                timer && void (0, global_1.clearTimeout)(timer);
-                                const name = typeof names === 'string' ? names : names[global_1.Symbol.iterator]().next().value;
-                                void ((_b = this.events_) === null || _b === void 0 ? void 0 : _b.loss.emit([name], [
+                                timer && (0, global_1.clearTimeout)(timer);
+                                const name = names[global_1.Symbol.iterator]().next().value;
+                                (_b = this.$events) === null || _b === void 0 ? void 0 : _b.loss.emit([name], [
                                     name,
                                     param
-                                ]));
+                                ]);
                                 try {
-                                    void callback(void 0, new global_1.Error(`Spica: Supervisor: <${ this.id }/${ this.name }>: A message overflowed.`));
+                                    callback(new global_1.Error(`Spica: Supervisor: <${ this.name }>: Message overflowed.`), void 0);
                                 } catch (reason) {
-                                    void (0, exception_1.causeAsyncException)(reason);
+                                    (0, exception_1.causeAsyncException)(reason);
                                 }
                             }
                             if (this.messages.length === 0)
                                 return;
-                            void this.throwErrorIfNotAvailable();
-                            void this.schedule();
+                            this.throwErrorIfNotAvailable();
+                            this.schedule();
                             if (timeout > 0 && timeout !== global_1.Infinity) {
                                 this.messages[this.messages.length - 1][4] = (0, global_1.setTimeout)(() => void this.schedule(), timeout + 3);
                             }
                         }
                         cast(name, param, timeout = this.settings.timeout) {
                             var _b, _c;
-                            void this.throwErrorIfNotAvailable();
+                            this.throwErrorIfNotAvailable();
+                            const expire = Date.now() + timeout;
                             let result;
                             for (name of typeof name === 'string' ? [name] : new NamePool(this.workers, name)) {
                                 if (result = (_b = this.workers.get(name)) === null || _b === void 0 ? void 0 : _b.call([
                                         param,
-                                        Date.now() + timeout
+                                        expire
                                     ]))
                                     break;
                             }
-                            name = name;
                             if (result)
-                                return true;
-                            void ((_c = this.events_) === null || _c === void 0 ? void 0 : _c.loss.emit([name], [
-                                name,
+                                return result;
+                            const n = typeof name === 'string' ? name : void 0;
+                            (_c = this.$events) === null || _c === void 0 ? void 0 : _c.loss.emit([n], [
+                                n,
                                 param
-                            ]));
-                            return false;
+                            ]);
                         }
                         refs(name) {
                             return name === void 0 ? [...this.workers.values()].map(convert) : this.workers.has(name) ? [convert(this.workers.get(name))] : [];
@@ -4903,31 +4889,31 @@ require = function () {
                         clear(reason) {
                             while (this.workers.size > 0) {
                                 for (const worker of this.workers.values()) {
-                                    void worker.terminate(reason);
+                                    worker.terminate(reason);
                                 }
                             }
                         }
                         terminate(reason) {
                             if (!this.available)
                                 return false;
-                            void this.destructor(reason);
-                            void this[coroutine_1.Coroutine.exit](void 0);
+                            this.destructor(reason);
+                            this[coroutine_1.Coroutine.exit](void 0);
                             return true;
                         }
                         [coroutine_1.Coroutine.terminate](reason) {
-                            void this.terminate(reason);
+                            this.terminate(reason);
                         }
                         schedule() {
                             if (!this.available || this.scheduled || this.messages.length === 0)
                                 return;
                             this.scheduled = true;
                             const p = new future_1.AtomicFuture(false);
-                            void p.finally(() => {
+                            p.finally(() => {
                                 this.scheduled = false;
-                                void this.deliver();
+                                this.deliver();
                             });
-                            void this.settings.scheduler.call(void 0, p.bind);
-                            this.settings.scheduler === global.requestAnimationFrame && void (0, global_1.setTimeout)(p.bind, 1000);
+                            this.settings.scheduler.call(void 0, p.bind);
+                            this.settings.scheduler === global.requestAnimationFrame && (0, global_1.setTimeout)(p.bind, 1000);
                         }
                         deliver() {
                             var _b, _c;
@@ -4941,30 +4927,32 @@ require = function () {
                                 let result;
                                 let name;
                                 for (name of typeof names === 'string' ? [names] : names) {
+                                    if (Date.now() > expiry)
+                                        break;
                                     if (result = (_b = this.workers.get(name)) === null || _b === void 0 ? void 0 : _b.call([
                                             param,
                                             expiry
                                         ]))
                                         break;
                                 }
-                                if (result === void 0 && Date.now() < expiry)
+                                if (!result && Date.now() < expiry)
                                     continue;
-                                void (0, array_1.splice)(this.messages, i, 1);
-                                void --i;
-                                void --len;
-                                timer && void (0, global_1.clearTimeout)(timer);
-                                if (result === void 0) {
-                                    void ((_c = this.events_) === null || _c === void 0 ? void 0 : _c.loss.emit([name], [
+                                (0, array_1.splice)(this.messages, i, 1);
+                                --i;
+                                --len;
+                                timer && (0, global_1.clearTimeout)(timer);
+                                if (result) {
+                                    result.then(reply => void callback(void 0, reply), () => void callback(new global_1.Error(`Spica: Supervisor: <${ this.name }>: Process failed.`), void 0));
+                                } else {
+                                    (_c = this.$events) === null || _c === void 0 ? void 0 : _c.loss.emit([name], [
                                         name,
                                         param
-                                    ]));
+                                    ]);
                                     try {
-                                        void callback(void 0, new global_1.Error(`Spica: Supervisor: A process has failed.`));
+                                        callback(new global_1.Error(`Spica: Supervisor: <${ this.name }>: Message expired.`), void 0);
                                     } catch (reason) {
-                                        void (0, exception_1.causeAsyncException)(reason);
+                                        (0, exception_1.causeAsyncException)(reason);
                                     }
-                                } else {
-                                    void result.then(reply => void callback(reply), () => void callback(void 0, new global_1.Error(`Spica: Supervisor: A process has failed.`)));
                                 }
                             }
                         }
@@ -4973,20 +4961,12 @@ require = function () {
                     _a = coroutine_1.Coroutine.port;
                     Supervisor.standalone = new global_1.WeakSet();
                     class NamePool {
-                        constructor(workers, selector = ns => ns) {
+                        constructor(workers, selector) {
                             this.workers = workers;
                             this.selector = selector;
                         }
-                        *[global_1.Symbol.iterator]() {
-                            let cnt = 0;
-                            for (const name of this.selector(this.workers.keys())) {
-                                void ++cnt;
-                                yield name;
-                            }
-                            if (cnt === 0) {
-                                yield '';
-                            }
-                            return;
+                        [global_1.Symbol.iterator]() {
+                            return this.selector(this.workers.keys())[global_1.Symbol.iterator]();
                         }
                     }
                     class Worker {
@@ -4998,83 +4978,82 @@ require = function () {
                             this.schedule = schedule;
                             this.events = events;
                             this.destructor_ = destructor_;
-                            this.alive = true;
+                            this.isAlive = true;
                             this.available = true;
                             this.initiated = false;
                             this.terminate = reason => {
-                                if (!this.alive)
+                                if (!this.isAlive)
                                     return false;
-                                void this.destructor(reason);
+                                this.destructor(reason);
                                 return true;
                             };
-                            initiated && void this.init();
+                            initiated && this.init();
                         }
                         destructor(reason) {
-                            this.alive = false;
+                            this.isAlive = false;
                             this.available = false;
-                            void (0, alias_1.ObjectFreeze)(this);
+                            (0, alias_1.ObjectFreeze)(this);
                             try {
-                                void this.destructor_();
+                                this.destructor_();
                             } catch (reason) {
-                                void (0, exception_1.causeAsyncException)(reason);
+                                (0, exception_1.causeAsyncException)(reason);
                             }
                             if (this.initiated) {
-                                void this.exit(reason);
+                                this.exit(reason);
                             }
                         }
                         init() {
                             var _b;
                             this.initiated = true;
-                            void ((_b = this.events) === null || _b === void 0 ? void 0 : _b.init.emit([this.name], [
+                            (_b = this.events) === null || _b === void 0 ? void 0 : _b.init.emit([this.name], [
                                 this.name,
                                 this.process,
                                 this.state
-                            ]));
+                            ]);
                             this.state = this.process.init(this.state, this.terminate);
                         }
                         exit(reason) {
                             var _b, _c;
                             try {
-                                void this.process.exit(reason, this.state);
-                                void ((_b = this.events) === null || _b === void 0 ? void 0 : _b.exit.emit([this.name], [
+                                this.process.exit(reason, this.state);
+                                (_b = this.events) === null || _b === void 0 ? void 0 : _b.exit.emit([this.name], [
                                     this.name,
                                     this.process,
                                     this.state,
                                     reason
-                                ]));
+                                ]);
                             } catch (reason_) {
-                                void ((_c = this.events) === null || _c === void 0 ? void 0 : _c.exit.emit([this.name], [
+                                (_c = this.events) === null || _c === void 0 ? void 0 : _c.exit.emit([this.name], [
                                     this.name,
                                     this.process,
                                     this.state,
                                     reason
-                                ]));
-                                void this.sv.terminate(reason_);
+                                ]);
+                                this.sv.terminate(reason_);
                             }
                         }
                         call([param, expiry]) {
-                            const now = Date.now();
-                            if (!this.available || now > expiry)
+                            if (!this.available)
                                 return;
                             return new promise_1.AtomicPromise((resolve, reject) => {
-                                (0, alias_1.isFinite)(expiry) && void (0, global_1.setTimeout)(() => void reject(new global_1.Error()), expiry - now);
+                                (0, alias_1.isFinite)(expiry) && (0, global_1.setTimeout)(() => void reject(new global_1.Error()), expiry - Date.now());
                                 this.available = false;
                                 if (!this.initiated) {
-                                    void this.init();
-                                    if (!this.alive)
+                                    this.init();
+                                    if (!this.isAlive)
                                         return void reject();
                                 }
-                                void promise_1.AtomicPromise.resolve(this.process.main(param, this.state, this.terminate)).then(resolve, reject);
+                                promise_1.AtomicPromise.resolve(this.process.main(param, this.state, this.terminate)).then(resolve, reject);
                             }).then(([reply, state]) => {
-                                if (this.alive) {
-                                    void this.schedule();
+                                if (this.isAlive) {
+                                    this.schedule();
                                     this.state = state;
                                     this.available = true;
                                 }
                                 return reply;
                             }).catch(reason => {
-                                void this.schedule();
-                                void this.terminate(reason);
+                                this.schedule();
+                                this.terminate(reason);
                                 throw reason;
                             });
                         }
@@ -5088,15 +5067,14 @@ require = function () {
             './clock': 10,
             './coroutine': 13,
             './exception': 16,
+            './function': 18,
             './future': 19,
             './global': 20,
-            './noop': 86,
-            './observer': 87,
-            './promise': 88,
-            './sqid': 91
+            './observer': 86,
+            './promise': 87
         }
     ],
-    94: [
+    92: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5144,7 +5122,7 @@ require = function () {
                         return;
                     timer = (0, global_1.setTimeout)(() => {
                         timer = 0;
-                        void (0, global_1.setTimeout)(async () => {
+                        (0, global_1.setTimeout)(async () => {
                             if (timer !== 0)
                                 return;
                             if (!callable)
@@ -5158,7 +5136,7 @@ require = function () {
                                 (0, exception_1.causeAsyncException)(reason);
                             }
                             callable = true;
-                            timer === 0 && buffer.length > 0 && self.call(this, buffer.shift());
+                            buffer.length > 0 && self.call(this, buffer.shift());
                         }, delay);
                     }, delay);
                 };
@@ -5170,26 +5148,41 @@ require = function () {
             './global': 20
         }
     ],
-    95: [
+    93: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            exports.wait = void 0;
+            exports.wait = exports.setRepeatTimer = exports.setTimer = void 0;
             const global_1 = _dereq_('./global');
-            const clock_1 = _dereq_('./clock');
-            const promise_1 = _dereq_('./promise');
+            const function_1 = _dereq_('./function');
+            exports.setTimer = template(1);
+            exports.setRepeatTimer = template(Infinity);
+            function template(count) {
+                return (timeout, handler, unhandler) => {
+                    let params;
+                    let id = (0, global_1.setTimeout)(async function loop() {
+                        params = [await handler()];
+                        if (--count === 0)
+                            return;
+                        id = (0, global_1.setTimeout)(loop, timeout);
+                    }, timeout);
+                    return (0, function_1.singleton)(() => {
+                        (0, global_1.clearTimeout)(id);
+                        params && (unhandler === null || unhandler === void 0 ? void 0 : unhandler(params[0]));
+                    });
+                };
+            }
             function wait(ms) {
-                return ms === 0 ? promise_1.AtomicPromise.resolve(clock_1.clock) : new promise_1.AtomicPromise(resolve => void (0, global_1.setTimeout)(resolve, ms));
+                return ms === 0 ? Promise.resolve(void 0) : new Promise(resolve => void (0, global_1.setTimeout)(resolve, ms));
             }
             exports.wait = wait;
         },
         {
-            './clock': 10,
-            './global': 20,
-            './promise': 88
+            './function': 18,
+            './global': 20
         }
     ],
-    96: [
+    94: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5201,11 +5194,12 @@ require = function () {
         },
         {}
     ],
-    97: [
+    95: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             exports.isPrimitive = exports.isType = exports.type = void 0;
+            const global_1 = _dereq_('./global');
             const alias_1 = _dereq_('./alias');
             const toString = Object.prototype.toString.call.bind(Object.prototype.toString);
             const ObjectPrototype = Object.prototype;
@@ -5217,8 +5211,10 @@ require = function () {
                     return 'null';
                 const type = typeof value;
                 if (type === 'object') {
+                    if (value[global_1.Symbol.toStringTag])
+                        return value[global_1.Symbol.toStringTag];
                     const proto = (0, alias_1.ObjectGetPrototypeOf)(value);
-                    if (proto === ObjectPrototype || proto === null)
+                    if (proto === ObjectPrototype)
                         return 'Object';
                     if (proto === ArrayPrototype)
                         return 'Array';
@@ -5243,9 +5239,12 @@ require = function () {
             }
             exports.isPrimitive = isPrimitive;
         },
-        { './alias': 4 }
+        {
+            './alias': 4,
+            './global': 20
+        }
     ],
-    98: [
+    96: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5345,10 +5344,10 @@ require = function () {
         },
         {
             './global': 20,
-            './url/format': 99
+            './url/format': 97
         }
     ],
-    99: [
+    97: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5508,27 +5507,31 @@ require = function () {
             '../memoize': 29
         }
     ],
-    100: [
+    98: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            exports.defrag = exports.isChildren = exports.define = exports.element = exports.text = exports.svg = exports.html = exports.frag = exports.shadow = void 0;
+            exports.defrag = exports.prepend = exports.append = exports.isChildren = exports.define = exports.element = exports.text = exports.svg = exports.html = exports.frag = exports.shadow = void 0;
             const global_1 = _dereq_('spica/global');
             const alias_1 = _dereq_('spica/alias');
             const memoize_1 = _dereq_('spica/memoize');
             var caches;
             (function (caches) {
                 caches.shadows = new WeakMap();
+                caches.shadow = (0, memoize_1.memoize)((el, opts) => el.attachShadow(opts), caches.shadows);
                 caches.fragment = global_1.document.createDocumentFragment();
             }(caches || (caches = {})));
-            function shadow(el, children, opts) {
-                var _a, _b;
+            function shadow(el, opts, children, factory = exports.html) {
+                var _a, _b, _c, _d;
                 if (typeof el === 'string')
-                    return shadow((0, exports.html)(el), children, opts);
-                if (children && !isChildren(children))
-                    return shadow(el, void 0, children);
-                const root = opts === void 0 ? (_a = el.shadowRoot) !== null && _a !== void 0 ? _a : caches.shadows.get(el) : opts.mode === 'open' ? (_b = el.shadowRoot) !== null && _b !== void 0 ? _b : void 0 : caches.shadows.get(el);
-                return defineChildren(!opts || opts.mode === 'open' ? root !== null && root !== void 0 ? root : el.attachShadow(opts !== null && opts !== void 0 ? opts : { mode: 'open' }) : root !== null && root !== void 0 ? root : caches.shadows.set(el, el.attachShadow(opts)).get(el), !root && children === void 0 ? el.childNodes : children);
+                    return shadow(factory(el), opts, children, factory);
+                if (typeof opts === 'function')
+                    return shadow(el, void 0, children, opts);
+                if (typeof children === 'function')
+                    return shadow(el, opts, void 0, children);
+                if (isChildren(opts))
+                    return shadow(el, void 0, opts, factory);
+                return defineChildren(!opts ? (_b = (_a = el.shadowRoot) !== null && _a !== void 0 ? _a : caches.shadows.get(el)) !== null && _b !== void 0 ? _b : el.attachShadow({ mode: 'open' }) : opts.mode === 'open' ? (_c = el.shadowRoot) !== null && _c !== void 0 ? _c : el.attachShadow(opts) : (_d = caches.shadows.get(el)) !== null && _d !== void 0 ? _d : caches.shadow(el, opts), children);
             }
             exports.shadow = shadow;
             function frag(children) {
@@ -5545,7 +5548,7 @@ require = function () {
                 const cache = (0, memoize_1.memoize)(elem, (_, ns, tag) => `${ ns }:${ tag }`);
                 return (tag, attrs, children) => {
                     const el = tag.includes('-') ? elem(context, ns, tag) : cache(context, ns, tag).cloneNode(true);
-                    return isChildren(attrs) ? defineChildren(el, attrs) : defineChildren(defineAttrs(el, attrs), children);
+                    return !attrs || isChildren(attrs) ? defineChildren(el, attrs !== null && attrs !== void 0 ? attrs : children) : defineChildren(defineAttrs(el, attrs), children);
                 };
             }
             exports.element = element;
@@ -5557,31 +5560,48 @@ require = function () {
                     return context.createElement(tag);
                 case 'SVG':
                     return context.createElementNS('http://www.w3.org/2000/svg', tag);
+                case 'MathML':
+                    return context.createElementNS('http://www.w3.org/1998/Math/MathML', tag);
                 }
             }
             function define(node, attrs, children) {
-                return isChildren(attrs) ? defineChildren(node, attrs) : defineChildren(defineAttrs(node, attrs), children);
+                return !attrs || isChildren(attrs) ? defineChildren(node, attrs !== null && attrs !== void 0 ? attrs : children) : defineChildren(defineAttrs(node, attrs), children);
             }
             exports.define = define;
             function defineAttrs(el, attrs) {
-                if (!attrs)
-                    return el;
-                for (let i = 0, names = (0, alias_1.ObjectKeys)(attrs); i < names.length; ++i) {
-                    const name = names[i];
+                var _a, _b;
+                for (const name in attrs) {
+                    if (!(0, alias_1.hasOwnProperty)(attrs, name))
+                        continue;
                     const value = attrs[name];
                     switch (typeof value) {
                     case 'string':
                         el.setAttribute(name, value);
+                        if (name.startsWith('on')) {
+                            const type = name.slice(2).toLowerCase();
+                            switch (type) {
+                            case 'mutate':
+                            case 'connect':
+                            case 'disconnect':
+                                const prop = `on${ type }`;
+                                (_a = el[prop]) !== null && _a !== void 0 ? _a : (0, alias_1.ObjectDefineProperty)(el, prop, {
+                                    configurable: true,
+                                    enumerable: false,
+                                    writable: true,
+                                    value: prop in el ? ev => ev.returnValue : ''
+                                });
+                            }
+                        }
                         continue;
                     case 'function':
                         if (name.length < 3)
                             throw new Error(`TypedDOM: Attribute names for event listeners must have an event name but got "${ name }".`);
                         const names = name.split(/\s+/);
-                        for (let i = 0; i < names.length; ++i) {
-                            const name = names[i];
-                            if (name.slice(0, 2) !== 'on')
+                        for (const name of names) {
+                            if (!name.startsWith('on'))
                                 throw new Error(`TypedDOM: Attribute names for event listeners must start with "on" but got "${ name }".`);
-                            el.addEventListener(name.slice(2), value, {
+                            const type = name.slice(2).toLowerCase();
+                            el.addEventListener(type, value, {
                                 passive: [
                                     'wheel',
                                     'mousewheel',
@@ -5589,8 +5609,20 @@ require = function () {
                                     'touchmove',
                                     'touchend',
                                     'touchcancel'
-                                ].includes(name.slice(2))
+                                ].includes(type)
                             });
+                            switch (type) {
+                            case 'mutate':
+                            case 'connect':
+                            case 'disconnect':
+                                const prop = `on${ type }`;
+                                (_b = el[prop]) !== null && _b !== void 0 ? _b : (0, alias_1.ObjectDefineProperty)(el, prop, {
+                                    configurable: true,
+                                    enumerable: false,
+                                    writable: true,
+                                    value: prop in el ? ev => ev.returnValue : ''
+                                });
+                            }
                         }
                         continue;
                     case 'object':
@@ -5605,20 +5637,62 @@ require = function () {
             function defineChildren(node, children) {
                 if (children === void 0)
                     return node;
-                node.replaceChildren(...typeof children === 'string' ? [children] : children);
+                if (typeof children === 'string') {
+                    node.textContent = children;
+                } else if ((0, alias_1.isArray)(children) && !node.firstChild) {
+                    for (let i = 0; i < children.length; ++i) {
+                        const child = children[i];
+                        typeof child === 'object' ? node.appendChild(child) : node.append(child);
+                    }
+                } else {
+                    node.replaceChildren(...children);
+                }
                 return node;
             }
-            function isChildren(param) {
-                return !!(param === null || param === void 0 ? void 0 : param[global_1.Symbol.iterator]);
+            function isChildren(value) {
+                return !!(value === null || value === void 0 ? void 0 : value[global_1.Symbol.iterator]);
             }
             exports.isChildren = isChildren;
+            function append(node, children) {
+                if (children === void 0)
+                    return node;
+                if (typeof children === 'string') {
+                    node.append(children);
+                } else {
+                    for (const child of children) {
+                        typeof child === 'object' ? node.appendChild(child) : node.append(child);
+                    }
+                }
+                return node;
+            }
+            exports.append = append;
+            function prepend(node, children) {
+                if (children === void 0)
+                    return node;
+                if (typeof children === 'string') {
+                    node.prepend(children);
+                } else {
+                    for (const child of children) {
+                        typeof child === 'object' ? node.insertBefore(child, null) : node.prepend(child);
+                    }
+                }
+                return node;
+            }
+            exports.prepend = prepend;
             function defrag(nodes) {
                 const acc = [];
+                let appendable = false;
                 for (let i = 0; i < nodes.length; ++i) {
                     const node = nodes[i];
                     if (node === '')
                         continue;
-                    acc.length > 0 && typeof node === 'string' && typeof nodes[i - 1] === 'string' ? acc[acc.length - 1] += node : acc.push(node);
+                    if (typeof node === 'string') {
+                        appendable ? acc[acc.length - 1] += node : acc.push(node);
+                        appendable = true;
+                    } else {
+                        acc.push(node);
+                        appendable = false;
+                    }
                 }
                 return acc;
             }
@@ -5630,63 +5704,98 @@ require = function () {
             'spica/memoize': 29
         }
     ],
-    101: [
+    99: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
-            exports.bind = exports.delegate = exports.wait = exports.once = exports.listen = exports.currentTarget = void 0;
+            exports.bind = exports.delegate = exports.once = exports.listen = exports.currentTarget = void 0;
+            const alias_1 = _dereq_('spica/alias');
             const promise_1 = _dereq_('spica/promise');
             const function_1 = _dereq_('spica/function');
-            const noop_1 = _dereq_('spica/noop');
             exports.currentTarget = Symbol.for('typed-dom::currentTarget');
-            function listen(target, a, b, c = false, d = {}) {
-                return typeof b === 'string' ? delegate(target, a, b, c, d) : bind(target, a, b, c);
+            function listen(target, selector, type, listener, option) {
+                return typeof type === 'string' ? delegate(target, selector, type, listener, option) : bind(target, selector, type, listener);
             }
             exports.listen = listen;
-            function once(target, a, b, c = false, d = {}) {
-                return typeof b === 'string' ? delegate(target, a, b, c, {
-                    ...typeof d === 'boolean' ? { capture: d } : d,
-                    once: true
-                }) : bind(target, a, b, {
-                    ...typeof c === 'boolean' ? { capture: c } : c,
-                    once: true
-                });
+            function once(target, selector, type, listener, option) {
+                switch (typeof type) {
+                case 'string':
+                    switch (typeof listener) {
+                    case 'function':
+                        return delegate(target, selector, type, listener, {
+                            ...typeof option === 'boolean' ? { capture: option } : option,
+                            once: true
+                        });
+                    case 'object':
+                        option = {
+                            ...listener,
+                            once: true
+                        };
+                        break;
+                    default:
+                        option = { once: true };
+                    }
+                    return new promise_1.AtomicPromise(resolve => void delegate(target, selector, type, resolve, option));
+                case 'function':
+                    return bind(target, selector, type, {
+                        ...typeof listener === 'boolean' ? { capture: listener } : listener,
+                        once: true
+                    });
+                case 'object':
+                    option = {
+                        ...type,
+                        once: true
+                    };
+                    break;
+                default:
+                    option = { once: true };
+                }
+                return new promise_1.AtomicPromise(resolve => void bind(target, selector, resolve, option));
             }
             exports.once = once;
-            function wait(target, a, b = false, c = {}) {
-                return new promise_1.AtomicPromise(resolve => typeof b === 'string' ? once(target, a, b, resolve, c) : once(target, a, resolve, b));
-            }
-            exports.wait = wait;
-            function delegate(target, selector, type, listener, option = {}) {
-                let unbind = noop_1.noop;
+            function delegate(target, selector, type, listener, option) {
                 return bind(target, type, ev => {
                     var _a, _b;
-                    unbind();
                     const cx = ev.target.shadowRoot ? (_a = ev.composedPath()[0]) === null || _a === void 0 ? void 0 : _a.closest(selector) : (_b = ev.target) === null || _b === void 0 ? void 0 : _b.closest(selector);
-                    return cx ? unbind = once(cx, type, listener, option) : void 0;
+                    cx && once(cx, type, e => {
+                        e === ev && listener(ev);
+                    }, option);
                 }, {
-                    ...option,
+                    ...typeof option === 'boolean' ? { capture: true } : option,
                     capture: true
                 });
             }
             exports.delegate = delegate;
-            function bind(target, type, listener, option = false) {
+            function bind(target, type, listener, option) {
+                var _a;
+                switch (type) {
+                case 'mutate':
+                case 'connect':
+                case 'disconnect':
+                    const prop = `on${ type }`;
+                    (_a = target[prop]) !== null && _a !== void 0 ? _a : (0, alias_1.ObjectDefineProperty)(target, prop, {
+                        configurable: true,
+                        enumerable: false,
+                        writable: true,
+                        value: prop in target ? ev => ev.returnValue : ''
+                    });
+                }
                 target.addEventListener(type, handler, option);
                 return (0, function_1.singleton)(() => void target.removeEventListener(type, handler, option));
                 function handler(ev) {
                     ev[exports.currentTarget] = ev.currentTarget;
-                    return listener(ev);
+                    listener(ev);
                 }
             }
             exports.bind = bind;
         },
         {
+            'spica/alias': 4,
             'spica/function': 18,
-            'spica/noop': 86,
-            'spica/promise': 88
+            'spica/promise': 87
         }
     ],
-    102: [
+    100: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5705,9 +5814,9 @@ require = function () {
                 }
             });
         },
-        { './layer/interface/service/gui': 131 }
+        { './layer/interface/service/gui': 129 }
     ],
-    103: [
+    101: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5751,12 +5860,12 @@ require = function () {
             exports.route = route;
         },
         {
-            '../domain/data/config': 106,
-            '../domain/event/router': 108,
-            '../domain/router/api': 109
+            '../domain/data/config': 104,
+            '../domain/event/router': 106,
+            '../domain/router/api': 107
         }
     ],
-    104: [
+    102: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5775,9 +5884,9 @@ require = function () {
                 }
             });
         },
-        { '../domain/store/path': 125 }
+        { '../domain/store/path': 123 }
     ],
-    105: [
+    103: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5835,7 +5944,7 @@ require = function () {
         },
         {}
     ],
-    106: [
+    104: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5932,12 +6041,12 @@ require = function () {
             }
         },
         {
-            './config/scope': 107,
+            './config/scope': 105,
             'spica/alias': 4,
             'spica/assign': 6
         }
     ],
-    107: [
+    105: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -5960,15 +6069,15 @@ require = function () {
             exports.scope = scope;
         },
         {
-            '../../../domain/data/config': 106,
+            '../../../domain/data/config': 104,
             'spica/alias': 4,
             'spica/assign': 6,
             'spica/maybe': 28,
-            'spica/router': 89,
-            'spica/sequence': 90
+            'spica/router': 88,
+            'spica/sequence': 89
         }
     ],
-    108: [
+    106: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6048,13 +6157,13 @@ require = function () {
             exports.RouterEventLocation = RouterEventLocation;
         },
         {
-            '../../../lib/dom': 138,
+            '../../../lib/dom': 136,
             'spica/alias': 4,
-            'spica/url': 98,
-            'typed-dom/listener': 101
+            'spica/url': 96,
+            'typed-dom/listener': 99
         }
     ],
-    109: [
+    107: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6092,15 +6201,15 @@ require = function () {
             exports.route = route;
         },
         {
-            '../store/path': 125,
-            './model/eav/entity': 110,
-            './module/fetch': 112,
-            './module/update': 114,
-            './module/update/content': 116,
+            '../store/path': 123,
+            './model/eav/entity': 108,
+            './module/fetch': 110,
+            './module/update': 112,
+            './module/update/content': 114,
             'spica/either': 15
         }
     ],
-    110: [
+    108: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6126,7 +6235,7 @@ require = function () {
         },
         { 'spica/alias': 4 }
     ],
-    111: [
+    109: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6155,12 +6264,12 @@ require = function () {
             exports.FetchResponse = FetchResponse;
         },
         {
-            '../../../../../../lib/html': 140,
+            '../../../../../../lib/html': 138,
             'spica/alias': 4,
-            'spica/url': 98
+            'spica/url': 96
         }
     ],
-    112: [
+    110: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6190,11 +6299,11 @@ require = function () {
             exports.fetch = fetch;
         },
         {
-            '../module/fetch/xhr': 113,
-            'spica/timer': 95
+            '../module/fetch/xhr': 111,
+            'spica/timer': 93
         }
     ],
-    113: [
+    111: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6287,15 +6396,15 @@ require = function () {
             exports.match_ = match;
         },
         {
-            '../../model/eav/value/fetch': 111,
+            '../../model/eav/value/fetch': 109,
             'spica/cache': 7,
             'spica/either': 15,
-            'spica/promise': 88,
-            'spica/sequence': 90,
-            'spica/url': 98
+            'spica/promise': 87,
+            'spica/sequence': 89,
+            'spica/url': 96
         }
     ],
-    114: [
+    112: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6368,23 +6477,23 @@ require = function () {
             exports.update = update;
         },
         {
-            '../../event/router': 108,
-            '../../store/path': 125,
-            '../module/update/blur': 115,
-            '../module/update/content': 116,
-            '../module/update/css': 117,
-            '../module/update/focus': 118,
-            '../module/update/head': 119,
-            '../module/update/script': 120,
-            '../module/update/scroll': 121,
-            '../module/update/title': 123,
-            '../module/update/url': 124,
+            '../../event/router': 106,
+            '../../store/path': 123,
+            '../module/update/blur': 113,
+            '../module/update/content': 114,
+            '../module/update/css': 115,
+            '../module/update/focus': 116,
+            '../module/update/head': 117,
+            '../module/update/script': 118,
+            '../module/update/scroll': 119,
+            '../module/update/title': 121,
+            '../module/update/url': 122,
             'spica/either': 15,
             'spica/hlist': 22,
-            'spica/promise': 88
+            'spica/promise': 87
         }
     ],
-    115: [
+    113: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6399,7 +6508,7 @@ require = function () {
         },
         {}
     ],
-    116: [
+    114: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6457,14 +6566,14 @@ require = function () {
             exports._wait = wait;
         },
         {
-            './script': 120,
+            './script': 118,
             'spica/array': 5,
             'spica/maybe': 28,
-            'spica/promise': 88,
-            'typed-dom/listener': 101
+            'spica/promise': 87,
+            'typed-dom/listener': 99
         }
     ],
-    117: [
+    115: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6485,9 +6594,9 @@ require = function () {
             }
             exports.css = css;
         },
-        { './sync': 122 }
+        { './sync': 120 }
     ],
-    118: [
+    116: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6506,9 +6615,9 @@ require = function () {
             }
             exports.focus = focus;
         },
-        { '../../../event/router': 108 }
+        { '../../../event/router': 106 }
     ],
-    119: [
+    117: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6523,9 +6632,9 @@ require = function () {
             }
             exports.head = head;
         },
-        { './sync': 122 }
+        { './sync': 120 }
     ],
-    120: [
+    118: [
         function (_dereq_, module, exports) {
             'use strict';
             var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
@@ -6654,7 +6763,7 @@ require = function () {
                 const result = promise_1.AtomicPromise.resolve(wait).then(evaluate);
                 return script.matches('[src][async]') ? (0, either_1.Right)(result) : (0, either_1.Left)(result);
                 function evaluate() {
-                    if (!cancellation.alive)
+                    if (!cancellation.isAlive)
                         throw new error_1.FatalError('Expired.');
                     if (script.matches('[type="module"][src]')) {
                         return promise_1.AtomicPromise.resolve(Promise.resolve().then(() => __importStar(_dereq_(script.src)))).catch(reason => reason.message.startsWith('Failed to load ') && script.matches('[src][async]') ? retry(script).catch(() => promise_1.AtomicPromise.reject(reason)) : promise_1.AtomicPromise.reject(reason)).then(() => (void script.dispatchEvent(new Event('load')), (0, either_1.Right)(script)), reason => (void script.dispatchEvent(new Event('error')), (0, either_1.Left)(new error_1.FatalError(reason instanceof Error ? reason.message : reason + ''))));
@@ -6689,19 +6798,19 @@ require = function () {
             }
         },
         {
-            '../../../../../lib/error': 139,
+            '../../../../../lib/error': 137,
             'spica/alias': 4,
             'spica/array': 5,
             'spica/either': 15,
             'spica/global': 20,
-            'spica/promise': 88,
-            'spica/timer': 95,
-            'spica/tuple': 96,
-            'spica/url': 98,
-            'typed-dom/dom': 100
+            'spica/promise': 87,
+            'spica/timer': 93,
+            'spica/tuple': 94,
+            'spica/url': 96,
+            'typed-dom/dom': 98
         }
     ],
-    121: [
+    119: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6744,9 +6853,9 @@ require = function () {
             }
             exports._hash = hash;
         },
-        { '../../../event/router': 108 }
+        { '../../../event/router': 106 }
     ],
-    122: [
+    120: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6787,7 +6896,7 @@ require = function () {
             'spica/either': 15
         }
     ],
-    123: [
+    121: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6799,7 +6908,7 @@ require = function () {
         },
         {}
     ],
-    124: [
+    122: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6846,11 +6955,11 @@ require = function () {
             exports._isReplaceable = isReplaceable;
         },
         {
-            '../../../event/router': 108,
-            'typed-dom/listener': 101
+            '../../../event/router': 106,
+            'typed-dom/listener': 99
         }
     ],
-    125: [
+    123: [
         function (_dereq_, module, exports) {
             'use strict';
             var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
@@ -6879,9 +6988,9 @@ require = function () {
             Object.defineProperty(exports, '__esModule', { value: true });
             __exportStar(_dereq_('../../data/store/state'), exports);
         },
-        { '../../data/store/state': 105 }
+        { '../../data/store/state': 103 }
     ],
-    126: [
+    124: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6903,10 +7012,10 @@ require = function () {
         },
         {
             'spica/coroutine': 13,
-            'typed-dom/listener': 101
+            'typed-dom/listener': 99
         }
     ],
-    127: [
+    125: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6932,14 +7041,14 @@ require = function () {
             exports.NavigationView = NavigationView;
         },
         {
-            '../../../data/store/state': 105,
-            '../../service/state/page': 134,
+            '../../../data/store/state': 103,
+            '../../service/state/page': 132,
             'spica/coroutine': 13,
-            'spica/url': 98,
-            'typed-dom/listener': 101
+            'spica/url': 96,
+            'typed-dom/listener': 99
         }
     ],
-    128: [
+    126: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6963,14 +7072,14 @@ require = function () {
             exports.ScrollView = ScrollView;
         },
         {
-            '../../service/state/page': 134,
+            '../../service/state/page': 132,
             'spica/coroutine': 13,
-            'spica/throttle': 94,
-            'spica/url': 98,
-            'typed-dom/listener': 101
+            'spica/throttle': 92,
+            'spica/url': 96,
+            'typed-dom/listener': 99
         }
     ],
-    129: [
+    127: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -6992,10 +7101,10 @@ require = function () {
         },
         {
             'spica/coroutine': 13,
-            'typed-dom/listener': 101
+            'typed-dom/listener': 99
         }
     ],
-    130: [
+    128: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7049,15 +7158,15 @@ require = function () {
             }
         },
         {
-            '../../../lib/html': 140,
-            '../../data/store/state': 105,
-            './router': 132,
-            './state/process': 135,
+            '../../../lib/html': 138,
+            '../../data/store/state': 103,
+            './router': 130,
+            './state/process': 133,
             'spica/assign': 6,
-            'typed-dom/listener': 101
+            'typed-dom/listener': 99
         }
     ],
-    131: [
+    129: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7109,20 +7218,20 @@ require = function () {
             }
         },
         {
-            '../../application/store': 104,
-            '../module/view/click': 126,
-            '../module/view/navigation': 127,
-            '../module/view/scroll': 128,
-            '../module/view/submit': 129,
-            './api': 130,
-            './router': 132,
-            './state/process': 135,
-            './state/scroll-restoration': 137,
+            '../../application/store': 102,
+            '../module/view/click': 124,
+            '../module/view/navigation': 125,
+            '../module/view/scroll': 126,
+            '../module/view/submit': 127,
+            './api': 128,
+            './router': 130,
+            './state/process': 133,
+            './state/scroll-restoration': 135,
             'spica/copropagator': 12,
-            'spica/supervisor': 93
+            'spica/supervisor': 91
         }
     ],
-    132: [
+    130: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7183,7 +7292,7 @@ require = function () {
                     return (0, router_1.route)(config, event, {
                         process: cancellation,
                         scripts
-                    }, io).then(m => m.fmap(async ([ss, p]) => (void kill(), void page_1.page.sync(), void ss.filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_1.URL((0, url_1.standardize)(s.src)).href)), void (await p).filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_1.URL((0, url_1.standardize)(s.src)).href)))).extract()).catch(reason => (void kill(), void page_1.page.sync(), window.history.scrollRestoration = 'auto', cancellation.alive || reason instanceof error_1.FatalError ? void config.fallback(event.source, reason) : void 0));
+                    }, io).then(m => m.fmap(async ([ss, p]) => (void kill(), void page_1.page.sync(), void ss.filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_1.URL((0, url_1.standardize)(s.src)).href)), void (await p).filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_1.URL((0, url_1.standardize)(s.src)).href)))).extract()).catch(reason => (void kill(), void page_1.page.sync(), window.history.scrollRestoration = 'auto', cancellation.isAlive || reason instanceof error_1.FatalError ? void config.fallback(event.source, reason) : void 0));
                 }).extract(() => {
                     switch (event.type) {
                     case router_1.RouterEventType.Click:
@@ -7246,19 +7355,19 @@ require = function () {
             }
         },
         {
-            '../../../lib/error': 139,
-            '../../application/router': 103,
-            '../../application/store': 104,
-            '../service/state/env': 133,
-            './state/page': 134,
+            '../../../lib/error': 137,
+            '../../application/router': 101,
+            '../../application/store': 102,
+            '../service/state/env': 131,
+            './state/page': 132,
             'spica/cancellation': 8,
             'spica/maybe': 28,
-            'spica/promise': 88,
-            'spica/url': 98,
-            'typed-dom/listener': 101
+            'spica/promise': 87,
+            'spica/url': 96,
+            'typed-dom/listener': 99
         }
     ],
-    133: [
+    131: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7269,9 +7378,9 @@ require = function () {
                 new Promise(r => void setTimeout(r))
             ]);
         },
-        { './script': 136 }
+        { './script': 134 }
     ],
-    134: [
+    132: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7300,13 +7409,13 @@ require = function () {
             }();
         },
         {
-            '../../../data/store/state': 105,
+            '../../../data/store/state': 103,
             'spica/global': 20,
-            'spica/url': 98,
-            'typed-dom/listener': 101
+            'spica/url': 96,
+            'typed-dom/listener': 99
         }
     ],
-    135: [
+    133: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7315,9 +7424,9 @@ require = function () {
             exports.process = new class extends supervisor_1.Supervisor {
             }();
         },
-        { 'spica/supervisor': 93 }
+        { 'spica/supervisor': 91 }
     ],
-    136: [
+    134: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7328,20 +7437,20 @@ require = function () {
             void (0, listener_1.bind)(window, 'pjax:unload', () => void document.querySelectorAll('script[src]').forEach(script => void exports.scripts.add(new url_1.URL((0, url_1.standardize)(script.src)).href)));
         },
         {
-            'spica/url': 98,
-            'typed-dom/listener': 101
+            'spica/url': 96,
+            'typed-dom/listener': 99
         }
     ],
-    137: [
+    135: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
             const listener_1 = _dereq_('typed-dom/listener');
             void (0, listener_1.bind)(window, 'unload', () => window.history.scrollRestoration = 'auto', false);
         },
-        { 'typed-dom/listener': 101 }
+        { 'typed-dom/listener': 99 }
     ],
-    138: [
+    136: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7385,7 +7494,7 @@ require = function () {
         },
         {}
     ],
-    139: [
+    137: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7401,7 +7510,7 @@ require = function () {
         },
         {}
     ],
-    140: [
+    138: [
         function (_dereq_, module, exports) {
             'use strict';
             Object.defineProperty(exports, '__esModule', { value: true });
@@ -7521,7 +7630,7 @@ require = function () {
             });
             __exportStar(_dereq_('./src/export'), exports);
         },
-        { './src/export': 102 }
+        { './src/export': 100 }
     ]
 }, {}, [
     1,
