@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.35.0
+
+- Use webpack.
+
 ## 3.34.0
 
 - Move router function to spica.

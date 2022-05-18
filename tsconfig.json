@@ -1,15 +1,16 @@
 {
   "compilerOptions": {
-    "target": "ES2018",
+    "target": "ES2021",
     "lib": [
-      "ES2018",
-      "ES2021.Promise",
+      "ES2021",
       "DOM",
       "DOM.Iterable"
     ],
+    "outDir": "dist",
     "module": "commonjs",
     "moduleResolution": "node",
     "esModuleInterop": true,
+    "sourceMap": true,
     "strict": true,
     "strictFunctionTypes": false,
     "noUnusedParameters": true,
@@ -19,13 +20,15 @@
     "suppressImplicitAnyIndexErrors": true,
     "noFallthroughCasesInSwitch": true,
     "noErrorTruncation": true,
-    "rootDir": "./",
-    "forceConsistentCasingInFileNames": true,
-    "removeComments": false
+    "forceConsistentCasingInFileNames": true
   },
   "include": [
     "*.ts",
     "src/**/*.ts",
-    "test/**/*.ts"
+    "test/**/*.ts",
+    "benchmark/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
   ]
 }

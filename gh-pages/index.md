@@ -33,7 +33,7 @@ class: style-top
 // config.js
 import Pjax from 'pjax-api';
 // or
-const { Pjax } = require('pjax-api');
+const { Pjax } = window['pjax-api'];
 
 new Pjax({
   areas: [

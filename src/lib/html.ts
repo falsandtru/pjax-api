@@ -61,13 +61,13 @@ function test(parser: (html: string) => Document): boolean {
     switch (false) {
       case doc.title === '&':
       case !!doc.querySelector('html.html[lang="en"]'):
-      case !!doc.querySelector<HTMLLinkElement>('head > link')!.href:
-      case !!doc.querySelector<HTMLAnchorElement>('body > a')!.href:
+      case !!doc.querySelector('head > link')!.href:
+      case !!doc.querySelector('body > a')!.href:
       case !doc.querySelector('head > noscript > *'):
-      case doc.querySelector<HTMLElement>('script')!.innerHTML === 'document.head.remove();':
+      case doc.querySelector('script')!.innerHTML === 'document.head.remove();':
       case doc.querySelector('img')!.src.endsWith('abc'):
-      case doc.querySelector<HTMLElement>('head > noscript')!.textContent === '<style>/**/</style>':
-      case doc.querySelector<HTMLElement>('body > noscript')!.textContent === 'noscript':
+      case doc.querySelector('head > noscript')!.textContent === '<style>/**/</style>':
+      case doc.querySelector('body > noscript')!.textContent === 'noscript':
         throw void 0;
     }
     return true;

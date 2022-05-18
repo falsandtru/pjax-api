@@ -1,7 +1,11 @@
 import assert from 'power-assert';
 
-type Assert = typeof assert;
+declare namespace NS {
+  export {
+    assert,
+  }
+}
 
 declare global {
-  const assert: Assert;
+  const assert: typeof NS.assert;
 }

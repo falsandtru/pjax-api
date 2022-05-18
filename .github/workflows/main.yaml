@@ -24,10 +24,11 @@ jobs:
           restore-keys: ${{ runner.os }}-
       - uses: actions/setup-node@v2
         with:
-          node-version: '14'
+          node-version: '16'
       - run: |
           npm install
           xvfb-run --auto-servernum npm test
+          npm run lint
 
   deploy:
     name: Deploy on ${{ matrix.os }}
@@ -47,11 +48,11 @@ jobs:
           restore-keys: ${{ runner.os }}-
       - uses: actions/setup-node@v2
         with:
-          node-version: '14'
+          node-version: '16'
           registry-url: 'https://registry.npmjs.org'
       - run: |
           npm install
-          gulp dist
+          npm run dist
           sed -i 's/"private":\ true/"private":\ false/' package.json
           sed -i -E 's/^dist\/?.*$//' .gitignore
       - run: npm publish
@@ -76,16 +77,18 @@ jobs:
           restore-keys: ${{ runner.os }}-
       - uses: actions/setup-node@v2
         with:
-          node-version: '14'
+          node-version: '16'
       - run: |
           npm install
-          gulp dist
+          npm run dist
       - run: |
           git config user.name "GitHub Actions"
           git fetch --depth 9 origin $(git branch --show-current)
           npm i -g json
+          mkdir -p gh-pages/assets/dist
+          mv dist gh-pages/assets
           mkdir ../gh-pages
-          cp -rf ./gh-pages ../
+          mv gh-pages ..
           cat package.json | json version
           NEW_VERSION=$(cat package.json | json version)
           git checkout HEAD~ package.json
@@ -96,8 +99,8 @@ jobs:
           git fetch --depth 1 origin gh-pages:gh-pages
           git checkout --orphan gh-pages || true
           git checkout -f gh-pages
-          ls -a | grep -vE "^.git$|^\.+$" | xargs rm -rf
-          cp -rf ../gh-pages/* ./
+          ls -a | grep -vE "^.git$|^\.+$" | xargs rm -r
+          mv ../gh-pages/* .
           find | grep -vE "^./.git(/|$)"
           sed -i 's|\(baseurl:\s\+\)|\1//falsandtru.github.io|' _config.yml
           git add -A

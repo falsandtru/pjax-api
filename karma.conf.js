@@ -1,45 +1,25 @@
 module.exports = function (config) {
   config.set({
-    basePath: '',
+    browsers: ['Chrome', 'Firefox'],
     frameworks: ['mocha'],
     files: [
-      { pattern: 'https://cdn.polyfill.io/v3/polyfill.js?flags=gated&features=default', watched: false, served: false, included: true },
-      { pattern: 'node_modules/power-assert/build/power-assert.js', watched: true, served: true, included: true },
-      { pattern: 'dist/*.test.js', watched: true, served: true, included: true },
+      { pattern: 'https://cdn.jsdelivr.net/npm/power-assert@1.6.1/build/power-assert.js', watched: false, served: false, included: true, integrity: 'sha256-MuDC5CQFh3oWtiG0YE000HlkK08xAilD2v0ndZR+Kds=' },
+      { pattern: 'dist/**/*.{js,map}', watched: true, served: true, included: true },
+      { pattern: 'test/unit/fixture/**/*', watched: true, served: true, included: false },
       { pattern: 'test/integration/fixture/**/*.{html,css,js}', watched: true, served: true, included: false },
-      { pattern: 'test/unit/fixture/**/*', watched: true, served: true, included: false }
     ],
-    exclude: [
-    ],
-    espowerPreprocessor: {
-      options: {
-        emitActualCode: false,
-        ignoreUpstreamSourceMap: true
-      }
+    reporters: ['dots', 'coverage'],
+    preprocessors: {
+      'dist/**/*.js': ['coverage'],
     },
-    reporters: ['dots'],
-    coverageIstanbulReporter: {
-      reports: ['html', 'lcovonly', 'text-summary'],
+    coverageReporter: {
       dir: 'coverage',
-      combineBrowserReports: true,
-      skipFilesWithNoCoverage: false,
-      verbose: false,
-      'report-config': {
-        html: {
-          subdir: 'html',
-        },
-      },
-      instrumentation: {
-        'default-excludes': false,
-      },
+      reporters: [
+        { type: 'html', subdir: browser => browser.split(/\s/)[0] },
+        { type: 'text-summary', subdir: '.', file: 'summary.txt' },
+      ],
     },
-    coverageIstanbulInstrumenter: {
-      esModules: true,
-    },
-    autoWatch: true,
-    autoWatchBatchDelay: 500,
-    browserDisconnectTimeout: 30000,
-    browsers: ['Chrome'],
-    singleRun: true,
+    browserDisconnectTimeout: 60 * 1e3,
+    browserNoActivityTimeout: 90 * 1e3,
   });
 };

@@ -64,7 +64,7 @@ Note that this example specifies the latest version. You have to replace it with
 // config.js
 import Pjax from 'pjax-api';
 // or
-const { Pjax } = require('pjax-api');
+const { Pjax } = window['pjax-api'];
 
 new Pjax({
   areas: [
