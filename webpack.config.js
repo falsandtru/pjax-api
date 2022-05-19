@@ -6,7 +6,7 @@ const { mergeWithRules } = require('webpack-merge');
 const ESLintPlugin = require('eslint-webpack-plugin');
 const pkg = require('./package.json');
 
-shell('rm -rf dist coverage');
+shell('rm -rf coverage');
 
 module.exports = env => {
   const merge = mergeWithRules({
