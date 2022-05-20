@@ -8,7 +8,7 @@
 		exports["pjax-api"] = factory();
 	else
 		root["pjax-api"] = factory();
-})(globalThis, () => {
+})(this, () => {
 return /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
@@ -8749,14 +8749,14 @@ function test(parser) {
 /***/ }),
 
 /***/ 3252:
-/***/ ((module) => {
+/***/ (function(module) {
 
-/*! typed-dom v0.0.292 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
+/*! typed-dom v0.0.295 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(true)
 		module.exports = factory();
 	else {}
-})(globalThis, () => {
+})(this, () => {
 return /******/ (() => { // webpackBootstrap
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
@@ -8835,11 +8835,11 @@ exports.equal = equal;
 /***/ }),
 
 /***/ 128:
-/***/ ((module, __unused_webpack_exports, __nested_webpack_require_4961__) => {
+/***/ ((module, __unused_webpack_exports, __nested_webpack_require_4955__) => {
 
 
 
-__nested_webpack_require_4961__(921);
+__nested_webpack_require_4955__(921);
 
 const global = void 0 || typeof globalThis !== 'undefined' && globalThis // @ts-ignore
 || typeof self !== 'undefined' && self || Function('return this')();
@@ -8860,7 +8860,7 @@ var global = (/* unused pure expression or super */ null && (0));
 /***/ }),
 
 /***/ 808:
-/***/ ((__unused_webpack_module, exports, __nested_webpack_require_5448__) => {
+/***/ ((__unused_webpack_module, exports, __nested_webpack_require_5442__) => {
 
 
 
@@ -8869,11 +8869,11 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.reduce = exports.memoize = void 0;
 
-const global_1 = __nested_webpack_require_5448__(128);
+const global_1 = __nested_webpack_require_5442__(128);
 
-const alias_1 = __nested_webpack_require_5448__(406);
+const alias_1 = __nested_webpack_require_5442__(406);
 
-const compare_1 = __nested_webpack_require_5448__(529);
+const compare_1 = __nested_webpack_require_5442__(529);
 
 function memoize(f, identify = (...as) => as[0], memory) {
   if (typeof identify === 'object') return memoize(f, void 0, identify);
@@ -8931,7 +8931,7 @@ exports.reduce = reduce;
 /***/ }),
 
 /***/ 521:
-/***/ ((__unused_webpack_module, exports, __nested_webpack_require_6838__) => {
+/***/ ((__unused_webpack_module, exports, __nested_webpack_require_6832__) => {
 
 
 
@@ -8940,11 +8940,11 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.defrag = exports.prepend = exports.append = exports.isChildren = exports.define = exports.element = exports.text = exports.svg = exports.html = exports.frag = exports.shadow = void 0;
 
-const global_1 = __nested_webpack_require_6838__(128);
+const global_1 = __nested_webpack_require_6832__(128);
 
-const alias_1 = __nested_webpack_require_6838__(406);
+const alias_1 = __nested_webpack_require_6832__(406);
 
-const memoize_1 = __nested_webpack_require_6838__(808);
+const memoize_1 = __nested_webpack_require_6832__(808);
 
 var caches;
 
@@ -9049,7 +9049,7 @@ function defineAttrs(el, attrs) {
                 configurable: true,
                 enumerable: false,
                 writable: true,
-                value: prop in el ? ev => ev.returnValue : ''
+                value: prop in el && !(0, alias_1.hasOwnProperty)(el, prop) ? ev => ev.returnValue : ''
               });
           }
         }
@@ -9076,7 +9076,7 @@ function defineAttrs(el, attrs) {
                 configurable: true,
                 enumerable: false,
                 writable: true,
-                value: prop in el ? ev => ev.returnValue : ''
+                value: prop in el && !(0, alias_1.hasOwnProperty)(el, prop) ? ev => ev.returnValue : ''
               });
           }
         }
@@ -9180,7 +9180,7 @@ exports.defrag = defrag;
 /******/ 	var __webpack_module_cache__ = {};
 /******/ 	
 /******/ 	// The require function
-/******/ 	function __nested_webpack_require_13838__(moduleId) {
+/******/ 	function __nested_webpack_require_13916__(moduleId) {
 /******/ 		// Check if module is in cache
 /******/ 		var cachedModule = __webpack_module_cache__[moduleId];
 /******/ 		if (cachedModule !== undefined) {
@@ -9194,7 +9194,7 @@ exports.defrag = defrag;
 /******/ 		};
 /******/ 	
 /******/ 		// Execute the module function
-/******/ 		__webpack_modules__[moduleId](module, module.exports, __nested_webpack_require_13838__);
+/******/ 		__webpack_modules__[moduleId](module, module.exports, __nested_webpack_require_13916__);
 /******/ 	
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
@@ -9205,7 +9205,7 @@ exports.defrag = defrag;
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nested_webpack_require_13838__(521);
+/******/ 	var __webpack_exports__ = __nested_webpack_require_13916__(521);
 /******/ 	
 /******/ 	return __webpack_exports__;
 /******/ })()
@@ -9215,14 +9215,14 @@ exports.defrag = defrag;
 /***/ }),
 
 /***/ 1051:
-/***/ ((module) => {
+/***/ (function(module) {
 
-/*! typed-dom v0.0.292 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
+/*! typed-dom v0.0.295 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(true)
 		module.exports = factory();
 	else {}
-})(globalThis, () => {
+})(this, () => {
 return /******/ (() => { // webpackBootstrap
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
@@ -9322,11 +9322,11 @@ exports.noop = noop;
 /***/ }),
 
 /***/ 128:
-/***/ ((module, __unused_webpack_exports, __nested_webpack_require_5307__) => {
+/***/ ((module, __unused_webpack_exports, __nested_webpack_require_5301__) => {
 
 
 
-__nested_webpack_require_5307__(921);
+__nested_webpack_require_5301__(921);
 
 const global = void 0 || typeof globalThis !== 'undefined' && globalThis // @ts-ignore
 || typeof self !== 'undefined' && self || Function('return this')();
@@ -9347,7 +9347,7 @@ var global = (/* unused pure expression or super */ null && (0));
 /***/ }),
 
 /***/ 879:
-/***/ ((__unused_webpack_module, exports, __nested_webpack_require_5794__) => {
+/***/ ((__unused_webpack_module, exports, __nested_webpack_require_5788__) => {
 
 
 
@@ -9358,11 +9358,11 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.never = exports.isPromiseLike = exports.Internal = exports.AtomicPromise = exports.internal = void 0;
 
-const global_1 = __nested_webpack_require_5794__(128);
+const global_1 = __nested_webpack_require_5788__(128);
 
-const alias_1 = __nested_webpack_require_5794__(406);
+const alias_1 = __nested_webpack_require_5788__(406);
 
-const function_1 = __nested_webpack_require_5794__(288);
+const function_1 = __nested_webpack_require_5788__(288);
 
 exports.internal = Symbol.for('spica/promise::internal');
 
@@ -9829,7 +9829,7 @@ exports.never = new class Never extends Promise {
 /***/ }),
 
 /***/ 251:
-/***/ ((__unused_webpack_module, exports, __nested_webpack_require_16118__) => {
+/***/ ((__unused_webpack_module, exports, __nested_webpack_require_16112__) => {
 
 
 
@@ -9838,11 +9838,11 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.bind = exports.delegate = exports.once = exports.listen = exports.currentTarget = void 0;
 
-const alias_1 = __nested_webpack_require_16118__(406);
+const alias_1 = __nested_webpack_require_16112__(406);
 
-const promise_1 = __nested_webpack_require_16118__(879);
+const promise_1 = __nested_webpack_require_16112__(879);
 
-const function_1 = __nested_webpack_require_16118__(288);
+const function_1 = __nested_webpack_require_16112__(288);
 
 exports.currentTarget = Symbol.for('typed-dom::currentTarget');
 
@@ -9926,7 +9926,7 @@ function bind(target, type, listener, option) {
         configurable: true,
         enumerable: false,
         writable: true,
-        value: prop in target ? ev => ev.returnValue : ''
+        value: prop in target && !(0, alias_1.hasOwnProperty)(target, prop) ? ev => ev.returnValue : ''
       });
   }
 
@@ -9949,7 +9949,7 @@ exports.bind = bind;
 /******/ 	var __webpack_module_cache__ = {};
 /******/ 	
 /******/ 	// The require function
-/******/ 	function __nested_webpack_require_19148__(moduleId) {
+/******/ 	function __nested_webpack_require_19188__(moduleId) {
 /******/ 		// Check if module is in cache
 /******/ 		var cachedModule = __webpack_module_cache__[moduleId];
 /******/ 		if (cachedModule !== undefined) {
@@ -9963,7 +9963,7 @@ exports.bind = bind;
 /******/ 		};
 /******/ 	
 /******/ 		// Execute the module function
-/******/ 		__webpack_modules__[moduleId](module, module.exports, __nested_webpack_require_19148__);
+/******/ 		__webpack_modules__[moduleId](module, module.exports, __nested_webpack_require_19188__);
 /******/ 	
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
@@ -9974,7 +9974,7 @@ exports.bind = bind;
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nested_webpack_require_19148__(251);
+/******/ 	var __webpack_exports__ = __nested_webpack_require_19188__(251);
 /******/ 	
 /******/ 	return __webpack_exports__;
 /******/ })()
