@@ -58,10 +58,10 @@
   },
   "scripts": {
     "update": "ncu -u && npm i --no-shrinkwrap && bundle update",
-    "dev": "concurrently \"webpack --env mode=test -w\" \"karma start --auto-watch --reporters dots\" \"webpack --env mode=dist -w --output-path ./gh-pages/assets/dist\" \"bundle exec jekyll serve -s ./gh-pages -d ./gh-pages/_site --incremental\"",
-    "test": "webpack --env mode=test && karma start --single-run --concurrency 1",
+    "dev": "concurrently \"webpack --env mode=test -w\" \"karma start --auto-watch\" \"webpack --env mode=dist -w --output-path ./gh-pages/assets/dist\" \"bundle exec jekyll serve -s ./gh-pages -d ./gh-pages/_site --incremental\"",
+    "test": "webpack --env mode=test && karma start --single-run --concurrency 1 --reporters dots,coverage",
     "lint": "webpack --env mode=lint",
-    "bench": "webpack --env mode=bench && karma start --single-run --concurrency 1 --reporters dots",
+    "bench": "webpack --env mode=bench && karma start --single-run --concurrency 1",
     "dist": "webpack --env mode=dist"
   },
   "author": "falsandtru",

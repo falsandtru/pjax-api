@@ -7,7 +7,7 @@ module.exports = function (config) {
       { pattern: 'test/unit/fixture/**/*', watched: true, served: true, included: false },
       { pattern: 'test/integration/fixture/**/*.{html,css,js}', watched: true, served: true, included: false },
     ],
-    reporters: ['dots', 'coverage'],
+    reporters: ['dots'],
     preprocessors: {
       'dist/**/*.js': ['coverage'],
     },
