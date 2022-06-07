@@ -74,50 +74,18 @@ __exportStar(__webpack_require__(4279), exports);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.isArray = exports.ObjectValues = exports.ObjectSetPrototypeOf = exports.ObjectSeal = exports.ObjectPreventExtensions = exports.ObjectKeys = exports.isSealed = exports.isFrozen = exports.isExtensible = exports.ObjectIs = exports.ObjectGetPrototypeOf = exports.ObjectGetOwnPropertySymbols = exports.ObjectGetOwnPropertyNames = exports.ObjectGetOwnPropertyDescriptors = exports.ObjectGetOwnPropertyDescriptor = exports.ObjectFromEntries = exports.ObjectFreeze = exports.ObjectEntries = exports.ObjectDefineProperty = exports.ObjectDefineProperties = exports.ObjectCreate = exports.ObjectAssign = exports.toString = exports.isEnumerable = exports.isPrototypeOf = exports.hasOwnProperty = exports.SymbolKeyFor = exports.SymbolFor = exports.sign = exports.round = exports.random = exports.min = exports.max = exports.floor = exports.ceil = exports.abs = exports.parseInt = exports.parseFloat = exports.isSafeInteger = exports.isNaN = exports.isInteger = exports.isFinite = exports[NaN] = void 0;
+exports.ObjectSetPrototypeOf = exports.ObjectGetPrototypeOf = exports.ObjectCreate = exports.ObjectAssign = exports.toString = exports.isEnumerable = exports.isPrototypeOf = exports.hasOwnProperty = exports.isArray = exports.sign = exports.round = exports.random = exports.min = exports.max = exports.floor = exports.ceil = exports.abs = exports.parseInt = exports.parseFloat = exports.isSafeInteger = exports.isNaN = exports.isInteger = exports.isFinite = exports[NaN] = void 0;
 exports[NaN] = Number.NaN, exports.isFinite = Number.isFinite, exports.isInteger = Number.isInteger, exports.isNaN = Number.isNaN, exports.isSafeInteger = Number.isSafeInteger, exports.parseFloat = Number.parseFloat, exports.parseInt = Number.parseInt;
-exports.abs = Math.abs, exports.ceil = Math.ceil, exports.floor = Math.floor, exports.max = Math.max, exports.min = Math.min, exports.random = Math.random, exports.round = Math.round, exports.sign = Math.sign; //export const SymbolAsyncIterator: typeof Symbol.asyncIterator = Symbol.asyncIterator;
-
-exports.SymbolFor = Symbol.for; //export const SymbolHasInstance: typeof Symbol.hasInstance = Symbol.hasInstance;
-//export const SymbolIsConcatSpreadable: typeof Symbol.isConcatSpreadable = Symbol.isConcatSpreadable;
-//export const SymbolIterator: typeof Symbol.iterator = Symbol.iterator;
-
-exports.SymbolKeyFor = Symbol.keyFor; //export const SymbolMatch: typeof Symbol.match = Symbol.match;
-//export const SymbolReplace: typeof Symbol.replace = Symbol.replace;
-//export const SymbolSearch: typeof Symbol.search = Symbol.search;
-//export const SymbolSpecies: typeof Symbol.species = Symbol.species;
-//export const SymbolSplit: typeof Symbol.split = Symbol.split;
-//export const SymbolToPrimitive: typeof Symbol.toPrimitive = Symbol.toPrimitive;
-//export const SymbolToStringTag: typeof Symbol.toStringTag = Symbol.toStringTag;
-//export const SymbolUnscopables: typeof Symbol.unscopables = Symbol.unscopables;
-
+exports.abs = Math.abs, exports.ceil = Math.ceil, exports.floor = Math.floor, exports.max = Math.max, exports.min = Math.min, exports.random = Math.random, exports.round = Math.round, exports.sign = Math.sign;
+exports.isArray = Array.isArray;
 exports.hasOwnProperty = Object.prototype.hasOwnProperty.call.bind(Object.prototype.hasOwnProperty);
 exports.isPrototypeOf = Object.prototype.isPrototypeOf.call.bind(Object.prototype.isPrototypeOf);
 exports.isEnumerable = Object.prototype.propertyIsEnumerable.call.bind(Object.prototype.propertyIsEnumerable);
 exports.toString = Object.prototype.toString.call.bind(Object.prototype.toString);
 exports.ObjectAssign = Object.assign;
 exports.ObjectCreate = Object.create;
-exports.ObjectDefineProperties = Object.defineProperties;
-exports.ObjectDefineProperty = Object.defineProperty;
-exports.ObjectEntries = Object.entries;
-exports.ObjectFreeze = Object.freeze; // @ts-ignore
-
-exports.ObjectFromEntries = Object.fromEntries;
-exports.ObjectGetOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
-exports.ObjectGetOwnPropertyDescriptors = Object.getOwnPropertyDescriptors;
-exports.ObjectGetOwnPropertyNames = Object.getOwnPropertyNames;
-exports.ObjectGetOwnPropertySymbols = Object.getOwnPropertySymbols;
 exports.ObjectGetPrototypeOf = Object.getPrototypeOf;
-exports.ObjectIs = Object.is;
-exports.isExtensible = Object.isExtensible;
-exports.isFrozen = Object.isFrozen;
-exports.isSealed = Object.isSealed;
-exports.ObjectKeys = Object.keys;
-exports.ObjectPreventExtensions = Object.preventExtensions;
-exports.ObjectSeal = Object.seal;
 exports.ObjectSetPrototypeOf = Object.setPrototypeOf;
-exports.ObjectValues = Object.values;
-exports.isArray = Array.isArray;
 
 /***/ }),
 
@@ -130,7 +98,7 @@ exports.isArray = Array.isArray;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.join = exports.splice = exports.pop = exports.push = exports.shift = exports.unshift = exports.indexOf = void 0;
+exports.splice = exports.pop = exports.push = exports.shift = exports.unshift = exports.indexOf = void 0;
 
 const global_1 = __webpack_require__(4128);
 
@@ -227,18 +195,6 @@ function splice(as, index, count, ...inserts) {
 }
 
 exports.splice = splice;
-
-function join(as, sep = '') {
-  let acc = '';
-
-  for (let i = 0; i < as.length; ++i) {
-    acc += i === 0 ? as[i] : sep + as[i];
-  }
-
-  return acc;
-}
-
-exports.join = join;
 
 /***/ }),
 
@@ -378,7 +334,7 @@ function template(strategy) {
       const source = sources[i];
       if (source === target) continue;
       if ((0, type_1.isPrimitive)(source)) continue;
-      const keys = (0, alias_1.ObjectKeys)(source);
+      const keys = global_1.Object.keys(source);
 
       for (let i = 0; i < keys.length; ++i) {
         strategy(keys[i], target, source);
@@ -414,6 +370,8 @@ const clock_1 = __webpack_require__(7681);
 
 const invlist_1 = __webpack_require__(7452);
 
+const heap_1 = __webpack_require__(818);
+
 const assign_1 = __webpack_require__(4401);
 
 const tuple_1 = __webpack_require__(5341);
@@ -424,26 +382,21 @@ class Cache {
       capacity: 0,
       space: global_1.Infinity,
       age: global_1.Infinity,
-      life: 10,
-      limit: 95,
+      earlyExpiring: false,
+      limit: 950,
       capture: {
         delete: true,
         clear: true
       }
     };
-    this.SIZE = 0; // 1041 days < 2 ** 53 / 100,000,000 / 3600 / 24.
-    // Hit counter only for LFU.
-
-    this.clock = global_1.Number.MIN_SAFE_INTEGER; // LRU access counter only for LRU.
-
-    this.clockR = global_1.Number.MIN_SAFE_INTEGER;
+    this.overlap = 0;
+    this.SIZE = 0;
     this.memory = new global_1.Map();
     this.indexes = {
       LRU: new invlist_1.List(),
-      LFU: new invlist_1.List(),
-      // expiryとLFUのclockを消すなら消せる
-      OVL: new invlist_1.List()
+      LFU: new invlist_1.List()
     };
+    this.expiries = new heap_1.Heap();
     this.stats = {
       LRU: (0, tuple_1.tuple)(0, 0),
       LFU: (0, tuple_1.tuple)(0, 0),
@@ -469,7 +422,7 @@ class Cache {
       }
 
     };
-    this.ratio = 50;
+    this.ratio = 500;
 
     if (typeof capacity === 'object') {
       opts = capacity;
@@ -482,8 +435,9 @@ class Cache {
     this.capacity = this.settings.capacity;
     if (this.capacity >= 1 === false) throw new Error(`Spica: Cache: Capacity must be 1 or more.`);
     this.space = this.settings.space;
-    this.life = this.capacity * this.settings.life;
     this.limit = this.settings.limit;
+    this.earlyExpiring = this.settings.earlyExpiring;
+    this.disposer = this.settings.disposer;
   }
 
   get length() {
@@ -497,41 +451,29 @@ class Cache {
 
   evict(node, record, callback) {
     const index = node.value;
-    callback &&= !!this.settings.disposer;
+    callback &&= !!this.disposer;
     record = callback ? record ?? this.memory.get(index.key) : record;
+    this.overlap -= +(index.region === 'LFU' && node.list === this.indexes.LRU);
     node.delete();
-    node.value.overlap?.delete();
     this.memory.delete(index.key);
     this.SIZE -= index.size;
-    callback && this.settings.disposer?.(record.value, index.key);
+    callback && this.disposer?.(record.value, index.key);
   }
 
   ensure(margin, skip) {
-    if (skip) {
-      // Prevent wrong disposal of `skip`.
-      skip.value.clock = this.clock;
-      skip.value.expiry = global_1.Infinity;
-    }
-
     let size = skip?.value.size ?? 0;
     if (margin - size <= 0) return;
     const {
       LRU,
-      LFU,
-      OVL
+      LFU
     } = this.indexes;
 
     while (this.length === this.capacity || this.size + margin - size > this.space) {
-      const lastNode = OVL.last ?? LFU.last;
-      const lastIndex = lastNode?.value;
       let target;
 
       switch (true) {
-        // NOTE: The following conditions must be ensured that they won't be true if `lastNode` is `skip`.
-        // LRUの下限を5%以上確保すればわずかな性能低下と引き換えにクロックを消せる
-        case lastIndex && lastIndex.clock < this.clock - this.life:
-        case lastIndex && lastIndex.expiry !== global_1.Infinity && lastIndex.expiry < (0, clock_1.now)():
-          target = lastNode.list === OVL ? lastNode.value.node : lastNode;
+        case (target = this.expiries.peek()) && target !== skip && target.value.expiry < (0, clock_1.now)():
+          target = this.expiries.extract();
           break;
 
         case LRU.length === 0:
@@ -539,15 +481,16 @@ class Cache {
           break;
         // @ts-expect-error
 
-        case LFU.length > this.capacity * this.ratio / 100:
+        case LFU.length > this.capacity * this.ratio / 1000:
           target = LFU.last !== skip ? LFU.last : LFU.length >= 2 ? LFU.last.prev : skip;
 
           if (target !== skip) {
-            if (this.ratio >= 50) break;
+            if (this.ratio > 500) break;
             LRU.unshiftNode(target);
-            LRU.head.value.node = LRU.head;
-            LRU.head.value.overlap = OVL.unshift(LRU.head.value);
+            ++this.overlap;
           }
+
+        // fallthrough
 
         default:
           target = LRU.last !== skip ? LRU.last : LRU.length >= 2 ? LRU.last.prev : LFU.last;
@@ -559,12 +502,12 @@ class Cache {
     }
   }
 
-  put(key, value, size = 1, age = this.settings.age) {
-    if (size >= 1 === false) throw new Error(`Spica: Cache: Size must be 1 or more.`);
-    if (age >= 1 === false) throw new Error(`Spica: Cache: Age must be 1 or more.`);
-
+  put(key, value, {
+    size = 1,
+    age = this.settings.age
+  } = {}) {
     if (size > this.space || age <= 0) {
-      this.settings.disposer?.(value, key);
+      this.disposer?.(value, key);
       return false;
     }
 
@@ -572,16 +515,23 @@ class Cache {
     const record = this.memory.get(key);
 
     if (record) {
-      const node = record.index;
+      const node = record.inode;
       const val = record.value;
       const index = node.value;
       this.ensure(size, node);
-      index.clock = index.region === 'LRU' ? ++this.clockR : ++this.clock;
-      index.expiry = expiry;
       this.SIZE += size - index.size;
       index.size = size;
+      index.expiry = expiry;
+
+      if (this.earlyExpiring && expiry !== global_1.Infinity) {
+        index.enode ? this.expiries.update(index.enode, -expiry) : index.enode = this.expiries.insert(-expiry, node);
+      } else if (index.enode) {
+        this.expiries.delete(index.enode);
+        index.enode = void 0;
+      }
+
       record.value = value;
-      this.settings.disposer?.(val, key);
+      this.disposer?.(val, key);
       return true;
     }
 
@@ -590,28 +540,33 @@ class Cache {
       LRU
     } = this.indexes;
     this.SIZE += size;
+    const node = LRU.unshift({
+      key,
+      size,
+      expiry,
+      region: 'LRU'
+    });
     this.memory.set(key, {
-      index: LRU.unshift({
-        key,
-        size,
-        clock: ++this.clockR,
-        expiry,
-        region: 'LRU'
-      }),
+      inode: node,
       value
     });
+
+    if (this.earlyExpiring && expiry !== global_1.Infinity) {
+      node.value.enode = this.expiries.insert(-expiry, node);
+    }
+
     return false;
   }
 
-  set(key, value, size, age) {
-    this.put(key, value, size, age);
+  set(key, value, opts) {
+    this.put(key, value, opts);
     return this;
   }
 
   get(key) {
     const record = this.memory.get(key);
     if (!record) return;
-    const node = record.index;
+    const node = record.inode;
     const expiry = node.value.expiry;
 
     if (expiry !== global_1.Infinity && expiry < (0, clock_1.now)()) {
@@ -620,7 +575,7 @@ class Cache {
     } // Optimization for memoize.
 
 
-    if (this.capacity >= 10 && node === node.list.head) return record.value;
+    if (this.capacity > 3 && node === node.list.head) return record.value;
     this.access(node);
     this.slide();
     return record.value;
@@ -631,10 +586,10 @@ class Cache {
     //assert(this.memory.size === this.indexes.LFU.length + this.indexes.LRU.length);
     const record = this.memory.get(key);
     if (!record) return false;
-    const expiry = record.index.value.expiry;
+    const expiry = record.inode.value.expiry;
 
     if (expiry !== global_1.Infinity && expiry < (0, clock_1.now)()) {
-      this.evict(record.index, record, true);
+      this.evict(record.inode, record, true);
       return false;
     }
 
@@ -644,25 +599,26 @@ class Cache {
   delete(key) {
     const record = this.memory.get(key);
     if (!record) return false;
-    this.evict(record.index, record, this.settings.capture.delete === true);
+    this.evict(record.inode, record, this.settings.capture.delete === true);
     return true;
   }
 
   clear() {
+    this.overlap = 0;
     this.SIZE = 0;
-    this.ratio = 50;
+    this.ratio = 500;
     this.stats.clear();
     this.indexes.LRU.clear();
     this.indexes.LFU.clear();
-    this.indexes.OVL.clear();
-    if (!this.settings.disposer || !this.settings.capture.clear) return void this.memory.clear();
+    this.expiries.clear();
+    if (!this.disposer || !this.settings.capture.clear) return void this.memory.clear();
     const memory = this.memory;
     this.memory = new global_1.Map();
 
     for (const [key, {
       value
     }] of memory) {
-      this.settings.disposer(value, key);
+      this.disposer(value, key);
     }
   }
 
@@ -689,24 +645,24 @@ class Cache {
     } = this;
     const window = capacity;
     LRU[0] + LFU[0] === window && this.stats.slide();
-    if ((LRU[0] + LFU[0]) * 100 % capacity || LRU[1] + LFU[1] === 0) return;
+    if ((LRU[0] + LFU[0]) * 1000 % capacity || LRU[1] + LFU[1] === 0) return;
     const lenR = indexes.LRU.length;
     const lenF = indexes.LFU.length;
-    const lenV = indexes.OVL.length;
-    const r = (lenF + lenV) * 1000 / (lenR + lenF) | 0;
-    const rateR0 = rate(window, LRU[0], LRU[0] + LFU[0], LRU[1], LRU[1] + LFU[1], 0) * (1 + r);
-    const rateF0 = rate(window, LFU[0], LRU[0] + LFU[0], LFU[1], LRU[1] + LFU[1], 0) * (1001 - r);
-    const rateF1 = rate(window, LFU[1], LRU[1] + LFU[1], LFU[0], LRU[0] + LFU[0], 5) * (1001 - r); // 操作頻度を超えてキャッシュ比率を増減させても余剰比率の消化が追いつかず無駄
+    const lenV = this.overlap;
+    const r = (lenF + lenV) * 1000 / (lenR + lenF || 1) | 0;
+    const rateR0 = rate(window, LRU[0], LRU[0] + LFU[0], LRU[1], LRU[1] + LFU[1], 0) * r;
+    const rateF0 = rate(window, LFU[0], LRU[0] + LFU[0], LFU[1], LRU[1] + LFU[1], 0) * (1000 - r);
+    const rateF1 = rate(window, LFU[1], LRU[1] + LFU[1], LFU[0], LRU[0] + LFU[0], 5) * (1000 - r); // 操作頻度を超えてキャッシュ比率を増減させても余剰比率の消化が追いつかず無駄
     // LRUの下限設定ではLRU拡大の要否を迅速に判定できないためLFUのヒット率低下の検出で代替する
 
     if (ratio > 0 && (rateR0 > rateF0 || rateF0 < rateF1 * 0.95)) {
-      if (lenR >= capacity * (100 - ratio) / 100) {
-        //ratio % 10 || ratio === 100 || console.debug('-', ratio, LRU, LFU);
+      if (lenR >= capacity * (1000 - ratio) / 1000) {
+        //ratio % 100 || ratio === 1000 || console.debug('-', ratio, LRU, LFU);
         --this.ratio;
       }
     } else if (ratio < limit && rateF0 > rateR0) {
-      if (lenF >= capacity * ratio / 100) {
-        //ratio % 10 || ratio === 0 || console.debug('+', ratio, LRU, LFU);
+      if (lenF >= capacity * ratio / 1000) {
+        //ratio % 100 || ratio === 0 || console.debug('+', ratio, LRU, LFU);
         ++this.ratio;
       }
     }
@@ -718,33 +674,17 @@ class Cache {
 
   accessLRU(node) {
     const index = node.value;
-    const {
-      LRU,
-      LFU
-    } = this.indexes;
-    ++this.stats[index.region][0]; // Prevent LFU destruction.
-
-    if (!index.overlap && index.clock >= this.clockR - LRU.length / 3 && this.capacity > 3) {
-      index.clock = ++this.clockR;
-      node.moveToHead();
-      return true;
-    }
-
-    index.clock = ++this.clock;
+    ++this.stats[index.region][0];
+    this.overlap -= +(index.region === 'LFU');
     index.region = 'LFU';
-    index.overlap?.delete();
-    LFU.unshiftNode(node);
+    this.indexes.LFU.unshiftNode(node);
     return true;
   }
 
   accessLFU(node) {
+    if (node.list !== this.indexes.LFU) return false;
     const index = node.value;
-    const {
-      LFU
-    } = this.indexes;
-    if (node.list !== LFU) return false;
     ++this.stats[index.region][0];
-    index.clock = ++this.clock;
     node.moveToHead();
     return true;
   }
@@ -1247,7 +1187,7 @@ class Coroutine extends promise_1.AtomicPromise {
     this[internal] = new Internal(opts);
     let count = 0;
 
-    this[Coroutine.init] = async () => {
+    this[init] = async () => {
       const core = this[internal];
       if (!core.isAlive) return;
       if (count !== 0) return;
@@ -1305,7 +1245,7 @@ class Coroutine extends promise_1.AtomicPromise {
         if (prop in this && this.hasOwnProperty(prop)) continue;
 
         if (prop in this) {
-          (0, alias_1.ObjectDefineProperty)(this, prop, {
+          global_1.Object.defineProperty(this, prop, {
             set(value) {
               delete this[prop];
               this[prop] = value;
@@ -1322,15 +1262,15 @@ class Coroutine extends promise_1.AtomicPromise {
             configurable: true
           });
         } else {
-          const desc = (0, alias_1.ObjectGetOwnPropertyDescriptor)(this, prop) || {
+          const desc = global_1.Object.getOwnPropertyDescriptor(this, prop) || {
             value: this[prop],
             enumerable: true,
             configurable: true,
             writable: true
           };
-          (0, alias_1.ObjectDefineProperty)(this, prop, {
+          global_1.Object.defineProperty(this, prop, {
             set(value) {
-              (0, alias_1.ObjectDefineProperty)(this, prop, { ...desc,
+              global_1.Object.defineProperty(this, prop, { ...desc,
                 value
               });
               this[init]();
@@ -1348,7 +1288,7 @@ class Coroutine extends promise_1.AtomicPromise {
     }
 
     if (this[internal].settings.run) {
-      this[internal].settings.delay ? (0, clock_1.tick)(this[Coroutine.init]) : this[Coroutine.init]();
+      this[internal].settings.delay ? (0, clock_1.tick)(this[init]) : this[init]();
     }
   }
 
@@ -1847,6 +1787,151 @@ module.exports = global;
 var globalThis; // @ts-ignore
 
 var global = (/* unused pure expression or super */ null && (globalThis));
+
+/***/ }),
+
+/***/ 818:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.Heap = void 0;
+
+const alias_1 = __webpack_require__(5406); // Max heap
+
+
+const undefined = void 0;
+
+class Heap {
+  constructor(stable = false) {
+    this.stable = stable;
+    this.array = [];
+    this.$length = 0;
+  }
+
+  get length() {
+    return this.$length;
+  }
+
+  insert(priority, value) {
+    const array = this.array;
+    const node = array[this.$length] = [priority, value, this.$length++];
+    upHeapify(array, this.$length);
+    return node;
+  }
+
+  replace(priority, value) {
+    const array = this.array;
+    if (this.$length === 0) return void this.insert(priority, value);
+    const replaced = array[0][1];
+    array[0] = [priority, value, 0];
+    downHeapify(array, 1, this.$length, this.stable);
+    return replaced;
+  }
+
+  extract() {
+    if (this.$length === 0) return;
+    const node = this.array[0];
+    this.delete(node);
+    return node[1];
+  }
+
+  delete(node) {
+    const array = this.array;
+    const index = node[2];
+    if (array[index] !== node) throw new Error('Invalid node');
+    swap(array, index, --this.$length); // @ts-expect-error
+
+    array[this.$length] = undefined;
+    index < this.$length && this.sort(array[index]);
+
+    if (array.length > 2 ** 16 && array.length > this.$length * 2) {
+      array.splice(array.length / 2, array.length);
+    }
+
+    return node[1];
+  }
+
+  update(node, priority, value = node[1]) {
+    const array = this.array;
+    if (array[node[2]] !== node) throw new Error('Invalid node');
+    node[1] = value;
+    if (node[0] === priority) return;
+    node[0] = priority;
+    this.sort(node);
+  }
+
+  sort(node) {
+    const array = this.array;
+    return upHeapify(array, node[2] + 1) || downHeapify(array, node[2] + 1, this.$length, this.stable);
+  }
+
+  peek() {
+    return this.array[0]?.[1];
+  }
+
+  clear() {
+    this.array = [];
+    this.$length = 0;
+  }
+
+}
+
+exports.Heap = Heap;
+
+function upHeapify(array, index) {
+  const priority = array[index - 1][0];
+  let changed = false;
+
+  while (index > 1) {
+    const parent = (0, alias_1.floor)(index / 2);
+    if (array[parent - 1][0] >= priority) break;
+    swap(array, index - 1, parent - 1);
+    index = parent;
+    changed ||= true;
+  }
+
+  return changed;
+}
+
+function downHeapify(array, index, length, stable) {
+  let changed = false;
+
+  while (index < length) {
+    const left = index * 2;
+    const right = index * 2 + 1;
+    let max = index;
+
+    if (left <= length && (stable ? array[left - 1][0] >= array[max - 1][0] : array[left - 1][0] > array[max - 1][0])) {
+      max = left;
+    }
+
+    if (right <= length && (stable ? array[right - 1][0] >= array[max - 1][0] : array[right - 1][0] > array[max - 1][0])) {
+      max = right;
+    }
+
+    if (max === index) break;
+    swap(array, index - 1, max - 1);
+    index = max;
+    changed ||= true;
+  }
+
+  return changed;
+}
+
+function swap(array, index1, index2) {
+  if (index1 === index2) return;
+  const node1 = array[index1];
+  const node2 = array[index2];
+  node1[2] = index2;
+  node2[2] = index1;
+  array[index1] = node2;
+  array[index2] = node1;
+}
 
 /***/ }),
 
@@ -4718,14 +4803,14 @@ class Observation {
     const {
       monitors
     } = this.seekNode(namespace, 0
-    /* Extensible */
+    /* SeekMode.Extensible */
     );
     if (monitors.length === this.settings.limit) throw new global_1.Error(`Spica: Observation: Exceeded max listener limit.`);
     if (this.id === global_1.Number.MAX_SAFE_INTEGER) throw new global_1.Error(`Spica: Observation: Max listener ID reached max safe integer.`);
     const item = {
       id: ++this.id,
       type: 0
-      /* Monitor */
+      /* ListenerType.Monitor */
       ,
       namespace,
       listener: monitor,
@@ -4740,14 +4825,14 @@ class Observation {
     const {
       subscribers
     } = this.seekNode(namespace, 0
-    /* Extensible */
+    /* SeekMode.Extensible */
     );
     if (subscribers.length === this.settings.limit) throw new global_1.Error(`Spica: Observation: Exceeded max listener limit.`);
     if (this.id === global_1.Number.MAX_SAFE_INTEGER) throw new global_1.Error(`Spica: Observation: Max listener ID reached max safe integer.`);
     const item = {
       id: ++this.id,
       type: 1
-      /* Subscriber */
+      /* ListenerType.Subscriber */
       ,
       namespace,
       listener: subscriber,
@@ -4765,7 +4850,7 @@ class Observation {
 
   off(namespace, subscriber) {
     const node = this.seekNode(namespace, 1
-    /* Breakable */
+    /* SeekMode.Breakable */
     );
     if (!node) return;
 
@@ -4773,7 +4858,7 @@ class Observation {
       case 'object':
         {
           const items = subscriber.type === 0
-          /* Monitor */
+          /* ListenerType.Monitor */
           ? node.monitors : node.subscribers;
           if (items.length === 0 || subscriber.id < items[0].id || subscriber.id > items[items.length - 1].id) return;
           return void (0, array_1.splice)(items, items.indexOf(subscriber), 1);
@@ -4808,23 +4893,23 @@ class Observation {
 
   refs(namespace) {
     const node = this.seekNode(namespace, 1
-    /* Breakable */
+    /* SeekMode.Breakable */
     );
     if (!node) return [];
     return (0, array_1.push)(this.refsBelow(node, 0
-    /* Monitor */
+    /* ListenerType.Monitor */
     ), this.refsBelow(node, 1
-    /* Subscriber */
+    /* ListenerType.Subscriber */
     )).reduce((acc, rs) => (0, array_1.push)(acc, rs), []);
   }
 
   drain(namespace, data, tracker) {
     const node = this.seekNode(namespace, 1
-    /* Breakable */
+    /* SeekMode.Breakable */
     );
     const results = [];
     const sss = node ? this.refsBelow(node, 1
-    /* Subscriber */
+    /* ListenerType.Subscriber */
     ) : [];
 
     for (let i = 0; i < sss.length; ++i) {
@@ -4852,9 +4937,9 @@ class Observation {
     }
 
     const mss = this.refsAbove(node || this.seekNode(namespace, 2
-    /* Closest */
+    /* SeekMode.Closest */
     ), 0
-    /* Monitor */
+    /* ListenerType.Monitor */
     );
 
     for (let i = 0; i < mss.length; ++i) {
@@ -4895,12 +4980,12 @@ class Observation {
     subscribers
   }, type) {
     const acc = type === 0
-    /* Monitor */
+    /* ListenerType.Monitor */
     ? [monitors] : [subscribers];
 
     while (parent) {
       type === 0
-      /* Monitor */
+      /* ListenerType.Monitor */
       ? acc.push(parent.monitors) : acc.push(parent.subscribers);
       parent = parent.parent;
     }
@@ -4918,7 +5003,7 @@ class Observation {
     children
   }, type, acc) {
     type === 0
-    /* Monitor */
+    /* ListenerType.Monitor */
     ? acc.push(monitors) : acc.push(subscribers);
     let count = 0;
 
@@ -4949,12 +5034,12 @@ class Observation {
       if (!child) {
         switch (mode) {
           case 1
-          /* Breakable */
+          /* SeekMode.Breakable */
           :
             return;
 
           case 2
-          /* Closest */
+          /* SeekMode.Closest */
           :
             return node;
         }
@@ -5051,14 +5136,14 @@ class AtomicPromise {
 
           switch (status.state) {
             case 2
-            /* fulfilled */
+            /* State.fulfilled */
             :
               results[i] = status.value;
               ++count;
               continue;
 
             case 3
-            /* rejected */
+            /* State.rejected */
             :
               return reject(status.reason);
           }
@@ -5096,12 +5181,12 @@ class AtomicPromise {
 
           switch (status.state) {
             case 2
-            /* fulfilled */
+            /* State.fulfilled */
             :
               return resolve(status.value);
 
             case 3
-            /* rejected */
+            /* State.rejected */
             :
               return reject(status.reason);
           }
@@ -5148,7 +5233,7 @@ class AtomicPromise {
 
           switch (status.state) {
             case 2
-            /* fulfilled */
+            /* State.fulfilled */
             :
               results[i] = {
                 status: 'fulfilled',
@@ -5158,7 +5243,7 @@ class AtomicPromise {
               continue;
 
             case 3
-            /* rejected */
+            /* State.rejected */
             :
               results[i] = {
                 status: 'rejected',
@@ -5211,12 +5296,12 @@ class AtomicPromise {
 
           switch (status.state) {
             case 2
-            /* fulfilled */
+            /* State.fulfilled */
             :
               return resolve(status.value);
 
             case 3
-            /* rejected */
+            /* State.rejected */
             :
               reasons[i] = status.reason;
               ++count;
@@ -5267,7 +5352,7 @@ class Internal {
   constructor() {
     this.status = {
       state: 0
-      /* pending */
+      /* State.pending */
 
     };
     this.fulfillReactions = [];
@@ -5276,19 +5361,19 @@ class Internal {
 
   get isPending() {
     return this.status.state === 0
-    /* pending */
+    /* State.pending */
     ;
   }
 
   resolve(value) {
     if (this.status.state !== 0
-    /* pending */
+    /* State.pending */
     ) return;
 
     if (!isPromiseLike(value)) {
       this.status = {
         state: 2
-        /* fulfilled */
+        /* State.fulfilled */
         ,
         value: value
       };
@@ -5300,10 +5385,10 @@ class Internal {
 
       switch (core.status.state) {
         case 2
-        /* fulfilled */
+        /* State.fulfilled */
         :
         case 3
-        /* rejected */
+        /* State.rejected */
         :
           this.status = core.status;
           return this.resume();
@@ -5315,14 +5400,14 @@ class Internal {
 
     this.status = {
       state: 1
-      /* resolved */
+      /* State.resolved */
       ,
       promise: value
     };
     return void value.then(value => {
       this.status = {
         state: 2
-        /* fulfilled */
+        /* State.fulfilled */
         ,
         value
       };
@@ -5330,7 +5415,7 @@ class Internal {
     }, reason => {
       this.status = {
         state: 3
-        /* rejected */
+        /* State.rejected */
         ,
         reason
       };
@@ -5340,11 +5425,11 @@ class Internal {
 
   reject(reason) {
     if (this.status.state !== 0
-    /* pending */
+    /* State.pending */
     ) return;
     this.status = {
       state: 3
-      /* rejected */
+      /* State.rejected */
       ,
       reason
     };
@@ -5360,13 +5445,13 @@ class Internal {
 
     switch (status.state) {
       case 2
-      /* fulfilled */
+      /* State.fulfilled */
       :
         if (fulfillReactions.length !== 0) break;
         return call(resolve, reject, resolve, onfulfilled, status.value);
 
       case 3
-      /* rejected */
+      /* State.rejected */
       :
         if (rejectReactions.length !== 0) break;
         return call(resolve, reject, reject, onrejected, status.reason);
@@ -5385,15 +5470,15 @@ class Internal {
 
     switch (status.state) {
       case 0
-      /* pending */
+      /* State.pending */
       :
       case 1
-      /* resolved */
+      /* State.resolved */
       :
         return;
 
       case 2
-      /* fulfilled */
+      /* State.fulfilled */
       :
         if (rejectReactions.length !== 0) {
           this.rejectReactions = [];
@@ -5405,7 +5490,7 @@ class Internal {
         return;
 
       case 3
-      /* rejected */
+      /* State.rejected */
       :
         if (fulfillReactions.length !== 0) {
           this.fulfillReactions = [];
@@ -5487,8 +5572,6 @@ exports.router = void 0;
 
 const global_1 = __webpack_require__(4128);
 
-const alias_1 = __webpack_require__(5406);
-
 const url_1 = __webpack_require__(2261);
 
 const sequence_1 = __webpack_require__(8715);
@@ -5510,7 +5593,7 @@ function router(config) {
       path,
       pathname
     } = new url_1.URL((0, url_1.standardize)(url, global_1.global.location.href));
-    return sequence_1.Sequence.from((0, alias_1.ObjectKeys)(config).filter(p => p[0] === '/').sort().reverse()).filter((0, curry_1.curry)((0, flip_1.flip)(compare))(pathname)).map(pattern => config[pattern]).take(1).extract().pop().call(config, path);
+    return sequence_1.Sequence.from(global_1.Object.keys(config).filter(p => p[0] === '/').sort().reverse()).filter((0, curry_1.curry)((0, flip_1.flip)(compare))(pathname)).map(pattern => config[pattern]).take(1).extract().pop().call(config, path);
   };
 }
 
@@ -5784,7 +5867,7 @@ class Supervisor extends coroutine_1.Coroutine {
   destructor(reason) {
     this.available = false;
     this.clear(reason);
-    (0, alias_1.ObjectFreeze)(this.workers);
+    global_1.Object.freeze(this.workers);
 
     while (this.messages.length > 0) {
       const [names, param,,, timer] = this.messages.shift();
@@ -5796,7 +5879,7 @@ class Supervisor extends coroutine_1.Coroutine {
     this.isAlive = false; // @ts-ignore #31251
 
     this.constructor.instances.delete(this);
-    (0, alias_1.ObjectFreeze)(this);
+    global_1.Object.freeze(this);
     this.settings.destructor(reason);
     this.state.bind(reason === void 0 ? void 0 : promise_1.AtomicPromise.reject(reason));
   }
@@ -6049,7 +6132,7 @@ class Worker {
   destructor(reason) {
     this.isAlive = false;
     this.available = false;
-    (0, alias_1.ObjectFreeze)(this);
+    global_1.Object.freeze(this);
 
     try {
       this.destructor_();
@@ -6270,7 +6353,6 @@ const global_1 = __webpack_require__(4128);
 
 const alias_1 = __webpack_require__(5406);
 
-const toString = Object.prototype.toString.call.bind(Object.prototype.toString);
 const ObjectPrototype = Object.prototype;
 const ArrayPrototype = Array.prototype;
 
@@ -6284,7 +6366,7 @@ function type(value) {
     const proto = (0, alias_1.ObjectGetPrototypeOf)(value);
     if (proto === ObjectPrototype) return 'Object';
     if (proto === ArrayPrototype) return 'Array';
-    return toString(value).slice(8, -1);
+    return (0, alias_1.toString)(value).slice(8, -1);
   }
 
   if (type === 'function') return 'Function';
@@ -6781,7 +6863,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.Config = exports.scope = void 0;
 
-const alias_1 = __webpack_require__(5406);
+const global_1 = __webpack_require__(4128);
 
 const assign_1 = __webpack_require__(4401);
 
@@ -6823,7 +6905,7 @@ class Config {
     this.sequence = new Sequence();
     this.progressbar = 'display:none;position:absolute;bottom:0;left:0;width:0;height:2px;background:rgb(40, 105, 255);';
     this.scope = {};
-    void (0, alias_1.ObjectDefineProperties)(this.update, {
+    void global_1.Object.defineProperties(this.update, {
       ignore: {
         enumerable: false,
 
@@ -6832,7 +6914,7 @@ class Config {
         },
 
         get() {
-          return (0, alias_1.ObjectKeys)(this.ignores).map(i => this.ignores[i]).filter(s => s.trim().length > 0).join(',');
+          return global_1.Object.keys(this.ignores).map(i => this.ignores[i]).filter(s => s.trim().length > 0).join(',');
         }
 
       }
@@ -6840,7 +6922,7 @@ class Config {
     void (0, assign_1.extend)(this, option);
     void (0, assign_1.overwrite)(this.scope, option?.scope ?? {});
     this.fetch.headers = new Headers(this.fetch.headers);
-    void (0, alias_1.ObjectFreeze)(this);
+    void global_1.Object.freeze(this);
     void this.fetch.headers.set('X-Requested-With', 'XMLHttpRequest');
     void this.fetch.headers.set('X-Pjax', '1');
   }
@@ -6903,7 +6985,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.scope = void 0;
 
-const alias_1 = __webpack_require__(5406);
+const global_1 = __webpack_require__(4128);
 
 const config_1 = __webpack_require__(5411);
 
@@ -6924,7 +7006,7 @@ function scope(config, path) {
     '/': {},
     ...config.scope
   };
-  return sequence_1.Sequence.from((0, alias_1.ObjectKeys)(scope).sort().reverse()).dropWhile(pattern => !!!compare(pattern, path.orig) && !compare(pattern, path.dest)).take(1).filter(pattern => !!compare(pattern, path.orig) && compare(pattern, path.dest)).map(pattern => scope[pattern]).map(option => option ? (0, maybe_1.Just)(new config_1.Config((0, assign_1.extend)({
+  return sequence_1.Sequence.from(global_1.Object.keys(scope).sort().reverse()).dropWhile(pattern => !!!compare(pattern, path.orig) && !compare(pattern, path.dest)).take(1).filter(pattern => !!compare(pattern, path.orig) && compare(pattern, path.dest)).map(pattern => scope[pattern]).map(option => option ? (0, maybe_1.Just)(new config_1.Config((0, assign_1.extend)({
     scope: option.scope && (0, assign_1.overwrite)(config.scope, option.scope)
   }, config, option))) : maybe_1.Nothing).extract()[0] ?? maybe_1.Nothing;
 }
@@ -6944,7 +7026,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.RouterEventLocation = exports.RouterEventRequest = exports.RouterEventMethod = exports.RouterEventType = exports.RouterEventSource = exports.RouterEvent = void 0;
 
-const alias_1 = __webpack_require__(5406);
+const global_1 = __webpack_require__(4128);
 
 const dom_1 = __webpack_require__(7274);
 
@@ -6959,7 +7041,7 @@ class RouterEvent {
     this.source = this.original[listener_1.currentTarget];
     this.request = new RouterEventRequest(this.source);
     this.location = new RouterEventLocation(this.request.url);
-    void (0, alias_1.ObjectFreeze)(this);
+    void global_1.Object.freeze(this);
   }
 
 }
@@ -7027,7 +7109,7 @@ class RouterEventRequest {
 
     this.body = (() => this.source instanceof RouterEventSource.Form && this.method === RouterEventMethod.POST ? new FormData(this.source) : null)();
 
-    void (0, alias_1.ObjectFreeze)(this);
+    void global_1.Object.freeze(this);
   }
 
 }
@@ -7038,7 +7120,7 @@ class RouterEventLocation {
   constructor(dest) {
     this.dest = dest;
     this.orig = new url_1.URL((0, url_1.standardize)(window.location.href));
-    void (0, alias_1.ObjectFreeze)(this);
+    void global_1.Object.freeze(this);
   }
 
 }
@@ -7112,14 +7194,14 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.RouterEntityState = exports.RouterEntity = void 0;
 
-const alias_1 = __webpack_require__(5406);
+const global_1 = __webpack_require__(4128);
 
 class RouterEntity {
   constructor(config, event, state) {
     this.config = config;
     this.event = event;
     this.state = state;
-    void (0, alias_1.ObjectFreeze)(this);
+    void global_1.Object.freeze(this);
   }
 
 }
@@ -7130,7 +7212,7 @@ class RouterEntityState {
   constructor(process, scripts) {
     this.process = process;
     this.scripts = scripts;
-    void (0, alias_1.ObjectFreeze)(this);
+    void global_1.Object.freeze(this);
   }
 
 }
@@ -7150,7 +7232,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.FetchResponse = void 0;
 
-const alias_1 = __webpack_require__(5406);
+const global_1 = __webpack_require__(4128);
 
 const html_1 = __webpack_require__(6301);
 
@@ -7165,14 +7247,14 @@ class FetchResponse {
 
     this.document = this.xhr.responseXML.cloneNode(true);
     if (url.origin !== new url_1.URL(xhr.responseURL, window.location.href).origin) throw new Error(`Redirected to another origin.`);
-    void (0, alias_1.ObjectDefineProperty)(this.document, 'URL', {
+    void global_1.Object.defineProperty(this.document, 'URL', {
       configurable: true,
       enumerable: true,
       value: url.href,
       writable: false
     });
     void (0, html_1.fix)(this.document);
-    void (0, alias_1.ObjectFreeze)(this);
+    void global_1.Object.freeze(this);
   }
 
 }
@@ -7653,8 +7735,6 @@ exports.escape = exports._evaluate = exports._fetch = exports.script = void 0;
 
 const global_1 = __webpack_require__(4128);
 
-const alias_1 = __webpack_require__(5406);
-
 const error_1 = __webpack_require__(2893);
 
 const promise_1 = __webpack_require__(4879);
@@ -7765,7 +7845,7 @@ exports.escape = escape;
 
 function retry(script) {
   if (new url_1.URL((0, url_1.standardize)(script.src)).origin === new url_1.URL((0, url_1.standardize)(window.location.href)).origin) return promise_1.AtomicPromise.reject(new Error());
-  script = (0, dom_1.html)('script', (0, alias_1.ObjectValues)(script.attributes).reduce((o, {
+  script = (0, dom_1.html)('script', global_1.Object.values(script.attributes).reduce((o, {
     name,
     value
   }) => (o[name] = value, o), {}), [...script.childNodes]);
@@ -8751,7 +8831,7 @@ function test(parser) {
 /***/ 3252:
 /***/ (function(module) {
 
-/*! typed-dom v0.0.295 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
+/*! typed-dom v0.0.298 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(true)
 		module.exports = factory();
@@ -8769,50 +8849,18 @@ return /******/ (() => { // webpackBootstrap
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.isArray = exports.ObjectValues = exports.ObjectSetPrototypeOf = exports.ObjectSeal = exports.ObjectPreventExtensions = exports.ObjectKeys = exports.isSealed = exports.isFrozen = exports.isExtensible = exports.ObjectIs = exports.ObjectGetPrototypeOf = exports.ObjectGetOwnPropertySymbols = exports.ObjectGetOwnPropertyNames = exports.ObjectGetOwnPropertyDescriptors = exports.ObjectGetOwnPropertyDescriptor = exports.ObjectFromEntries = exports.ObjectFreeze = exports.ObjectEntries = exports.ObjectDefineProperty = exports.ObjectDefineProperties = exports.ObjectCreate = exports.ObjectAssign = exports.toString = exports.isEnumerable = exports.isPrototypeOf = exports.hasOwnProperty = exports.SymbolKeyFor = exports.SymbolFor = exports.sign = exports.round = exports.random = exports.min = exports.max = exports.floor = exports.ceil = exports.abs = exports.parseInt = exports.parseFloat = exports.isSafeInteger = exports.isNaN = exports.isInteger = exports.isFinite = exports[NaN] = void 0;
+exports.ObjectSetPrototypeOf = exports.ObjectGetPrototypeOf = exports.ObjectCreate = exports.ObjectAssign = exports.toString = exports.isEnumerable = exports.isPrototypeOf = exports.hasOwnProperty = exports.isArray = exports.sign = exports.round = exports.random = exports.min = exports.max = exports.floor = exports.ceil = exports.abs = exports.parseInt = exports.parseFloat = exports.isSafeInteger = exports.isNaN = exports.isInteger = exports.isFinite = exports[NaN] = void 0;
 exports[NaN] = Number.NaN, exports.isFinite = Number.isFinite, exports.isInteger = Number.isInteger, exports.isNaN = Number.isNaN, exports.isSafeInteger = Number.isSafeInteger, exports.parseFloat = Number.parseFloat, exports.parseInt = Number.parseInt;
-exports.abs = Math.abs, exports.ceil = Math.ceil, exports.floor = Math.floor, exports.max = Math.max, exports.min = Math.min, exports.random = Math.random, exports.round = Math.round, exports.sign = Math.sign; //export const SymbolAsyncIterator: typeof Symbol.asyncIterator = Symbol.asyncIterator;
-
-exports.SymbolFor = Symbol.for; //export const SymbolHasInstance: typeof Symbol.hasInstance = Symbol.hasInstance;
-//export const SymbolIsConcatSpreadable: typeof Symbol.isConcatSpreadable = Symbol.isConcatSpreadable;
-//export const SymbolIterator: typeof Symbol.iterator = Symbol.iterator;
-
-exports.SymbolKeyFor = Symbol.keyFor; //export const SymbolMatch: typeof Symbol.match = Symbol.match;
-//export const SymbolReplace: typeof Symbol.replace = Symbol.replace;
-//export const SymbolSearch: typeof Symbol.search = Symbol.search;
-//export const SymbolSpecies: typeof Symbol.species = Symbol.species;
-//export const SymbolSplit: typeof Symbol.split = Symbol.split;
-//export const SymbolToPrimitive: typeof Symbol.toPrimitive = Symbol.toPrimitive;
-//export const SymbolToStringTag: typeof Symbol.toStringTag = Symbol.toStringTag;
-//export const SymbolUnscopables: typeof Symbol.unscopables = Symbol.unscopables;
-
+exports.abs = Math.abs, exports.ceil = Math.ceil, exports.floor = Math.floor, exports.max = Math.max, exports.min = Math.min, exports.random = Math.random, exports.round = Math.round, exports.sign = Math.sign;
+exports.isArray = Array.isArray;
 exports.hasOwnProperty = Object.prototype.hasOwnProperty.call.bind(Object.prototype.hasOwnProperty);
 exports.isPrototypeOf = Object.prototype.isPrototypeOf.call.bind(Object.prototype.isPrototypeOf);
 exports.isEnumerable = Object.prototype.propertyIsEnumerable.call.bind(Object.prototype.propertyIsEnumerable);
 exports.toString = Object.prototype.toString.call.bind(Object.prototype.toString);
 exports.ObjectAssign = Object.assign;
 exports.ObjectCreate = Object.create;
-exports.ObjectDefineProperties = Object.defineProperties;
-exports.ObjectDefineProperty = Object.defineProperty;
-exports.ObjectEntries = Object.entries;
-exports.ObjectFreeze = Object.freeze; // @ts-ignore
-
-exports.ObjectFromEntries = Object.fromEntries;
-exports.ObjectGetOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
-exports.ObjectGetOwnPropertyDescriptors = Object.getOwnPropertyDescriptors;
-exports.ObjectGetOwnPropertyNames = Object.getOwnPropertyNames;
-exports.ObjectGetOwnPropertySymbols = Object.getOwnPropertySymbols;
 exports.ObjectGetPrototypeOf = Object.getPrototypeOf;
-exports.ObjectIs = Object.is;
-exports.isExtensible = Object.isExtensible;
-exports.isFrozen = Object.isFrozen;
-exports.isSealed = Object.isSealed;
-exports.ObjectKeys = Object.keys;
-exports.ObjectPreventExtensions = Object.preventExtensions;
-exports.ObjectSeal = Object.seal;
 exports.ObjectSetPrototypeOf = Object.setPrototypeOf;
-exports.ObjectValues = Object.values;
-exports.isArray = Array.isArray;
 
 /***/ }),
 
@@ -8835,11 +8883,11 @@ exports.equal = equal;
 /***/ }),
 
 /***/ 128:
-/***/ ((module, __unused_webpack_exports, __nested_webpack_require_4955__) => {
+/***/ ((module, __unused_webpack_exports, __nested_webpack_require_2590__) => {
 
 
 
-__nested_webpack_require_4955__(921);
+__nested_webpack_require_2590__(921);
 
 const global = void 0 || typeof globalThis !== 'undefined' && globalThis // @ts-ignore
 || typeof self !== 'undefined' && self || Function('return this')();
@@ -8860,7 +8908,7 @@ var global = (/* unused pure expression or super */ null && (0));
 /***/ }),
 
 /***/ 808:
-/***/ ((__unused_webpack_module, exports, __nested_webpack_require_5442__) => {
+/***/ ((__unused_webpack_module, exports, __nested_webpack_require_3077__) => {
 
 
 
@@ -8869,11 +8917,11 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.reduce = exports.memoize = void 0;
 
-const global_1 = __nested_webpack_require_5442__(128);
+const global_1 = __nested_webpack_require_3077__(128);
 
-const alias_1 = __nested_webpack_require_5442__(406);
+const alias_1 = __nested_webpack_require_3077__(406);
 
-const compare_1 = __nested_webpack_require_5442__(529);
+const compare_1 = __nested_webpack_require_3077__(529);
 
 function memoize(f, identify = (...as) => as[0], memory) {
   if (typeof identify === 'object') return memoize(f, void 0, identify);
@@ -8931,7 +8979,7 @@ exports.reduce = reduce;
 /***/ }),
 
 /***/ 521:
-/***/ ((__unused_webpack_module, exports, __nested_webpack_require_6832__) => {
+/***/ ((__unused_webpack_module, exports, __nested_webpack_require_4467__) => {
 
 
 
@@ -8940,11 +8988,11 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.defrag = exports.prepend = exports.append = exports.isChildren = exports.define = exports.element = exports.text = exports.svg = exports.html = exports.frag = exports.shadow = void 0;
 
-const global_1 = __nested_webpack_require_6832__(128);
+const global_1 = __nested_webpack_require_4467__(128);
 
-const alias_1 = __nested_webpack_require_6832__(406);
+const alias_1 = __nested_webpack_require_4467__(406);
 
-const memoize_1 = __nested_webpack_require_6832__(808);
+const memoize_1 = __nested_webpack_require_4467__(808);
 
 var caches;
 
@@ -8972,10 +9020,10 @@ function frag(children) {
 
 exports.frag = frag;
 exports.html = element(global_1.document, "HTML"
-/* HTML */
+/* NS.HTML */
 );
 exports.svg = element(global_1.document, "SVG"
-/* SVG */
+/* NS.SVG */
 );
 
 function text(source) {
@@ -8999,17 +9047,17 @@ function elem(context, ns, tag) {
 
   switch (ns) {
     case "HTML"
-    /* HTML */
+    /* NS.HTML */
     :
       return context.createElement(tag);
 
     case "SVG"
-    /* SVG */
+    /* NS.SVG */
     :
       return context.createElementNS('http://www.w3.org/2000/svg', tag);
 
     case "MathML"
-    /* MathML */
+    /* NS.MathML */
     :
       return context.createElementNS('http://www.w3.org/1998/Math/MathML', tag);
   }
@@ -9045,7 +9093,7 @@ function defineAttrs(el, attrs) {
             case 'connect':
             case 'disconnect':
               const prop = `on${type}`;
-              el[prop] ?? (0, alias_1.ObjectDefineProperty)(el, prop, {
+              el[prop] ?? global_1.Object.defineProperty(el, prop, {
                 configurable: true,
                 enumerable: false,
                 writable: true,
@@ -9072,7 +9120,7 @@ function defineAttrs(el, attrs) {
             case 'connect':
             case 'disconnect':
               const prop = `on${type}`;
-              el[prop] ?? (0, alias_1.ObjectDefineProperty)(el, prop, {
+              el[prop] ?? global_1.Object.defineProperty(el, prop, {
                 configurable: true,
                 enumerable: false,
                 writable: true,
@@ -9180,7 +9228,7 @@ exports.defrag = defrag;
 /******/ 	var __webpack_module_cache__ = {};
 /******/ 	
 /******/ 	// The require function
-/******/ 	function __nested_webpack_require_13916__(moduleId) {
+/******/ 	function __nested_webpack_require_11560__(moduleId) {
 /******/ 		// Check if module is in cache
 /******/ 		var cachedModule = __webpack_module_cache__[moduleId];
 /******/ 		if (cachedModule !== undefined) {
@@ -9194,7 +9242,7 @@ exports.defrag = defrag;
 /******/ 		};
 /******/ 	
 /******/ 		// Execute the module function
-/******/ 		__webpack_modules__[moduleId](module, module.exports, __nested_webpack_require_13916__);
+/******/ 		__webpack_modules__[moduleId](module, module.exports, __nested_webpack_require_11560__);
 /******/ 	
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
@@ -9205,7 +9253,7 @@ exports.defrag = defrag;
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nested_webpack_require_13916__(521);
+/******/ 	var __webpack_exports__ = __nested_webpack_require_11560__(521);
 /******/ 	
 /******/ 	return __webpack_exports__;
 /******/ })()
@@ -9217,7 +9265,7 @@ exports.defrag = defrag;
 /***/ 1051:
 /***/ (function(module) {
 
-/*! typed-dom v0.0.295 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
+/*! typed-dom v0.0.298 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(true)
 		module.exports = factory();
@@ -9235,50 +9283,18 @@ return /******/ (() => { // webpackBootstrap
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.isArray = exports.ObjectValues = exports.ObjectSetPrototypeOf = exports.ObjectSeal = exports.ObjectPreventExtensions = exports.ObjectKeys = exports.isSealed = exports.isFrozen = exports.isExtensible = exports.ObjectIs = exports.ObjectGetPrototypeOf = exports.ObjectGetOwnPropertySymbols = exports.ObjectGetOwnPropertyNames = exports.ObjectGetOwnPropertyDescriptors = exports.ObjectGetOwnPropertyDescriptor = exports.ObjectFromEntries = exports.ObjectFreeze = exports.ObjectEntries = exports.ObjectDefineProperty = exports.ObjectDefineProperties = exports.ObjectCreate = exports.ObjectAssign = exports.toString = exports.isEnumerable = exports.isPrototypeOf = exports.hasOwnProperty = exports.SymbolKeyFor = exports.SymbolFor = exports.sign = exports.round = exports.random = exports.min = exports.max = exports.floor = exports.ceil = exports.abs = exports.parseInt = exports.parseFloat = exports.isSafeInteger = exports.isNaN = exports.isInteger = exports.isFinite = exports[NaN] = void 0;
+exports.ObjectSetPrototypeOf = exports.ObjectGetPrototypeOf = exports.ObjectCreate = exports.ObjectAssign = exports.toString = exports.isEnumerable = exports.isPrototypeOf = exports.hasOwnProperty = exports.isArray = exports.sign = exports.round = exports.random = exports.min = exports.max = exports.floor = exports.ceil = exports.abs = exports.parseInt = exports.parseFloat = exports.isSafeInteger = exports.isNaN = exports.isInteger = exports.isFinite = exports[NaN] = void 0;
 exports[NaN] = Number.NaN, exports.isFinite = Number.isFinite, exports.isInteger = Number.isInteger, exports.isNaN = Number.isNaN, exports.isSafeInteger = Number.isSafeInteger, exports.parseFloat = Number.parseFloat, exports.parseInt = Number.parseInt;
-exports.abs = Math.abs, exports.ceil = Math.ceil, exports.floor = Math.floor, exports.max = Math.max, exports.min = Math.min, exports.random = Math.random, exports.round = Math.round, exports.sign = Math.sign; //export const SymbolAsyncIterator: typeof Symbol.asyncIterator = Symbol.asyncIterator;
-
-exports.SymbolFor = Symbol.for; //export const SymbolHasInstance: typeof Symbol.hasInstance = Symbol.hasInstance;
-//export const SymbolIsConcatSpreadable: typeof Symbol.isConcatSpreadable = Symbol.isConcatSpreadable;
-//export const SymbolIterator: typeof Symbol.iterator = Symbol.iterator;
-
-exports.SymbolKeyFor = Symbol.keyFor; //export const SymbolMatch: typeof Symbol.match = Symbol.match;
-//export const SymbolReplace: typeof Symbol.replace = Symbol.replace;
-//export const SymbolSearch: typeof Symbol.search = Symbol.search;
-//export const SymbolSpecies: typeof Symbol.species = Symbol.species;
-//export const SymbolSplit: typeof Symbol.split = Symbol.split;
-//export const SymbolToPrimitive: typeof Symbol.toPrimitive = Symbol.toPrimitive;
-//export const SymbolToStringTag: typeof Symbol.toStringTag = Symbol.toStringTag;
-//export const SymbolUnscopables: typeof Symbol.unscopables = Symbol.unscopables;
-
+exports.abs = Math.abs, exports.ceil = Math.ceil, exports.floor = Math.floor, exports.max = Math.max, exports.min = Math.min, exports.random = Math.random, exports.round = Math.round, exports.sign = Math.sign;
+exports.isArray = Array.isArray;
 exports.hasOwnProperty = Object.prototype.hasOwnProperty.call.bind(Object.prototype.hasOwnProperty);
 exports.isPrototypeOf = Object.prototype.isPrototypeOf.call.bind(Object.prototype.isPrototypeOf);
 exports.isEnumerable = Object.prototype.propertyIsEnumerable.call.bind(Object.prototype.propertyIsEnumerable);
 exports.toString = Object.prototype.toString.call.bind(Object.prototype.toString);
 exports.ObjectAssign = Object.assign;
 exports.ObjectCreate = Object.create;
-exports.ObjectDefineProperties = Object.defineProperties;
-exports.ObjectDefineProperty = Object.defineProperty;
-exports.ObjectEntries = Object.entries;
-exports.ObjectFreeze = Object.freeze; // @ts-ignore
-
-exports.ObjectFromEntries = Object.fromEntries;
-exports.ObjectGetOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
-exports.ObjectGetOwnPropertyDescriptors = Object.getOwnPropertyDescriptors;
-exports.ObjectGetOwnPropertyNames = Object.getOwnPropertyNames;
-exports.ObjectGetOwnPropertySymbols = Object.getOwnPropertySymbols;
 exports.ObjectGetPrototypeOf = Object.getPrototypeOf;
-exports.ObjectIs = Object.is;
-exports.isExtensible = Object.isExtensible;
-exports.isFrozen = Object.isFrozen;
-exports.isSealed = Object.isSealed;
-exports.ObjectKeys = Object.keys;
-exports.ObjectPreventExtensions = Object.preventExtensions;
-exports.ObjectSeal = Object.seal;
 exports.ObjectSetPrototypeOf = Object.setPrototypeOf;
-exports.ObjectValues = Object.values;
-exports.isArray = Array.isArray;
 
 /***/ }),
 
@@ -9322,11 +9338,11 @@ exports.noop = noop;
 /***/ }),
 
 /***/ 128:
-/***/ ((module, __unused_webpack_exports, __nested_webpack_require_5301__) => {
+/***/ ((module, __unused_webpack_exports, __nested_webpack_require_2936__) => {
 
 
 
-__nested_webpack_require_5301__(921);
+__nested_webpack_require_2936__(921);
 
 const global = void 0 || typeof globalThis !== 'undefined' && globalThis // @ts-ignore
 || typeof self !== 'undefined' && self || Function('return this')();
@@ -9347,7 +9363,7 @@ var global = (/* unused pure expression or super */ null && (0));
 /***/ }),
 
 /***/ 879:
-/***/ ((__unused_webpack_module, exports, __nested_webpack_require_5788__) => {
+/***/ ((__unused_webpack_module, exports, __nested_webpack_require_3423__) => {
 
 
 
@@ -9358,11 +9374,11 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.never = exports.isPromiseLike = exports.Internal = exports.AtomicPromise = exports.internal = void 0;
 
-const global_1 = __nested_webpack_require_5788__(128);
+const global_1 = __nested_webpack_require_3423__(128);
 
-const alias_1 = __nested_webpack_require_5788__(406);
+const alias_1 = __nested_webpack_require_3423__(406);
 
-const function_1 = __nested_webpack_require_5788__(288);
+const function_1 = __nested_webpack_require_3423__(288);
 
 exports.internal = Symbol.for('spica/promise::internal');
 
@@ -9405,14 +9421,14 @@ class AtomicPromise {
 
           switch (status.state) {
             case 2
-            /* fulfilled */
+            /* State.fulfilled */
             :
               results[i] = status.value;
               ++count;
               continue;
 
             case 3
-            /* rejected */
+            /* State.rejected */
             :
               return reject(status.reason);
           }
@@ -9450,12 +9466,12 @@ class AtomicPromise {
 
           switch (status.state) {
             case 2
-            /* fulfilled */
+            /* State.fulfilled */
             :
               return resolve(status.value);
 
             case 3
-            /* rejected */
+            /* State.rejected */
             :
               return reject(status.reason);
           }
@@ -9502,7 +9518,7 @@ class AtomicPromise {
 
           switch (status.state) {
             case 2
-            /* fulfilled */
+            /* State.fulfilled */
             :
               results[i] = {
                 status: 'fulfilled',
@@ -9512,7 +9528,7 @@ class AtomicPromise {
               continue;
 
             case 3
-            /* rejected */
+            /* State.rejected */
             :
               results[i] = {
                 status: 'rejected',
@@ -9565,12 +9581,12 @@ class AtomicPromise {
 
           switch (status.state) {
             case 2
-            /* fulfilled */
+            /* State.fulfilled */
             :
               return resolve(status.value);
 
             case 3
-            /* rejected */
+            /* State.rejected */
             :
               reasons[i] = status.reason;
               ++count;
@@ -9621,7 +9637,7 @@ class Internal {
   constructor() {
     this.status = {
       state: 0
-      /* pending */
+      /* State.pending */
 
     };
     this.fulfillReactions = [];
@@ -9630,19 +9646,19 @@ class Internal {
 
   get isPending() {
     return this.status.state === 0
-    /* pending */
+    /* State.pending */
     ;
   }
 
   resolve(value) {
     if (this.status.state !== 0
-    /* pending */
+    /* State.pending */
     ) return;
 
     if (!isPromiseLike(value)) {
       this.status = {
         state: 2
-        /* fulfilled */
+        /* State.fulfilled */
         ,
         value: value
       };
@@ -9654,10 +9670,10 @@ class Internal {
 
       switch (core.status.state) {
         case 2
-        /* fulfilled */
+        /* State.fulfilled */
         :
         case 3
-        /* rejected */
+        /* State.rejected */
         :
           this.status = core.status;
           return this.resume();
@@ -9669,14 +9685,14 @@ class Internal {
 
     this.status = {
       state: 1
-      /* resolved */
+      /* State.resolved */
       ,
       promise: value
     };
     return void value.then(value => {
       this.status = {
         state: 2
-        /* fulfilled */
+        /* State.fulfilled */
         ,
         value
       };
@@ -9684,7 +9700,7 @@ class Internal {
     }, reason => {
       this.status = {
         state: 3
-        /* rejected */
+        /* State.rejected */
         ,
         reason
       };
@@ -9694,11 +9710,11 @@ class Internal {
 
   reject(reason) {
     if (this.status.state !== 0
-    /* pending */
+    /* State.pending */
     ) return;
     this.status = {
       state: 3
-      /* rejected */
+      /* State.rejected */
       ,
       reason
     };
@@ -9714,13 +9730,13 @@ class Internal {
 
     switch (status.state) {
       case 2
-      /* fulfilled */
+      /* State.fulfilled */
       :
         if (fulfillReactions.length !== 0) break;
         return call(resolve, reject, resolve, onfulfilled, status.value);
 
       case 3
-      /* rejected */
+      /* State.rejected */
       :
         if (rejectReactions.length !== 0) break;
         return call(resolve, reject, reject, onrejected, status.reason);
@@ -9739,15 +9755,15 @@ class Internal {
 
     switch (status.state) {
       case 0
-      /* pending */
+      /* State.pending */
       :
       case 1
-      /* resolved */
+      /* State.resolved */
       :
         return;
 
       case 2
-      /* fulfilled */
+      /* State.fulfilled */
       :
         if (rejectReactions.length !== 0) {
           this.rejectReactions = [];
@@ -9759,7 +9775,7 @@ class Internal {
         return;
 
       case 3
-      /* rejected */
+      /* State.rejected */
       :
         if (fulfillReactions.length !== 0) {
           this.fulfillReactions = [];
@@ -9829,7 +9845,7 @@ exports.never = new class Never extends Promise {
 /***/ }),
 
 /***/ 251:
-/***/ ((__unused_webpack_module, exports, __nested_webpack_require_16112__) => {
+/***/ ((__unused_webpack_module, exports, __nested_webpack_require_13897__) => {
 
 
 
@@ -9838,11 +9854,13 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.bind = exports.delegate = exports.once = exports.listen = exports.currentTarget = void 0;
 
-const alias_1 = __nested_webpack_require_16112__(406);
+const global_1 = __nested_webpack_require_13897__(128);
 
-const promise_1 = __nested_webpack_require_16112__(879);
+const alias_1 = __nested_webpack_require_13897__(406);
 
-const function_1 = __nested_webpack_require_16112__(288);
+const promise_1 = __nested_webpack_require_13897__(879);
+
+const function_1 = __nested_webpack_require_13897__(288);
 
 exports.currentTarget = Symbol.for('typed-dom::currentTarget');
 
@@ -9922,7 +9940,7 @@ function bind(target, type, listener, option) {
     case 'connect':
     case 'disconnect':
       const prop = `on${type}`;
-      target[prop] ?? (0, alias_1.ObjectDefineProperty)(target, prop, {
+      target[prop] ?? global_1.Object.defineProperty(target, prop, {
         configurable: true,
         enumerable: false,
         writable: true,
@@ -9949,7 +9967,7 @@ exports.bind = bind;
 /******/ 	var __webpack_module_cache__ = {};
 /******/ 	
 /******/ 	// The require function
-/******/ 	function __nested_webpack_require_19188__(moduleId) {
+/******/ 	function __nested_webpack_require_17014__(moduleId) {
 /******/ 		// Check if module is in cache
 /******/ 		var cachedModule = __webpack_module_cache__[moduleId];
 /******/ 		if (cachedModule !== undefined) {
@@ -9963,7 +9981,7 @@ exports.bind = bind;
 /******/ 		};
 /******/ 	
 /******/ 		// Execute the module function
-/******/ 		__webpack_modules__[moduleId](module, module.exports, __nested_webpack_require_19188__);
+/******/ 		__webpack_modules__[moduleId](module, module.exports, __nested_webpack_require_17014__);
 /******/ 	
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
@@ -9974,7 +9992,7 @@ exports.bind = bind;
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nested_webpack_require_19188__(251);
+/******/ 	var __webpack_exports__ = __nested_webpack_require_17014__(251);
 /******/ 	
 /******/ 	return __webpack_exports__;
 /******/ })()
