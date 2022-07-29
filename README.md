@@ -8,29 +8,29 @@ The second generation PJAX for advanced web frameworks.
 
 |Feature|defunkt|falsandtru|Turbolinks|
 |:------|:-----:|:--------:|:--------:|
-|**Concurrency integration**|X|O|X|
-|Shadow DOM support|X|O|X|
-|Multiple area update|X|O|O|
-|Fallback area matching|X|O|X|
-|Content type validation|X|O|O|
-|HEAD contents markless auto sync|X|O|X|
-|CSS markless auto sync|X|O|X|
-|Script markless auto load|X|O|X|
+|**Concurrency integration**|-|O|-|
+|Shadow DOM support|-|O|-|
+|Multiple area update|-|O|O|
+|Fallback area matching|-|O|-|
+|Content type validation|-|O|O|
+|HEAD contents markless auto sync|-|O|-|
+|CSS markless auto sync|-|O|-|
+|Script markless auto load|-|O|-|
 |External script load|O|O|O|
-|Inline script execution|X|O|O|
-|Execution sequence keeping|X|O|X|
+|Inline script execution|-|O|O|
+|Execution sequence keeping|-|O|-|
 |Non-blocking script load|O|O|O|
-|Subresource integrity verification|X|O<sup>\*1</sup>|X|
-|Lightweight source rewrite|X|O|O|
-|ETag support|X|O|X|
+|Subresource integrity verification|-|O<sup>\*1</sup>|-|
+|Lightweight source rewrite|-|O|O|
+|ETag support|-|O|-|
 |Cache|O|O|O|
-|URL scope|X|O|X|
-|URL scope-based override settings|X|O|X|
-|**Browser history fix**|**X**|O|**X**|
-|**Scroll position restoration**|**X**|O|**X**|
-|NOSCRIPT tag restoration|X|O|X|
+|URL scope|-|O|-|
+|URL scope-based override settings|-|O|-|
+|**Browser history fix**|**-**|O|**-**|
+|**Scroll position restoration**|**-**|O|**-**|
+|NOSCRIPT tag restoration|-|O|-|
 |History API support<sup>\*2</sup>|?|O|?|
-|No jQuery dependency|X|O|?|
+|No jQuery dependency|-|O|?|
 
 \*1 Excludes ES modules.\
 \*2 You can use pjax APIs and history APIs in combination.
