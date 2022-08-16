@@ -62,7 +62,7 @@ export function separate(
     , Nothing)
 
   function sep(documents: DocumentRecord, area: string): Maybe<AreaRecord[]> {
-    return split(area)
+    return Just(split(area))
       .bind(areas =>
         areas.reduce((m, area) =>
           m.bind(acc => {
@@ -79,15 +79,41 @@ export function separate(
   }
 }
 
-function split(area: string): Maybe<string[]> {
-  // eslint-disable-next-line redos/no-vulnerable
-  return (area.match(/(?:[^,\(\[]+|\(.*?\)|\[.*?\])+/g) || [])
-    .map(area => area.trim())
-    .reduce((m, area) =>
-      area
-        ? m.fmap(acc => push(acc, [area]))
-        : Nothing
-    , Just([]));
+function split(selector: string): string[] {
+  const acc = [''];
+  const stack: ('(' | '[' | '"')[] = [];
+  let escape = 0;
+  for (const char of selector) {
+    escape && --escape;
+    if (!escape) switch (char) {
+      case ',':
+        stack.length === 0
+          ? acc.unshift('')
+          : acc[0] += char;
+        continue;
+      case '\\':
+        escape ||= 2;
+        break;
+      case '"':
+        stack[0] === '"'
+          ? stack.shift()
+          : stack.unshift(char);
+        break;
+      case '(':
+      case '[':
+        stack[0] !== '"' && stack.unshift(char);
+        break;
+      case ')':
+        stack[0] === '(' && stack.shift();
+        break;
+      case ']':
+        stack[0] === '[' && stack.shift();
+        break;
+    }
+    acc[0] += char;
+  }
+  return acc.reverse()
+    .map(s => s.trim());
 }
 export { split as _split }
 
