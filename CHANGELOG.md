@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.35.3
+
+- Update dependencies.
+
 ## 3.35.2
 
 - Improve area selector splitting.
