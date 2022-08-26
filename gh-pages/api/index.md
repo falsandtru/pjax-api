@@ -15,7 +15,3 @@ Pjax APIs.
 ## [Event]({{ site.basepath }}api/event/)
 
 Global events.
-
-## [Router]({{ site.basepath }}api/router/)
-
-Router APIs.
