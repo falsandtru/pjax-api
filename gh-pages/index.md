@@ -17,7 +17,7 @@ class: style-top
 	- Fallback area matching
 	- CSS markless auto sync
 	- Script markless auto load
-	- [more](https://github.com/falsandtru/pjax-api#feature)
+	- [more](https://github.com/falsandtru/pjax-api#features)
 - Concurrency integration
 </div>
 
