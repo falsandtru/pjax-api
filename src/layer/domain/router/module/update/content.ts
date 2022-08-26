@@ -80,40 +80,45 @@ export function separate(
 }
 
 function split(selector: string): string[] {
-  const acc = [''];
+  const results: string[] = [];
   const stack: ('(' | '[' | '"')[] = [];
-  let escape = 0;
-  for (const char of selector) {
-    escape && --escape;
-    if (!escape) switch (char) {
+  const mirror = {
+    ']': '[',
+    ')': '(',
+  } as const;
+  let buffer = '';
+  for (const token of selector.match(/\\.?|[,"()\[\]]|[^\\,"()\[\]]+|$/g) ?? []) {
+    switch (token) {
+      case '':
+        flush();
+        continue;
       case ',':
         stack.length === 0
-          ? acc.unshift('')
-          : acc[0] += char;
+          ? flush()
+          : buffer += token;
         continue;
-      case '\\':
-        escape ||= 2;
-        break;
       case '"':
         stack[0] === '"'
           ? stack.shift()
-          : stack.unshift(char);
+          : stack.unshift(token);
         break;
-      case '(':
       case '[':
-        stack[0] !== '"' && stack.unshift(char);
-        break;
-      case ')':
-        stack[0] === '(' && stack.shift();
+      case '(':
+        stack[0] !== '"' && stack.unshift(token);
         break;
       case ']':
-        stack[0] === '[' && stack.shift();
+      case ')':
+        stack[0] === mirror[token] && stack.shift();
         break;
     }
-    acc[0] += char;
+    buffer += token;
   }
-  return acc.reverse()
-    .map(s => s.trim());
+  return results;
+
+  function flush(): void {
+    results.push(buffer.trim());
+    buffer = '';
+  }
 }
 export { split as _split }
 

@@ -2,7 +2,6 @@ import { RouterEventMethod } from '../../../event/router';
 import { FetchResponse } from '../../model/eav/value/fetch';
 import { AtomicPromise } from 'spica/promise';
 import { Cancellee } from 'spica/cancellation';
-import { Sequence } from 'spica/sequence';
 import { Either, Left, Right } from 'spica/either';
 import { Cache } from 'spica/cache';
 import { URL, StandardURL, standardize } from 'spica/url';
@@ -126,14 +125,23 @@ function verify(xhr: XMLHttpRequest, method: RouterEventMethod): Either<Error, X
 
 function match(actualContentType: string | null, expectedContentType: string): boolean {
   assert(actualContentType === null || actualContentType.split(':').length === 1);
-  return Sequence
-    .intersect(
-      Sequence.from(parse(actualContentType || '').sort()),
-      Sequence.from(parse(expectedContentType).sort()),
-      (a, b) => a.localeCompare(b))
-    .take(1)
-    .extract()
-    .length > 0;
+  const as = parse(actualContentType || '').sort();
+  const es = parse(expectedContentType).sort();
+  for (let i = 0, j = 0; i < as.length && j < es.length;) {
+    switch (as[i].localeCompare(es[j])) {
+      case 0:
+        return true;
+      case -1:
+        ++i;
+        continue;
+      case 1:
+        ++j;
+        continue;
+      default:
+        throw new Error('Unreachable');
+    }
+  }
+  return false;
 
   function parse(headerValue: string): string[] {
     // eslint-disable-next-line redos/no-vulnerable
