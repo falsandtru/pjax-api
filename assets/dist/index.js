@@ -381,7 +381,6 @@ class Cache {
     this.settings = {
       window: 0,
       capacity: 0,
-      space: global_1.Infinity,
       age: global_1.Infinity,
       earlyExpiring: false,
       capture: {
@@ -417,8 +416,7 @@ class Cache {
     this.capacity = settings.capacity;
     if (this.capacity >= 1 === false) throw new Error(`Spica: Cache: Capacity must be 1 or more.`);
     this.window = settings.window || this.capacity;
-    if (this.window * 1000 < this.capacity) throw new Error(`Spica: Cache: Window must be 0.1% of capacity or more.`);
-    this.space = settings.space;
+    if (this.window * 1000 >= this.capacity === false) throw new Error(`Spica: Cache: Window must be 0.1% of capacity or more.`);
     this.block = settings.block;
     this.limit = settings.limit;
     this.earlyExpiring = settings.earlyExpiring;
@@ -448,13 +446,12 @@ class Cache {
 
   ensure(margin, skip) {
     let size = skip?.value.size ?? 0;
-    if (margin - size <= 0) return true;
     const {
       LRU,
       LFU
     } = this.indexes;
 
-    while (this.length === this.capacity || this.size + margin - size > this.space) {
+    while (this.size + margin - size > this.capacity) {
       let target;
 
       switch (true) {
@@ -504,7 +501,7 @@ class Cache {
     size = 1,
     age = this.settings.age
   } = {}) {
-    if (size > this.space || age <= 0) {
+    if (size < 1 || this.capacity < size || age <= 0) {
       this.disposer?.(value, key);
       return false;
     }
@@ -570,14 +567,14 @@ class Cache {
       ++this.misses;
       this.evict(node, true);
       return;
-    } // Optimization for memoize.
+    }
 
+    this.misses &&= 0;
+    this.sweep &&= 0; // Optimization for memoize.
 
     if (this.capacity > 3 && node === node.list.head) return node.value.value;
     this.access(node);
     this.adjust();
-    this.misses &&= 0;
-    this.sweep = 0;
     return node.value.value;
   }
 
@@ -624,6 +621,14 @@ class Cache {
     }] of memory) {
       this.disposer(value, key);
     }
+  }
+
+  resize(capacity) {
+    if (this.capacity >= 1 === false) throw new Error(`Spica: Cache: Capacity must be 1 or more.`);
+    this.capacity = capacity;
+    this.window = this.settings.window || this.capacity;
+    if (this.window * 1000 >= this.capacity === false) throw new Error(`Spica: Cache: Window must be 0.1% of capacity or more.`);
+    this.ensure(0);
   }
 
   *[Symbol.iterator]() {
@@ -1426,7 +1431,7 @@ class Coroutine extends promise_1.AtomicPromise {
       yield result.value;
     }
 
-    return this;
+    return await this;
   }
 
 }
@@ -1703,26 +1708,6 @@ exports.causeAsyncException = causeAsyncException;
 
 /***/ }),
 
-/***/ 2239:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.flip = void 0;
-
-function flip(f) {
-  const arity = f.length;
-  return arity > 1 ? (b, a) => f(a, b) : (b, ...as) => as.length === 0 ? a => f(a)(b) : f(as[0])(b);
-}
-
-exports.flip = flip;
-
-/***/ }),
-
 /***/ 6288:
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -1732,7 +1717,7 @@ exports.flip = flip;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.noop = exports.id = exports.clear = exports.singleton = void 0;
+exports.noop = exports.fix = exports.id = exports.clear = exports.singleton = void 0;
 
 function singleton(f) {
   let result;
@@ -1755,7 +1740,16 @@ function id(a) {
   return a;
 }
 
-exports.id = id; // @ts-ignore
+exports.id = id;
+
+function fix(f) {
+  return a1 => {
+    const a2 = f(a1);
+    return a1 === a2 || a2 !== a2 ? a2 : f(a2);
+  };
+}
+
+exports.fix = fix; // @ts-ignore
 
 function noop() {}
 
@@ -5669,28 +5663,31 @@ exports.router = void 0;
 
 const global_1 = __webpack_require__(4128);
 
-const url_1 = __webpack_require__(2261);
-
 const sequence_1 = __webpack_require__(8715);
 
-const curry_1 = __webpack_require__(4877);
-
-const flip_1 = __webpack_require__(2239);
+const function_1 = __webpack_require__(6288);
 
 const memoize_1 = __webpack_require__(1808);
 
-const cache_1 = __webpack_require__(9210);
-
 function router(config) {
   const {
-    compare
+    match
   } = router.helpers();
-  return url => {
-    const {
-      path,
-      pathname
-    } = new url_1.URL((0, url_1.standardize)(url, global_1.global.location.href));
-    return sequence_1.Sequence.from(global_1.Object.keys(config).filter(p => p[0] === '/').sort().reverse()).filter((0, curry_1.curry)((0, flip_1.flip)(compare))(pathname)).map(pattern => config[pattern]).take(1).extract().pop().call(config, path);
+  const patterns = global_1.Object.keys(config).reverse();
+
+  for (const pattern of patterns) {
+    if (pattern[0] !== '/') throw new Error(`Spica: Router: Pattern must start with "/": ${pattern}`);
+    if (/\s/.test(pattern)) throw new Error(`Spica: Router: Pattern must not have whitespace: ${pattern}`);
+  }
+
+  return path => {
+    const pathname = path.slice(0, path.search(/[?#]|$/));
+
+    for (const pattern of patterns) {
+      if (match(pattern, pathname)) return config[pattern](path);
+    }
+
+    throw new Error(`Spica: Router: No matches found`);
   };
 }
 
@@ -5698,58 +5695,253 @@ exports.router = router;
 
 (function (router) {
   function helpers() {
-    function compare(pattern, path) {
+    function match(pattern, path) {
       const regSegment = /\/|[^/]+\/?/g;
-      const regTrailingSlash = /\/$/;
-      return sequence_1.Sequence.zip(sequence_1.Sequence.from(expand(pattern)), sequence_1.Sequence.cycle([path])).map(([pattern, path]) => [pattern.match(regSegment) || [], pattern.match(regTrailingSlash) ? path.match(regSegment) || [] : path.replace(regTrailingSlash, '').match(regSegment) || []]).filter(([ps, ss]) => ps.length <= ss.length && sequence_1.Sequence.zip(sequence_1.Sequence.from(ps), sequence_1.Sequence.from(ss)).dropWhile(([a, b]) => match(a, b)).take(1).extract().length === 0).take(1).extract().length > 0;
-    }
+      const ss = path.match(regSegment) ?? [];
 
-    function match(pattern, segment) {
-      if (segment[0] === '.' && ['?', '*'].includes(pattern[0])) return false;
-      return match$(optimize(pattern), segment);
-    }
-
-    const match$ = (0, memoize_1.memoize)((pattern, segment) => {
-      const [p = '', ...ps] = [...pattern];
-      const [s = '', ...ss] = [...segment];
-
-      switch (p) {
-        case '':
-          return s === '';
-
-        case '?':
-          return s !== '' && s !== '/' && match$(ps.join(''), ss.join(''));
-
-        case '*':
-          return s === '/' ? match$(ps.join(''), segment) : sequence_1.Sequence.zip(sequence_1.Sequence.cycle([ps.join('')]), sequence_1.Sequence.from(segment).tails().map(ss => ss.join(''))).filter(([a, b]) => match$(a, b)).take(1).extract().length > 0;
-
-        default:
-          return s === p && match$(ps.join(''), ss.join(''));
+      for (const pat of expand(pattern)) {
+        const ps = optimize(pat).match(regSegment) ?? [];
+        if (cmp(ps, ss)) return true;
       }
-    }, (pat, seg) => `${pat}\n${seg}`, new cache_1.Cache(10000));
 
-    function expand(pattern) {
-      if (pattern.match(/\*\*|[\[\]]/)) throw new Error(`Invalid pattern: ${pattern}`);
-      return expand$(pattern);
+      return false;
     }
 
-    const expand$ = (0, memoize_1.memoize)(pattern => {
-      return pattern === '' ? [pattern] : sequence_1.Sequence.from(pattern.match(/{[^{}]*}|.[^{]*/g)).map(p => p.match(/^{[^{}]*}$/) ? p.slice(1, -1).split(',') : [p]).mapM(sequence_1.Sequence.from).map(ps => ps.join('')).bind(p => p === pattern ? sequence_1.Sequence.from([p]) : sequence_1.Sequence.from(expand$(p))).unique().extract();
+    const expand = (0, memoize_1.memoize)(function expand(pattern) {
+      return sequence_1.Sequence.from(parse(pattern).map(token => token[0] + token.slice(-1) === '{}' ? separate(token.slice(1, -1)).flatMap(expand) : [token])).mapM(sequence_1.Sequence.from).extract().map(tokens => tokens.join(''));
     });
+
+    function parse(pattern) {
+      const results = [];
+      const stack = [];
+      const mirror = {
+        ']': '[',
+        ')': '('
+      };
+      let buffer = '';
+
+      for (const token of pattern.match(/\\.?|[\[\](){}]|[^\\\[\](){}]+|$/g) ?? []) {
+        switch (token) {
+          case '':
+            flush();
+            continue;
+
+          case '[':
+          case '(':
+            // Prohibit unimplemented patterns.
+            if (true) throw new Error(`Spica: Router: Invalid pattern: ${pattern}`);
+            buffer += token;
+            stack[0] !== '[' && stack.unshift(token);
+            continue;
+
+          case ']':
+          case ')':
+            stack[0] === mirror[token] && stack.shift();
+            buffer += token;
+            continue;
+
+          case '{':
+            stack.length === 0 && flush();
+            buffer += token;
+            stack[0] !== '[' && stack.unshift(token);
+            continue;
+
+          case '}':
+            stack[0] === '{' && stack.shift();
+            buffer += token;
+            stack.length === 0 && flush();
+            continue;
+        }
+
+        buffer += token;
+      }
+
+      results.length === 0 && results.push('');
+      return results;
+
+      function flush() {
+        buffer && results.push(buffer);
+        buffer = '';
+      }
+    }
+
+    function separate(pattern) {
+      const results = [];
+      const stack = [];
+      const mirror = {
+        ']': '[',
+        ')': '(',
+        '}': '{'
+      };
+      let buffer = '';
+
+      for (const token of pattern.match(/\\.?|[,\[\](){}]|[^\\,\[\](){}]+|$/g) ?? []) {
+        switch (token) {
+          case '':
+            flush();
+            continue;
+
+          case ',':
+            stack.length === 0 ? flush() : buffer += token;
+            continue;
+
+          case '[':
+          case '(':
+          case '{':
+            buffer += token;
+            stack[0] !== '[' && stack.unshift(token);
+            continue;
+
+          case ']':
+          case ')':
+          case '}':
+            stack[0] === mirror[token] && stack.shift();
+            buffer += token;
+            continue;
+        }
+
+        buffer += token;
+      }
+
+      return results;
+
+      function flush() {
+        results.push(buffer);
+        buffer = '';
+      }
+    }
+
+    function cmp(pats, segs, i = 0, j = 0) {
+      if (i + j === 0 && pats.length > 0 && segs.length > 0) {
+        if (segs[0] === '.' && ['?', '*'].includes(pats[0][0])) return false;
+      }
+
+      for (; i < pats.length; ++i, ++j) {
+        const pat = pats[i];
+        if (pat === '**') return true;
+
+        if (pat === '**/') {
+          let min = pats.length - j;
+
+          for (let k = j; k < pats.length; ++k) {
+            pats[k] === '**/' && --min;
+          }
+
+          for (let k = segs.length - min; k >= j; --k) {
+            if (cmp(pats, segs, i + 1, k)) return true;
+          }
+
+          return false;
+        } else {
+          if (j === segs.length) return false;
+          const seg = pat.slice(-1) !== '/' && segs[j].slice(-1) === '/' ? segs[j].slice(0, -1) || segs[j] : segs[j];
+          if (!cmp$(split(pat), 0, seg, 0)) return false;
+        }
+      }
+
+      return true;
+    }
+
+    function cmp$(ps, i, segment, j) {
+      for (; i < ps.length; ++i) {
+        const p = ps[i];
+        const s = segment.slice(j);
+
+        switch (p) {
+          case '?':
+            switch (s) {
+              case '':
+              case '/':
+                return false;
+
+              default:
+                ++j;
+                continue;
+            }
+
+          case '*':
+            switch (s) {
+              case '':
+              case '/':
+                continue;
+            }
+
+            for (let k = segment.length; k >= j; --k) {
+              if (cmp$(ps, i + 1, segment, k)) return true;
+            }
+
+            return false;
+
+          default:
+            if (s.length < p.length || s.slice(0, p.length) !== p) return false;
+            j += p.length;
+            continue;
+        }
+      }
+
+      return j === segment.length;
+    }
+
+    function split(pattern) {
+      const results = [];
+      const stack = [];
+      const mirror = {
+        ']': '[',
+        ')': '(',
+        '}': '{'
+      };
+      let buffer = '';
+
+      for (const token of pattern.match(/\\.?|[*?\[\](){}]|[^\\*?\[\](){}]+|$/g) ?? []) {
+        switch (token) {
+          case '':
+            flush();
+            continue;
+
+          case '*':
+          case '?':
+            stack.length === 0 && flush();
+            buffer += token;
+            stack.length === 0 && flush();
+            continue;
+
+          case '[':
+          case '(':
+          case '{':
+            buffer += token;
+            stack[0] !== '[' && stack.unshift(token);
+            continue;
+
+          case ']':
+          case ')':
+          case '}':
+            if (token === '}' && stack[0] === '{') throw new Error(`Spica: Router: Invalid pattern: ${pattern}`);
+            stack[0] === mirror[token] && stack.shift();
+            buffer += token;
+            continue;
+        }
+
+        buffer += token[0] === '\\' ? token.slice(1) : token;
+      }
+
+      return results;
+
+      function flush() {
+        buffer && results.push(buffer);
+        buffer = '';
+      }
+    }
+
+    const optimize = (0, memoize_1.memoize)((0, function_1.fix)(pattern => pattern.replace(/((?:^|\/)\*)\*(?:\/\*\*)*(?=\/|$)|\*+(\?+)?/g, '$1$2*')));
     return {
-      compare,
       match,
-      expand
+      expand,
+      cmp
     };
   }
 
   router.helpers = helpers;
 })(router = exports.router || (exports.router = {}));
-
-function optimize(pattern) {
-  const p = pattern.replace(/\*(\?+)\*?/g, '$1*');
-  return p === pattern ? p : optimize(p);
-}
 
 /***/ }),
 
@@ -7107,14 +7299,12 @@ const config_1 = __webpack_require__(5411);
 
 const router_1 = __webpack_require__(4198);
 
-const sequence_1 = __webpack_require__(8715);
-
 const maybe_1 = __webpack_require__(6512);
 
 const assign_1 = __webpack_require__(4401);
 
 const {
-  compare
+  match
 } = router_1.router.helpers();
 
 function scope(config, path) {
@@ -7122,9 +7312,23 @@ function scope(config, path) {
     '/': {},
     ...config.scope
   };
-  return sequence_1.Sequence.from(global_1.Object.keys(scope).sort().reverse()).dropWhile(pattern => !!!compare(pattern, path.orig) && !compare(pattern, path.dest)).take(1).filter(pattern => !!compare(pattern, path.orig) && compare(pattern, path.dest)).map(pattern => scope[pattern]).map(option => option ? (0, maybe_1.Just)(new config_1.Config((0, assign_1.extend)({
-    scope: option.scope && (0, assign_1.overwrite)(config.scope, option.scope)
-  }, config, option))) : maybe_1.Nothing).extract()[0] ?? maybe_1.Nothing;
+
+  for (const pattern of global_1.Object.keys(scope).reverse()) {
+    switch (+match(pattern, path.orig) + +match(pattern, path.dest)) {
+      case 0:
+        continue;
+
+      case 1:
+        return maybe_1.Nothing;
+    }
+
+    const option = scope[pattern];
+    return option ? (0, maybe_1.Just)(new config_1.Config((0, assign_1.extend)({
+      scope: option.scope && (0, assign_1.overwrite)(config.scope, option.scope)
+    }, config, option))) : maybe_1.Nothing;
+  }
+
+  return maybe_1.Nothing;
 }
 
 exports.scope = scope;
@@ -7437,8 +7641,6 @@ const fetch_1 = __webpack_require__(7624);
 
 const promise_1 = __webpack_require__(4879);
 
-const sequence_1 = __webpack_require__(8715);
-
 const either_1 = __webpack_require__(8555);
 
 const cache_1 = __webpack_require__(9210);
@@ -7534,7 +7736,28 @@ function verify(xhr, method) {
 }
 
 function match(actualContentType, expectedContentType) {
-  return sequence_1.Sequence.intersect(sequence_1.Sequence.from(parse(actualContentType || '').sort()), sequence_1.Sequence.from(parse(expectedContentType).sort()), (a, b) => a.localeCompare(b)).take(1).extract().length > 0;
+  const as = parse(actualContentType || '').sort();
+  const es = parse(expectedContentType).sort();
+
+  for (let i = 0, j = 0; i < as.length && j < es.length;) {
+    switch (as[i].localeCompare(es[j])) {
+      case 0:
+        return true;
+
+      case -1:
+        ++i;
+        continue;
+
+      case 1:
+        ++j;
+        continue;
+
+      default:
+        throw new Error('Unreachable');
+    }
+  }
+
+  return false;
 
   function parse(headerValue) {
     // eslint-disable-next-line redos/no-vulnerable
@@ -7703,42 +7926,48 @@ function separate(documents, areas) {
 exports.separate = separate;
 
 function split(selector) {
-  const acc = [''];
+  const results = [];
   const stack = [];
-  let escape = 0;
+  const mirror = {
+    ']': '[',
+    ')': '('
+  };
+  let buffer = '';
 
-  for (const char of selector) {
-    escape && --escape;
-    if (!escape) switch (char) {
-      case ',':
-        stack.length === 0 ? acc.unshift('') : acc[0] += char;
+  for (const token of selector.match(/\\.?|[,"()\[\]]|[^\\,"()\[\]]+|$/g) ?? []) {
+    switch (token) {
+      case '':
+        flush();
         continue;
 
-      case '\\':
-        escape ||= 2;
-        break;
+      case ',':
+        stack.length === 0 ? flush() : buffer += token;
+        continue;
 
       case '"':
-        stack[0] === '"' ? stack.shift() : stack.unshift(char);
+        stack[0] === '"' ? stack.shift() : stack.unshift(token);
         break;
 
-      case '(':
       case '[':
-        stack[0] !== '"' && stack.unshift(char);
-        break;
-
-      case ')':
-        stack[0] === '(' && stack.shift();
+      case '(':
+        stack[0] !== '"' && stack.unshift(token);
         break;
 
       case ']':
-        stack[0] === '[' && stack.shift();
+      case ')':
+        stack[0] === mirror[token] && stack.shift();
         break;
     }
-    acc[0] += char;
+
+    buffer += token;
   }
 
-  return acc.reverse().map(s => s.trim());
+  return results;
+
+  function flush() {
+    results.push(buffer.trim());
+    buffer = '';
+  }
 }
 
 exports._split = split;
@@ -8981,7 +9210,7 @@ function test(parser) {
 /***/ 3252:
 /***/ (function(module) {
 
-/*! typed-dom v0.0.301 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
+/*! typed-dom v0.0.302 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(true)
 		module.exports = factory();
@@ -8999,9 +9228,9 @@ return /******/ (() => { // webpackBootstrap
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.ObjectSetPrototypeOf = exports.ObjectGetPrototypeOf = exports.ObjectCreate = exports.ObjectAssign = exports.toString = exports.isEnumerable = exports.isPrototypeOf = exports.hasOwnProperty = exports.isArray = exports.sign = exports.round = exports.random = exports.min = exports.max = exports.floor = exports.ceil = exports.abs = exports.parseInt = exports.parseFloat = exports.isSafeInteger = exports.isNaN = exports.isInteger = exports.isFinite = exports[NaN] = void 0;
+exports.ObjectSetPrototypeOf = exports.ObjectGetPrototypeOf = exports.ObjectCreate = exports.ObjectAssign = exports.toString = exports.isEnumerable = exports.isPrototypeOf = exports.hasOwnProperty = exports.isArray = exports.sqrt = exports.log = exports.tan = exports.cos = exports.sign = exports.round = exports.random = exports.min = exports.max = exports.floor = exports.ceil = exports.abs = exports.parseInt = exports.parseFloat = exports.isSafeInteger = exports.isNaN = exports.isInteger = exports.isFinite = exports[NaN] = void 0;
 exports[NaN] = Number.NaN, exports.isFinite = Number.isFinite, exports.isInteger = Number.isInteger, exports.isNaN = Number.isNaN, exports.isSafeInteger = Number.isSafeInteger, exports.parseFloat = Number.parseFloat, exports.parseInt = Number.parseInt;
-exports.abs = Math.abs, exports.ceil = Math.ceil, exports.floor = Math.floor, exports.max = Math.max, exports.min = Math.min, exports.random = Math.random, exports.round = Math.round, exports.sign = Math.sign;
+exports.abs = Math.abs, exports.ceil = Math.ceil, exports.floor = Math.floor, exports.max = Math.max, exports.min = Math.min, exports.random = Math.random, exports.round = Math.round, exports.sign = Math.sign, exports.cos = Math.cos, exports.tan = Math.tan, exports.log = Math.log, exports.sqrt = Math.sqrt;
 exports.isArray = Array.isArray;
 exports.hasOwnProperty = Object.prototype.hasOwnProperty.call.bind(Object.prototype.hasOwnProperty);
 exports.isPrototypeOf = Object.prototype.isPrototypeOf.call.bind(Object.prototype.isPrototypeOf);
@@ -9033,11 +9262,11 @@ exports.equal = equal;
 /***/ }),
 
 /***/ 128:
-/***/ ((module, __unused_webpack_exports, __nested_webpack_require_2590__) => {
+/***/ ((module, __unused_webpack_exports, __nested_webpack_require_2745__) => {
 
 
 
-__nested_webpack_require_2590__(921);
+__nested_webpack_require_2745__(921);
 
 const global = void 0 || typeof globalThis !== 'undefined' && globalThis // @ts-ignore
 || typeof self !== 'undefined' && self || Function('return this')();
@@ -9058,7 +9287,7 @@ var global = (/* unused pure expression or super */ null && (0));
 /***/ }),
 
 /***/ 808:
-/***/ ((__unused_webpack_module, exports, __nested_webpack_require_3077__) => {
+/***/ ((__unused_webpack_module, exports, __nested_webpack_require_3232__) => {
 
 
 
@@ -9067,11 +9296,11 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.reduce = exports.memoize = void 0;
 
-const global_1 = __nested_webpack_require_3077__(128);
+const global_1 = __nested_webpack_require_3232__(128);
 
-const alias_1 = __nested_webpack_require_3077__(406);
+const alias_1 = __nested_webpack_require_3232__(406);
 
-const compare_1 = __nested_webpack_require_3077__(529);
+const compare_1 = __nested_webpack_require_3232__(529);
 
 function memoize(f, identify = (...as) => as[0], memory) {
   if (typeof identify === 'object') return memoize(f, void 0, identify);
@@ -9129,7 +9358,7 @@ exports.reduce = reduce;
 /***/ }),
 
 /***/ 521:
-/***/ ((__unused_webpack_module, exports, __nested_webpack_require_4467__) => {
+/***/ ((__unused_webpack_module, exports, __nested_webpack_require_4622__) => {
 
 
 
@@ -9138,11 +9367,11 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.defrag = exports.prepend = exports.append = exports.isChildren = exports.define = exports.element = exports.text = exports.svg = exports.html = exports.frag = exports.shadow = void 0;
 
-const global_1 = __nested_webpack_require_4467__(128);
+const global_1 = __nested_webpack_require_4622__(128);
 
-const alias_1 = __nested_webpack_require_4467__(406);
+const alias_1 = __nested_webpack_require_4622__(406);
 
-const memoize_1 = __nested_webpack_require_4467__(808);
+const memoize_1 = __nested_webpack_require_4622__(808);
 
 var caches;
 
@@ -9378,7 +9607,7 @@ exports.defrag = defrag;
 /******/ 	var __webpack_module_cache__ = {};
 /******/ 	
 /******/ 	// The require function
-/******/ 	function __nested_webpack_require_11560__(moduleId) {
+/******/ 	function __nested_webpack_require_11715__(moduleId) {
 /******/ 		// Check if module is in cache
 /******/ 		var cachedModule = __webpack_module_cache__[moduleId];
 /******/ 		if (cachedModule !== undefined) {
@@ -9392,7 +9621,7 @@ exports.defrag = defrag;
 /******/ 		};
 /******/ 	
 /******/ 		// Execute the module function
-/******/ 		__webpack_modules__[moduleId](module, module.exports, __nested_webpack_require_11560__);
+/******/ 		__webpack_modules__[moduleId](module, module.exports, __nested_webpack_require_11715__);
 /******/ 	
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
@@ -9403,7 +9632,7 @@ exports.defrag = defrag;
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nested_webpack_require_11560__(521);
+/******/ 	var __webpack_exports__ = __nested_webpack_require_11715__(521);
 /******/ 	
 /******/ 	return __webpack_exports__;
 /******/ })()
@@ -9415,7 +9644,7 @@ exports.defrag = defrag;
 /***/ 1051:
 /***/ (function(module) {
 
-/*! typed-dom v0.0.301 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
+/*! typed-dom v0.0.302 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(true)
 		module.exports = factory();
@@ -9433,9 +9662,9 @@ return /******/ (() => { // webpackBootstrap
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.ObjectSetPrototypeOf = exports.ObjectGetPrototypeOf = exports.ObjectCreate = exports.ObjectAssign = exports.toString = exports.isEnumerable = exports.isPrototypeOf = exports.hasOwnProperty = exports.isArray = exports.sign = exports.round = exports.random = exports.min = exports.max = exports.floor = exports.ceil = exports.abs = exports.parseInt = exports.parseFloat = exports.isSafeInteger = exports.isNaN = exports.isInteger = exports.isFinite = exports[NaN] = void 0;
+exports.ObjectSetPrototypeOf = exports.ObjectGetPrototypeOf = exports.ObjectCreate = exports.ObjectAssign = exports.toString = exports.isEnumerable = exports.isPrototypeOf = exports.hasOwnProperty = exports.isArray = exports.sqrt = exports.log = exports.tan = exports.cos = exports.sign = exports.round = exports.random = exports.min = exports.max = exports.floor = exports.ceil = exports.abs = exports.parseInt = exports.parseFloat = exports.isSafeInteger = exports.isNaN = exports.isInteger = exports.isFinite = exports[NaN] = void 0;
 exports[NaN] = Number.NaN, exports.isFinite = Number.isFinite, exports.isInteger = Number.isInteger, exports.isNaN = Number.isNaN, exports.isSafeInteger = Number.isSafeInteger, exports.parseFloat = Number.parseFloat, exports.parseInt = Number.parseInt;
-exports.abs = Math.abs, exports.ceil = Math.ceil, exports.floor = Math.floor, exports.max = Math.max, exports.min = Math.min, exports.random = Math.random, exports.round = Math.round, exports.sign = Math.sign;
+exports.abs = Math.abs, exports.ceil = Math.ceil, exports.floor = Math.floor, exports.max = Math.max, exports.min = Math.min, exports.random = Math.random, exports.round = Math.round, exports.sign = Math.sign, exports.cos = Math.cos, exports.tan = Math.tan, exports.log = Math.log, exports.sqrt = Math.sqrt;
 exports.isArray = Array.isArray;
 exports.hasOwnProperty = Object.prototype.hasOwnProperty.call.bind(Object.prototype.hasOwnProperty);
 exports.isPrototypeOf = Object.prototype.isPrototypeOf.call.bind(Object.prototype.isPrototypeOf);
@@ -9456,7 +9685,7 @@ exports.ObjectSetPrototypeOf = Object.setPrototypeOf;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.noop = exports.id = exports.clear = exports.singleton = void 0;
+exports.noop = exports.fix = exports.id = exports.clear = exports.singleton = void 0;
 
 function singleton(f) {
   let result;
@@ -9479,7 +9708,16 @@ function id(a) {
   return a;
 }
 
-exports.id = id; // @ts-ignore
+exports.id = id;
+
+function fix(f) {
+  return a1 => {
+    const a2 = f(a1);
+    return a1 === a2 || a2 !== a2 ? a2 : f(a2);
+  };
+}
+
+exports.fix = fix; // @ts-ignore
 
 function noop() {}
 
@@ -9488,11 +9726,11 @@ exports.noop = noop;
 /***/ }),
 
 /***/ 128:
-/***/ ((module, __unused_webpack_exports, __nested_webpack_require_2936__) => {
+/***/ ((module, __unused_webpack_exports, __nested_webpack_require_3238__) => {
 
 
 
-__nested_webpack_require_2936__(921);
+__nested_webpack_require_3238__(921);
 
 const global = void 0 || typeof globalThis !== 'undefined' && globalThis // @ts-ignore
 || typeof self !== 'undefined' && self || Function('return this')();
@@ -9513,7 +9751,7 @@ var global = (/* unused pure expression or super */ null && (0));
 /***/ }),
 
 /***/ 879:
-/***/ ((__unused_webpack_module, exports, __nested_webpack_require_3423__) => {
+/***/ ((__unused_webpack_module, exports, __nested_webpack_require_3725__) => {
 
 
 
@@ -9524,11 +9762,11 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.never = exports.isPromiseLike = exports.Internal = exports.AtomicPromise = exports.internal = void 0;
 
-const global_1 = __nested_webpack_require_3423__(128);
+const global_1 = __nested_webpack_require_3725__(128);
 
-const alias_1 = __nested_webpack_require_3423__(406);
+const alias_1 = __nested_webpack_require_3725__(406);
 
-const function_1 = __nested_webpack_require_3423__(288);
+const function_1 = __nested_webpack_require_3725__(288);
 
 exports.internal = Symbol.for('spica/promise::internal');
 
@@ -9995,7 +10233,7 @@ exports.never = new class Never extends Promise {
 /***/ }),
 
 /***/ 251:
-/***/ ((__unused_webpack_module, exports, __nested_webpack_require_13897__) => {
+/***/ ((__unused_webpack_module, exports, __nested_webpack_require_14199__) => {
 
 
 
@@ -10004,13 +10242,13 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.bind = exports.delegate = exports.once = exports.listen = exports.currentTarget = void 0;
 
-const global_1 = __nested_webpack_require_13897__(128);
+const global_1 = __nested_webpack_require_14199__(128);
 
-const alias_1 = __nested_webpack_require_13897__(406);
+const alias_1 = __nested_webpack_require_14199__(406);
 
-const promise_1 = __nested_webpack_require_13897__(879);
+const promise_1 = __nested_webpack_require_14199__(879);
 
-const function_1 = __nested_webpack_require_13897__(288);
+const function_1 = __nested_webpack_require_14199__(288);
 
 exports.currentTarget = Symbol.for('typed-dom::currentTarget');
 
@@ -10117,7 +10355,7 @@ exports.bind = bind;
 /******/ 	var __webpack_module_cache__ = {};
 /******/ 	
 /******/ 	// The require function
-/******/ 	function __nested_webpack_require_17014__(moduleId) {
+/******/ 	function __nested_webpack_require_17316__(moduleId) {
 /******/ 		// Check if module is in cache
 /******/ 		var cachedModule = __webpack_module_cache__[moduleId];
 /******/ 		if (cachedModule !== undefined) {
@@ -10131,7 +10369,7 @@ exports.bind = bind;
 /******/ 		};
 /******/ 	
 /******/ 		// Execute the module function
-/******/ 		__webpack_modules__[moduleId](module, module.exports, __nested_webpack_require_17014__);
+/******/ 		__webpack_modules__[moduleId](module, module.exports, __nested_webpack_require_17316__);
 /******/ 	
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
@@ -10142,7 +10380,7 @@ exports.bind = bind;
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nested_webpack_require_17014__(251);
+/******/ 	var __webpack_exports__ = __nested_webpack_require_17316__(251);
 /******/ 	
 /******/ 	return __webpack_exports__;
 /******/ })()

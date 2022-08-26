@@ -39,7 +39,7 @@ new Pjax({
   areas: [
     // Try the first query.
     '#header, #primary',
-    // Retry with the second query when the first query doesn't match.
+    // Retry using the second query if the first query doesn't match.
     '#container',
     // Retry.
     'body'
@@ -55,7 +55,6 @@ new Pjax({
 
 - [Pjax]({{ site.basepath }}api/pjax/)
 - [Event]({{ site.basepath }}api/event/)
-- [Router]({{ site.basepath }}api/router/)
 </div>
 
 </div>
