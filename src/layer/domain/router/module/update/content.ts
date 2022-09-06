@@ -87,7 +87,7 @@ function split(selector: string): string[] {
     ')': '(',
   } as const;
   let buffer = '';
-  for (const token of selector.match(/\\.?|[,"()\[\]]|[^\\,"()\[\]]+|$/g) ?? []) {
+  for (const token of selector.match(/\\.?|[,"()\[\]]|[^\\,"()\[\]]+|$/g)!) {
     switch (token) {
       case '':
         flush();
