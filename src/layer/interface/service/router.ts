@@ -68,7 +68,7 @@ export function route(
           void kill(),
           void page.sync(),
           window.history.scrollRestoration = 'auto',
-          cancellation.isAlive || reason instanceof FatalError
+          cancellation.isAlive() || reason instanceof FatalError
             ? void config.fallback(event.source, reason)
             : void 0));
     })
