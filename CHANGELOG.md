@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.35.4
+
+- Cover the bug of history.scrollRestoration.
+
 ## 3.35.3
 
 - Update dependencies.

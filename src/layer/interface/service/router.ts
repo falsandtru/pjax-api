@@ -32,6 +32,8 @@ export function route(
       break;
     case RouterEventType.Popstate:
       io.document.title = loadTitle();
+      const { scrollX, scrollY } = window;
+      requestAnimationFrame(() => void window.scrollTo(scrollX, scrollY));
       break;
   }
   return Just(0)
