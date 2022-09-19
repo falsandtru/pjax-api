@@ -7557,8 +7557,8 @@ exports.saveTitle = saveTitle;
 
 function loadPosition() {
   return window.history.state?.position || {
-    top: window.pageYOffset,
-    left: window.pageXOffset
+    top: window.scrollY,
+    left: window.scrollX
   };
 }
 
@@ -7567,8 +7567,8 @@ exports.loadPosition = loadPosition;
 function savePosition() {
   void window.history.replaceState({ ...window.history.state,
     position: { ...window.history.state?.position,
-      top: window.pageYOffset,
-      left: window.pageXOffset
+      top: window.scrollY,
+      left: window.scrollX
     }
   }, document.title);
 }
@@ -7919,7 +7919,7 @@ Object.defineProperty(exports, "RouterEntityState", ({
 }));
 
 async function route(entity, io) {
-  return (0, either_1.Right)(void 0).bind(entity.state.process.either).bind(() => match(io.document, entity.config.areas) ? (0, either_1.Right)(void 0) : (0, either_1.Left)(new Error(`Failed to match areas.`))).fmap(() => (0, fetch_1.fetch)(entity.event.request, entity.config, entity.state.process)).fmap(async p => (await p).fmap(([res, seq]) => (0, update_1.update)(entity, res, seq, {
+  return (0, either_1.Right)(void 0).bind(entity.state.process.either).bind(() => match(io.document, entity.config.areas) ? (0, either_1.Right)(void 0) : (0, either_1.Left)(new Error(`Failed to match areas.`))).fmap(() => (0, fetch_1.fetch)(entity.event, entity.config, entity.state.process)).fmap(async p => (await p).fmap(([res, seq]) => (0, update_1.update)(entity, res, seq, {
     document: io.document,
     position: path_1.loadPosition
   })).extract(either_1.Left)).extract(either_1.Left);
@@ -8027,14 +8027,19 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.fetch = void 0;
 
+const router_1 = __webpack_require__(9401);
+
 const xhr_1 = __webpack_require__(4608);
 
 const timer_1 = __webpack_require__(8520);
 
 async function fetch({
-  method,
-  url,
-  body
+  type,
+  request: {
+    method,
+    url,
+    body
+  }
 }, {
   fetch: {
     rewrite,
@@ -8046,6 +8051,15 @@ async function fetch({
   sequence
 }, process) {
   void window.dispatchEvent(new Event('pjax:fetch'));
+
+  if (type === router_1.RouterEventType.Popstate) {
+    const {
+      scrollX,
+      scrollY
+    } = window;
+    requestAnimationFrame(() => void window.scrollTo(scrollX, scrollY));
+  }
+
   const [seq, res] = await Promise.all([await sequence.fetch(void 0, {
     path: url.path,
     method,
