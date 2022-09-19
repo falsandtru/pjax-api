@@ -20,8 +20,8 @@ export function saveTitle(): void {
 export function loadPosition(): State.Position {
   return window.history.state?.position
       || {
-           top: window.pageYOffset,
-           left: window.pageXOffset,
+           top: window.scrollY,
+           left: window.scrollX,
          };
 }
 
@@ -31,8 +31,8 @@ export function savePosition(): void {
       ...window.history.state,
       position: {
         ...window.history.state?.position,
-        top: window.pageYOffset,
-        left: window.pageXOffset,
+        top: window.scrollY,
+        left: window.scrollX,
       },
     },
     document.title);

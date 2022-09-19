@@ -22,8 +22,8 @@ describe('Unit: layer/data/store/state', function () {
     it("", function () {
       window.history.replaceState(null, document.title);
       assert.deepStrictEqual(loadPosition(), {
-        top: window.pageYOffset,
-        left: window.pageXOffset,
+        top: window.scrollY,
+        left: window.scrollX,
       });
     });
 
