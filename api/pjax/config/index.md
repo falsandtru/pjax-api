@@ -40,7 +40,7 @@ Set target links that will replace the current URL.
 
 ## lock: () => string = ...
 
-Give CSS to lock and protect the scroll position from unexpected scroll caused by a browser bug.
+Give CSS to lock and protect the scroll position from unexpected scrolling caused by a browser bug.
 
 ```ts
   // Default
