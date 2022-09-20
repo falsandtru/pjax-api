@@ -7620,9 +7620,20 @@ Object.defineProperty(exports, "scope", ({
 class Config {
   constructor(option) {
     this.areas = ['body'];
-    this.link = 'a, area';
+    this.link = ':is(a, area)[href]:not([target])';
     this.form = 'form:not([method])';
     this.replace = '';
+
+    this.lock = () => `
+    :root {
+      position: fixed;
+      top: ${-window.scrollY}px;
+      left: ${-window.scrollX}px;
+      right: 0;
+      ${window.innerWidth - document.body.clientWidth ? 'overflow-y: scroll;' : ''}
+      ${window.innerHeight - document.body.clientHeight ? 'overflow-x: scroll;' : ''}
+    }`;
+
     this.fetch = {
       rewrite: path => path,
       cache: (_path, _headers) => '',
@@ -7668,8 +7679,8 @@ class Config {
     void this.fetch.headers.set('X-Pjax', '1');
   }
 
-  filter(el) {
-    return el.matches('[href]:not([target])');
+  filter(_el) {
+    return true;
   }
 
   fallback(target, reason) {
@@ -7757,7 +7768,7 @@ function scope(config, path) {
 
     const option = scope[pattern];
     return option ? (0, maybe_1.Just)(new config_1.Config((0, assign_1.extend)({
-      scope: option.scope && (0, assign_1.overwrite)(config.scope, option.scope)
+      scope: option.scope && (0, assign_1.overwrite)({}, config.scope, option.scope)
     }, config, option))) : maybe_1.Nothing;
   }
 
@@ -7919,7 +7930,7 @@ Object.defineProperty(exports, "RouterEntityState", ({
 }));
 
 async function route(entity, io) {
-  return (0, either_1.Right)(void 0).bind(entity.state.process.either).bind(() => match(io.document, entity.config.areas) ? (0, either_1.Right)(void 0) : (0, either_1.Left)(new Error(`Failed to match areas.`))).fmap(() => (0, fetch_1.fetch)(entity.event.request, entity.config, entity.state.process)).fmap(async p => (await p).fmap(([res, seq]) => (0, update_1.update)(entity, res, seq, {
+  return (0, either_1.Right)(void 0).bind(entity.state.process.either).bind(() => match(io.document, entity.config.areas) ? (0, either_1.Right)(void 0) : (0, either_1.Left)(new Error(`Failed to match areas.`))).fmap(() => (0, fetch_1.fetch)(entity.event, entity.config, entity.state.process, io)).fmap(async p => (await p).fmap(([res, seq]) => (0, update_1.update)(entity, res, seq, {
     document: io.document,
     position: path_1.loadPosition
   })).extract(either_1.Left)).extract(either_1.Left);
@@ -8027,15 +8038,25 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.fetch = void 0;
 
+const router_1 = __webpack_require__(9401);
+
 const xhr_1 = __webpack_require__(4608);
 
 const timer_1 = __webpack_require__(8520);
 
+const dom_1 = __webpack_require__(3252);
+
+const style = (0, dom_1.html)('style');
+
 async function fetch({
-  method,
-  url,
-  body
+  type,
+  request: {
+    method,
+    url,
+    body
+  }
 }, {
+  lock,
   fetch: {
     rewrite,
     cache,
@@ -8044,14 +8065,31 @@ async function fetch({
     wait
   },
   sequence
-}, process) {
+}, process, io) {
   void window.dispatchEvent(new Event('pjax:fetch'));
+  const {
+    scrollX,
+    scrollY
+  } = window;
+
+  if (type === router_1.RouterEventType.Popstate) {
+    // 小さな画面でもチラつかない
+    style.textContent = lock();
+    io.document.documentElement.appendChild(style);
+  }
+
   const [seq, res] = await Promise.all([await sequence.fetch(void 0, {
     path: url.path,
     method,
     headers,
     body
   }), (0, xhr_1.xhr)(method, url, headers, body, timeout, rewrite, cache, process), (0, timer_1.wait)(wait)]);
+
+  if (type === router_1.RouterEventType.Popstate) {
+    style.parentNode?.removeChild(style);
+    window.scrollTo(scrollX, scrollY);
+  }
+
   return res.bind(process.either).fmap(res => [res, seq]);
 }
 
@@ -9257,12 +9295,10 @@ function route(config, event, process, io) {
       break;
 
     case router_1.RouterEventType.Popstate:
-      io.document.title = (0, store_1.loadTitle)();
-      const {
-        scrollX,
-        scrollY
-      } = window;
-      requestAnimationFrame(() => void window.scrollTo(scrollX, scrollY));
+      io.document.title = (0, store_1.loadTitle)(); // 小さな画面ではチラつく
+      //const { scrollX, scrollY } = window;
+      //requestAnimationFrame(() => void window.scrollTo(scrollX, scrollY));
+
       break;
   }
 
