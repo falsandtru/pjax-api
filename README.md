@@ -20,30 +20,30 @@ Most other SPA frameworks and pjax libraries lack many important functions to ke
 
 |Feature|defunkt|Turbolinks|falsandtru|Barba|
 |:------|:-----:|:--------:|:--------:|:---:|
-|**Concurrent sequence integration**|-|-|✓|-|
-|Shadow DOM support|-|-|✓|-|
-|*Multiple area update*|-|✓|✓|-|
-|Fallback area matching|-|-|✓|-|
-|Content type verification|-|✓|✓|-|
-|*HEAD contents markless auto sync*|-|-|✓|-|
-|*CSS markless auto sync*|-|-|✓|-|
-|*Script markless auto load*|-|-|✓|-|
+|**Concurrent sequence integration**| | |✓| |
+|Shadow DOM support| | |✓| |
+|*Multiple area update*| |✓|✓| |
+|Fallback area matching| | |✓| |
+|Content type verification| |✓|✓| |
+|*HEAD contents markless auto sync*| | |✓| |
+|*CSS markless auto sync*| | |✓| |
+|*Script markless auto load*| | |✓| |
 |External script load|✓|✓|✓|✓|
-|Inline script execution|-|✓|✓|✓|
-|Execution sequence keeping|-|-|✓|-|
-|Non-blocking script load|✓|✓|✓|-|
-|**Subresource integrity verification**|-|-|✓<sup>\*1</sup>|-|
-|Lightweight source rewrite|-|✓|✓|-|
-|ETag support|-|-|✓|-|
+|Inline script execution|✓|✓|✓|✓|
+|Execution sequence keeping| | |✓| |
+|Non-blocking script load|✓|✓|✓| |
+|**Subresource integrity verification**| | |✓<sup>\*1</sup>| |
+|Lightweight source rewrite| |✓|✓| |
+|ETag support| | |✓| |
 |Cache|✓|✓|✓|✓|
-|URL scope|-|-|✓|✓|
-|URL scope-based override settings|-|-|✓|✓|
-|**Browser history fix**|-|-|✓|-|
-|**Scroll position restoration**|-|-|✓|-|
-|**Unexpected scroll prevention**|-|-|✓|-|
-|NOSCRIPT tag restoration|-|-|✓|-|
-|History API support<sup>\*2</sup>|-|-|✓|-|
-|No jQuery dependency|-|-|✓|✓|
+|URL scope| | |✓|✓|
+|URL scope-based override settings| | |✓|✓|
+|**Browser history fix**| | |✓| |
+|**Scroll position restoration**| | |✓| |
+|**Unexpected scroll prevention**| | |✓| |
+|NOSCRIPT tag restoration| | |✓| |
+|History API support<sup>\*2</sup>| | |✓| |
+|No jQuery dependency| | |✓|✓|
 
 \*1 Excludes ES modules.\
 \*2 Ability to use pjax APIs and history APIs in combination.
