@@ -21,6 +21,7 @@ export interface Config {
   readonly filter?: (el: HTMLAnchorElement | HTMLAreaElement) => boolean;
   readonly form?: string;
   readonly replace?: string;
+  readonly lock?: () => string;
   readonly fetch?: {
     readonly rewrite?: (path: string) => string;
     readonly cache?: (path: string, headers: Headers) => string;

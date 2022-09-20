@@ -28,6 +28,7 @@ The second generation PJAX for advanced web frameworks.
 |URL scope-based override settings|-|O|-|
 |**Browser history fix**|**-**|O|**-**|
 |**Scroll position restoration**|**-**|O|**-**|
+|**Unexpected scroll prevention**|**-**|O|**-**|
 |NOSCRIPT tag restoration|-|O|-|
 |History API support<sup>\*2</sup>|?|O|?|
 |No jQuery dependency|-|O|?|

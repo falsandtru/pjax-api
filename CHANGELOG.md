@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.36.0
+
+- Add `lock` option.
+
 ## 3.35.4
 
 - Cover the bug of history.scrollRestoration.

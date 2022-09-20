@@ -38,6 +38,22 @@ Set target forms.
 
 Set target links that will replace the current URL.
 
+## lock: () => string = ...
+
+Give CSS to lock and protect the scroll position from unexpected scroll caused by a browser bug.
+
+```ts
+  public readonly lock = () => `
+    :root {
+      position: fixed;
+      top: ${-window.scrollY}px;
+      left: ${-window.scrollX}px;
+      right: 0;
+      ${window.innerWidth - document.body.clientWidth ? 'overflow-y: scroll;' : ''}
+      ${window.innerHeight - document.body.clientHeight ? 'overflow-x: scroll;' : ''}
+    }`;
+```
+
 ## fetch: {...} = ...
 
 ### rewrite: (path: string) => string = `path => path`

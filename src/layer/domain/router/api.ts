@@ -21,7 +21,7 @@ export async function route(
         ? Right(void 0)
         : Left(new Error(`Failed to match areas.`)))
     .fmap(() =>
-      fetch(entity.event.request, entity.config, entity.state.process))
+      fetch(entity.event, entity.config, entity.state.process, io))
     .fmap(async p => (await p)
       .fmap(([res, seq]) =>
         update(entity, res, seq, {

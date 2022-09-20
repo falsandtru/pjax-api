@@ -36,6 +36,15 @@ export class Config implements DeepRequired<Option, Config['scope']> {
   }
   public readonly form = 'form:not([method])';
   public readonly replace = '';
+  public readonly lock = () => `
+    :root {
+      position: fixed;
+      top: ${-window.scrollY}px;
+      left: ${-window.scrollX}px;
+      right: 0;
+      ${window.innerWidth - document.body.clientWidth ? 'overflow-y: scroll;' : ''}
+      ${window.innerHeight - document.body.clientHeight ? 'overflow-x: scroll;' : ''}
+    }`;
   public readonly fetch = {
     rewrite: (path: URL.Path<StandardURL>): string => path,
     cache: (_path: URL.Path<StandardURL>, _headers: Headers): string => '',
