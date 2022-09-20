@@ -10,15 +10,27 @@ class: style-top
 <div class="row">
 
 <div class="col-md-4">
-## Feature
+## Features
 
-- <a href="{{ site.basepath }}demo/basic/1.html" target="_blank">Basic</a>
-	- Multiple area update
-	- Fallback area matching
-	- CSS markless auto sync
-	- Script markless auto load
-	- [more](https://github.com/falsandtru/pjax-api#features)
-- Concurrency integration
+**The pjax-api provides almost complete original web experience.**
+
+- Browser history fix
+- Scroll position restoration
+- Unexpected scroll prevention
+- Scroll behaviors around hash links
+- Concurrent sequence integration
+- [More](https://github.com/falsandtru/pjax-api#features)
+</div>
+
+<div class="col-md-4">
+## APIs
+
+This site is also powered by PJAX as a demo. Try page transitions.
+
+[API]({{ site.basepath }}api/)
+
+- [Pjax]({{ site.basepath }}api/pjax/)
+- [Event]({{ site.basepath }}api/event/)
 </div>
 
 <div class="col-md-4">
@@ -39,7 +51,8 @@ new Pjax({
   areas: [
     // Try the first query.
     '#header, #primary',
-    // Retry using the second query if the first query doesn't match.
+    // Retry using the second query
+    // if the first query doesn't match.
     '#container',
     // Retry.
     'body'
@@ -48,23 +61,12 @@ new Pjax({
 ```
 </div>
 
-<div class="col-md-4">
-## API
-
-[API]({{ site.basepath }}api/)
-
-- [Pjax]({{ site.basepath }}api/pjax/)
-- [Event]({{ site.basepath }}api/event/)
-</div>
-
 </div>
 
 <div class="row">
 
 <div class="col-md-4">
-## Browser
-
-Requires es6 support.
+## Browsers
 
 - Chrome
 - Firefox

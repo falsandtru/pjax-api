@@ -13,7 +13,7 @@ class: style-api style-api-detail
 Set target areas.
 
 You can specify the multiple targets like `['#header, #primary']`.
-Also, you can specify the other candidates of targets like `['#container', 'body']`.
+You can also specify the other candidates of targets like `['#container', 'body']`.
 
 ## link: string = `':is(a, area)[href]:not([target])'`
 
@@ -36,7 +36,7 @@ Set target forms.
 
 ## replace: string = `''`
 
-Set target links that will replace the current URL.
+Set target links that replace the current URL.
 
 ## lock: () => string = ...
 
@@ -63,10 +63,9 @@ Rewrite URL implicitly.
 
 ### cache: (path: string, headers: Headers) => string = `() => ''`
 
-Give a key of the request cache.
-If you return empty string, the current request won't use or make the cache.
+Give the key of the request cache.
+If you return the empty string, the current request doesn't make and use the cache.
 This option is only enabled with GET method.
-Note that from caches with shared keys you can't get the actual URLs redirected on servers.
 
 ### timeout: number = `3000`
 
@@ -74,34 +73,34 @@ Set timeout for request by ms.
 
 ### wait: number = `0`
 
-Wait specified milliseconds after sending a request.
+Wait for the specified milliseconds after sending a request.
 
 ## update: {...} = ...
 
 ### rewrite: (doc: Document, area: string) => void = `() => undefined`
 
-Rewrite a source document object.
+Rewrite the source document object.
 If you use the sequence option, you should use only it instead of this.
 
 ### head: string = `'base, meta, link'`
 
-Set sync targets in head element. Only support `base`, `meta`, and `link` tags.
+Set sync targets in the head element. Only support `base`, `meta`, and `link` tags.
 
 ### css: boolean = `true`
 
-Switch css auto sync.
+Set CSS auto sync.
 
 ### script: boolean = `true`
 
-Switch script auto load.
+Set script auto load.
 
-External scripts will be run once per URL.
-Inline scripts will be run everytime.
+External scripts run once per URL.
+Inline scripts run every transition.
 
 ### ignore: string = `''`
 
-Set ignore targets for head, css and script.
-Another, the following internal defaults will also be applied.
+Select ignore targets from head children, CSS, and scripts.
+The next internal defaults are also applied.
 
 ```ts
   // Default
@@ -113,11 +112,11 @@ Another, the following internal defaults will also be applied.
 
 ### reload: string = `''`
 
-Set reload targets of scripts.
+Select reload targets from scripts.
 
 ### logger: string = `''`
 
-Set logging targets of scripts.
+Select logging targets from scripts.
 
 ## fallback: (target: HTMLAnchorElement | HTMLAreaElement | HTMLFormElement | Window, reason: unknown) => void = ...
 

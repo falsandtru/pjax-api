@@ -2,45 +2,57 @@
 
 ![CI](https://github.com/falsandtru/pjax-api/workflows/CI/badge.svg)
 
-The second generation PJAX for advanced web frameworks.
+The advanced PJAX for web services.
+
+The pjax-api provides almost complete original web experience.
+Most other SPA frameworks and pjax libraries lack many important functions to keep the original web experience such as follows.
+
+- **Browser history fix (Fix for browsers)**
+  - Browsers set the wrong title to the current URL in fast page back/forward.
+- **Scroll position restoration (Fix for browsers)**
+  - Browsers cannot restore the scroll position if the current content doesn't have sufficient scroll size.
+- **Unexpected scroll prevention (Fix for browsers)**
+  - Browsers unexpectedly scroll the page before updating the page in page back/forward.
+- Scroll behaviors around hash links
+  - Most other frameworks and libraries reproduce wrong scroll behaviors.
 
 ## Features
 
 |Feature|defunkt|Turbolinks|falsandtru|Barba|
 |:------|:-----:|:--------:|:--------:|:---:|
-|**Concurrency integration**|-|-|O|-|
-|Shadow DOM support|-|-|O|-|
-|Multiple area update|-|O|O|-|
-|Fallback area matching|-|-|O|-|
-|Content type verification|-|O|O|-|
-|HEAD contents markless auto sync|-|-|O|-|
-|CSS markless auto sync|-|-|O|-|
-|Script markless auto loading|-|-|O|-|
-|External script loading|O|O|O|-|
-|Inline script execution|-|O|O|O|
-|Execution sequence keeping|-|-|O|-|
-|Non-blocking script loading|O|O|O|-|
-|Subresource integrity verification|-|-|O<sup>\*1</sup>|-|
-|Lightweight source rewrite|-|O|O|-|
-|ETag support|-|-|O|-|
-|Cache|O|O|O|O|
-|URL scope|-|-|O|O|
-|URL scope-based override settings|-|-|O|O|
-|**Browser history fix**|**-**|**-**|O|**-**|
-|**Scroll position restoration**|**-**|**-**|O|**-**|
-|**Unexpected scroll prevention**|**-**|**-**|O|**-**|
-|NOSCRIPT tag restoration|-|-|O|-|
-|History API support<sup>\*2</sup>|-|-|O|-|
-|No jQuery dependency|-|-|O|O|
+|**Concurrent sequence integration**|-|-|✓|-|
+|Shadow DOM support|-|-|✓|-|
+|*Multiple area update*|-|✓|✓|-|
+|Fallback area matching|-|-|✓|-|
+|Content type verification|-|✓|✓|-|
+|*HEAD contents markless auto sync*|-|-|✓|-|
+|*CSS markless auto sync*|-|-|✓|-|
+|*Script markless auto load*|-|-|✓|-|
+|External script load|✓|✓|✓|✓|
+|Inline script execution|-|✓|✓|✓|
+|Execution sequence keeping|-|-|✓|-|
+|Non-blocking script load|✓|✓|✓|-|
+|**Subresource integrity verification**|-|-|✓<sup>\*1</sup>|-|
+|Lightweight source rewrite|-|✓|✓|-|
+|ETag support|-|-|✓|-|
+|Cache|✓|✓|✓|✓|
+|URL scope|-|-|✓|✓|
+|URL scope-based override settings|-|-|✓|✓|
+|**Browser history fix**|-|-|✓|-|
+|**Scroll position restoration**|-|-|✓|-|
+|**Unexpected scroll prevention**|-|-|✓|-|
+|NOSCRIPT tag restoration|-|-|✓|-|
+|History API support<sup>\*2</sup>|-|-|✓|-|
+|No jQuery dependency|-|-|✓|✓|
 
 \*1 Excludes ES modules.\
 \*2 Ability to use pjax APIs and history APIs in combination.
 
-## Documents, APIs, and Demos
+## Documents
 
 https://falsandtru.github.io/pjax-api
 
-## Get
+## Install
 
 ### CDN
 
