@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.36.1
+
+- Update dependencies.
+
 ## 3.36.0
 
 - Add `lock` option.
