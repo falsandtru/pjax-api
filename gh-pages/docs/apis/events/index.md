@@ -1,12 +1,12 @@
 ---
 layout: layout
-title: Event
+title: Events
 type: page
 nav: nav
 class: style-api style-api-detail
 ---
 
-# Event
+# Events
 
 ## pjax:fetch
 

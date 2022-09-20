@@ -30,7 +30,7 @@ new Pjax({
 
 ## Config
 
-[Config]({{ site.basepath }}api/pjax/config/)
+[Config]({{ site.basepath }}docs/apis/pjax/config/)
 
 ## #assign(url: string): boolean
 
