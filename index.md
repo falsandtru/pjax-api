@@ -27,10 +27,9 @@ class: style-top
 
 This site is also powered by PJAX as a demo. Try page transitions.
 
-[API]({{ site.basepath }}api/)
-
-- [Pjax]({{ site.basepath }}api/pjax/)
-- [Event]({{ site.basepath }}api/event/)
+- [API]({{ site.basepath }}api/)
+  - [Pjax]({{ site.basepath }}api/pjax/)
+  - [Event]({{ site.basepath }}api/event/)
 </div>
 
 <div class="col-md-4">
