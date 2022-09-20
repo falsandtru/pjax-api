@@ -8,9 +8,9 @@ class: style-api style-api-detail
 
 # Pjax
 
-## Typings
+## Types
 
-<a href="https://github.com/falsandtru/pjax-api/blob/master/pjax-api.d.ts" target="_blank">pjax-api.d.ts</a>
+<a href="https://github.com/falsandtru/pjax-api/blob/master/index.d.ts" target="_blank">index.d.ts</a>
 
 ## new Pjax(config: Config): Pjax
 
@@ -37,7 +37,7 @@ new Pjax({
 Go to URL.
 
 The return type means the request is accepted or not. In other words, in progress or not.
-The same shall apply hereinafter.
+Same as next.
 
 ```ts
 new Pjax({}).assign('/');
@@ -45,7 +45,7 @@ new Pjax({}).assign('/');
 
 ## #replace(url: string): boolean
 
-Go to URL with replacing.
+Go to URL with replacing the current URL.
 
 ```ts
 new Pjax({}).replace('/');
@@ -61,7 +61,7 @@ Pjax.assign('/', {});
 
 ## .replace(url: string, config: Config): boolean
 
-Go to URL with replacing.
+Go to URL with replacing the current URL.
 
 ```ts
 Pjax.replace('/', {});

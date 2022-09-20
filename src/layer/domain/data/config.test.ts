@@ -3,16 +3,16 @@ import { html } from 'typed-dom';
 
 describe('Unit: layer/domain/data/config', () => {
   describe('Config', () => {
-    it('filter', () => {
-      const filter = new Config({}).filter;
-      assert(filter(html('a', { href: '' })));
-      assert(filter(html('a', { href: '/' })));
-      assert(filter(html('a', { href: '/dir' })));
-      assert(filter(html('a', { href: '/dir/' })));
-      assert(filter(html('a', { href: '/dir/file.html' })));
-      assert(filter(html('a', { href: '?' })));
-      assert(filter(html('a', { href: '#' })));
-      assert(!filter(html('a', { href: '', target: '_blank' })));
+    it('link', () => {
+      const config = new Config({});
+      assert(html('a', { href: '' }).matches(config.link));
+      assert(html('a', { href: '/' }).matches(config.link));
+      assert(html('a', { href: '/dir' }).matches(config.link));
+      assert(html('a', { href: '/dir/' }).matches(config.link));
+      assert(html('a', { href: '/dir/file.html' }).matches(config.link));
+      assert(html('a', { href: '?' }).matches(config.link));
+      assert(html('a', { href: '#' }).matches(config.link));
+      assert(!html('a', { href: '', target: '_blank' }).matches(config.link));
     });
 
     it('ignore', () => {

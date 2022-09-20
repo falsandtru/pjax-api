@@ -30,9 +30,9 @@ export class Config implements DeepRequired<Option, Config['scope']> {
     void this.fetch.headers.set('X-Pjax', '1');
   }
   public readonly areas = ['body'];
-  public readonly link = 'a, area';
-  public filter(el: HTMLAnchorElement | HTMLAreaElement): boolean {
-    return el.matches('[href]:not([target])');
+  public readonly link = ':is(a, area)[href]:not([target])';
+  public filter(_el: HTMLAnchorElement | HTMLAreaElement): boolean {
+    return true;
   }
   public readonly form = 'form:not([method])';
   public readonly replace = '';
@@ -58,7 +58,7 @@ export class Config implements DeepRequired<Option, Config['scope']> {
     css: true,
     script: true,
     ignore: '',
-    ignores: <{ [index: string]: string; }>{
+    ignores: {
       extension: '[href^="chrome-extension://"]',
       security: '[src*=".scr.kaspersky-labs.com/"]',
     },

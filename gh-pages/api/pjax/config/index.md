@@ -12,10 +12,10 @@ class: style-api style-api-detail
 
 Set target areas.
 
-You can define the multiple targets like `['#header, #primary']`.
-Also, you can define the other candidates of targets like `['#container', 'body']`.
+You can specify the multiple targets like `['#header, #primary']`.
+Also, you can specify the other candidates of targets like `['#container', 'body']`.
 
-## link: string = `'a, area'`
+## link: string = `':is(a, area)[href]:not([target])'`
 
 Set target links.
 
@@ -24,9 +24,9 @@ Set target links.
 Filter target links.
 
 ```ts
-  // default
+  // Default
   public filter(el: HTMLAnchorElement | HTMLAreaElement): boolean {
-    return el.matches('[href]:not([target])');
+    return true;
   }
 ```
 
@@ -43,6 +43,7 @@ Set target links that will replace the current URL.
 Give CSS to lock and protect the scroll position from unexpected scroll caused by a browser bug.
 
 ```ts
+  // Default
   public readonly lock = () => `
     :root {
       position: fixed;
@@ -103,26 +104,27 @@ Set ignore targets for head, css and script.
 Another, the following internal defaults will also be applied.
 
 ```ts
-({
-  extension: '[href^="chrome-extension://"]',
-  security: '[src*=".scr.kaspersky-labs.com/"]',
-})
+  // Default
+    ignores: {
+      extension: '[href^="chrome-extension://"]',
+      security: '[src*=".scr.kaspersky-labs.com/"]',
+    },
 ```
 
 ### reload: string = `''`
 
-Set reload targets for script.
+Set reload targets of scripts.
 
 ### logger: string = `''`
 
-Set logging targets for script.
+Set logging targets of scripts.
 
 ## fallback: (target: HTMLAnchorElement | HTMLAreaElement | HTMLFormElement | Window, reason: unknown) => void = ...
 
-Override a fallback processing.
+Fallback processing.
 
 ```ts
-  // default
+  // Default
   public fallback(target: HTMLAnchorElement | HTMLAreaElement | HTMLFormElement | Window, reason: unknown): void {
     if (target instanceof HTMLAnchorElement || target instanceof HTMLAreaElement) {
       return void window.location.assign(target.href);
@@ -139,9 +141,9 @@ Override a fallback processing.
 
 ## sequence: Sequence<a, b, c, d> = ...
 
-Control the page routing sequence.
-It can integrate and synchronize other async processes.
-All methods are required, not optional.
+Control the transition sequence.
+It integrates and synchronizes other async processes.
+All the methods must be defined, not optional.
 
 ```ts
 const sequence: Sequence<1, 2, 3, 4> = {
@@ -174,8 +176,8 @@ const sequence: Sequence<1, 2, 3, 4> = {
 
 ## scope: Record<string, Config | undefined> = `{}`
 
-Override default configs without `link`, `filter`, `form`, and `replace` by merging, or disable pjax per path of URL.
-You can use `{}`, `*`, and `?` metacharacters for path matching.
+Override the default configs, or disable pjax.
+You can use `{}`, `**`, `*`, and `?` metacharacters for path matching.
 
 ```ts
 new Pjax({
@@ -185,12 +187,12 @@ new Pjax({
     'body'
   ],
   scope: {
-    '/': undefined, // disable
-    '/posts/': {}, // enable
+    '/': undefined, // Disable
+    '/posts/': {}, // Enable
     '/posts/*/': {
-      replace: '.replace' // override
+      replace: '.replace' // Override
     },
-    '/{a,b}/': {} // expand to '/a/' and '/b/'
+    '/{a,b}/': {} // Expand to '/a/' and '/b/'
   }
 });
 ```
