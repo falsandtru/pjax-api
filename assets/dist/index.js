@@ -893,8 +893,8 @@ class Cancellation {
       return function_1.noop;
     }
 
-    const i = listeners.push(handler) - 1;
-    return () => listeners[i] = void 0;
+    listeners.push(handler);
+    return () => listener = function_1.noop;
 
     function handler(reason) {
       try {
