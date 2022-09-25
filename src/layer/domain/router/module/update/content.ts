@@ -2,6 +2,7 @@ import { escape } from './script';
 import { AtomicPromise } from 'spica/promise';
 import { Maybe, Just, Nothing} from 'spica/maybe';
 import { push } from 'spica/array';
+import { querySelectorAll } from 'typed-dom/query';
 import { once } from 'typed-dom/listener';
 
 type DocumentRecord = { src: Document; dst: Document; };
@@ -31,7 +32,7 @@ export function content(
       }))
       .map(area => (
         void replace(area),
-        [...area.src.querySelectorAll('img, iframe, frame')]
+        querySelectorAll(area.src, 'img, iframe, frame')
           .map(wait)))
       .reduce<AtomicPromise<Event>[]>(push, []);
 
@@ -66,13 +67,11 @@ export function separate(
       .bind(areas =>
         areas.reduce((m, area) =>
           m.bind(acc => {
-            const record = {
-              src: [...documents.src.querySelectorAll<HTMLElement>(area)],
-              dst: [...documents.dst.querySelectorAll<HTMLElement>(area)],
-            };
-            return record.src.length > 0
-                && record.src.length === record.dst.length
-              ? Just(push(acc, [record]))
+            const src = querySelectorAll<HTMLElement>(documents.src, area);
+            const dst = querySelectorAll<HTMLElement>(documents.dst, area);
+            return src.length > 0
+                && src.length === dst.length
+              ? Just(push(acc, [{ src, dst }]))
               : Nothing;
           })
         , Just([])));
