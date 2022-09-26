@@ -7651,6 +7651,8 @@ exports.Config = exports.scope = void 0;
 
 const global_1 = __webpack_require__(4128);
 
+const cache_1 = __webpack_require__(9210);
+
 const assign_1 = __webpack_require__(4401);
 
 var scope_1 = __webpack_require__(9375);
@@ -7679,9 +7681,9 @@ class Config {
       ${window.innerHeight - document.body.clientHeight ? 'overflow-x: scroll;' : ''}
     }`;
 
+    this.cache = new cache_1.Cache(100);
     this.fetch = {
       rewrite: path => path,
-      cache: (_path, _headers) => '',
       headers: new Headers(),
       timeout: 3000,
       wait: 0
@@ -8105,16 +8107,15 @@ async function fetch({
   }
 }, {
   lock,
+  cache,
   fetch: {
     rewrite,
-    cache,
     headers,
     timeout,
     wait
   },
   sequence
 }, process, io) {
-  void window.dispatchEvent(new Event('pjax:fetch'));
   const {
     scrollX,
     scrollY
@@ -8126,12 +8127,12 @@ async function fetch({
     io.document.documentElement.appendChild(style);
   }
 
-  const [seq, res] = await Promise.all([await sequence.fetch(void 0, {
+  const [seq, res] = await Promise.all([sequence.fetch(void 0, {
     path: url.path,
     method,
     headers,
     body
-  }), (0, xhr_1.xhr)(method, url, location.orig, headers, body, timeout, rewrite, cache, process), (0, timer_1.wait)(wait)]);
+  }), (0, xhr_1.xhr)(method, url, location.orig, headers, body, timeout, rewrite, cache, process), (0, timer_1.wait)(wait), void window.dispatchEvent(new Event('pjax:fetch'))]);
 
   if (type === router_1.RouterEventType.Popstate) {
     style.parentNode?.removeChild(style);
@@ -8162,25 +8163,18 @@ const promise_1 = __webpack_require__(4879);
 
 const either_1 = __webpack_require__(8555);
 
-const cache_1 = __webpack_require__(9210);
-
 const url_1 = __webpack_require__(2261);
-
-const memory = new cache_1.Cache(100);
-const caches = new cache_1.Cache(100);
 
 function xhr(method, displayURL, base, headers, body, timeout, rewrite, cache, cancellation) {
   headers = new Headers(headers);
   void headers.set('Accept', headers.get('Accept') || 'text/html');
   const requestURL = new url_1.URL((0, url_1.standardize)(rewrite(displayURL.path), base.href));
 
-  if (method === 'GET' && caches.has(requestURL.path) && Date.now() > caches.get(requestURL.path).expiry) {
-    void headers.set('If-None-Match', headers.get('If-None-Match') || caches.get(requestURL.path).etag);
+  if (method === 'GET' && !headers.has('If-None-Match') && cache.has(requestURL.path) && Date.now() > cache.get(requestURL.path).expiry) {
+    void headers.set('If-None-Match', cache.get(requestURL.path).etag);
   }
 
-  const key = method === 'GET' ? cache(requestURL.path, headers) || void 0 : void 0;
   return new promise_1.AtomicPromise(resolve => {
-    if (key && memory.has(key)) return resolve((0, either_1.Right)(memory.get(key)(displayURL, requestURL)));
     const xhr = new XMLHttpRequest();
     void xhr.open(method, requestURL.path, true);
 
@@ -8194,7 +8188,7 @@ function xhr(method, displayURL, base, headers, body, timeout, rewrite, cache, c
     void xhr.addEventListener("abort", () => void resolve((0, either_1.Left)(new Error(`Failed to request a page by abort.`))));
     void xhr.addEventListener("error", () => void resolve((0, either_1.Left)(new Error(`Failed to request a page by error.`))));
     void xhr.addEventListener("timeout", () => void resolve((0, either_1.Left)(new Error(`Failed to request a page by timeout.`))));
-    void xhr.addEventListener("load", () => void verify(xhr, base, method).fmap(xhr => {
+    void xhr.addEventListener("load", () => void verify(base, method, xhr, cache).fmap(xhr => {
       const responseURL = new url_1.URL((0, url_1.standardize)(xhr.responseURL, base.href));
 
       if (method === 'GET') {
@@ -8203,24 +8197,18 @@ function xhr(method, displayURL, base, headers, body, timeout, rewrite, cache, c
 
         for (const path of new Set([requestURL.path, responseURL.path])) {
           if (xhr.getResponseHeader('ETag') && !cc.has('no-store')) {
-            void caches.set(path, {
+            void cache.set(path, {
               etag: xhr.getResponseHeader('ETag'),
               expiry: cc.has('max-age') && !cc.has('no-cache') ? Date.now() + +cc.get('max-age') * 1000 || 0 : 0,
               xhr
             });
           } else {
-            void caches.delete(path);
+            void cache.delete(path);
           }
         }
       }
 
-      return (overriddenDisplayURL, overriddenRequestURL) => new fetch_1.FetchResponse(responseURL.path === overriddenRequestURL.path ? overriddenDisplayURL : overriddenRequestURL.path === requestURL.path || !key ? responseURL : overriddenDisplayURL, xhr);
-    }).fmap(f => {
-      if (key) {
-        void memory.set(key, f);
-      }
-
-      return f(displayURL, requestURL);
+      return new fetch_1.FetchResponse(responseURL.path === requestURL.path ? displayURL : requestURL.path === requestURL.path ? responseURL : displayURL, xhr);
     }).extract(err => void resolve((0, either_1.Left)(err)), res => void resolve((0, either_1.Right)(res))));
     void cancellation.register(() => void xhr.abort());
   });
@@ -8228,7 +8216,7 @@ function xhr(method, displayURL, base, headers, body, timeout, rewrite, cache, c
 
 exports.xhr = xhr;
 
-function verify(xhr, base, method) {
+function verify(base, method, xhr, cache) {
   return (0, either_1.Right)(xhr).bind(xhr => {
     const url = new url_1.URL((0, url_1.standardize)(xhr.responseURL, base.href));
 
@@ -8243,7 +8231,7 @@ function verify(xhr, base, method) {
         return (0, either_1.Left)(new Error(`Failed to validate the status of response.`));
 
       case !xhr.response:
-        return method === 'GET' && xhr.status === 304 && caches.has(url.path) ? (0, either_1.Right)(caches.get(url.path).xhr) : (0, either_1.Left)(new Error(`Failed to get the response body.`));
+        return method === 'GET' && xhr.status === 304 && cache.has(url.path) ? (0, either_1.Right)(cache.get(url.path).xhr) : (0, either_1.Left)(new Error(`Failed to get the response body.`));
 
       case !match(xhr.getResponseHeader('Content-Type'), 'text/html'):
         return (0, either_1.Left)(new Error(`Failed to validate the content type of response.`));
@@ -8339,21 +8327,25 @@ function update({
     src: response.document,
     dst: io.document
   };
-  return promise_1.AtomicPromise.resolve(seq).then(process.either) // fetch -> unload
-  .then(m => m.bind(() => (0, content_1.separate)(documents, config.areas).extract(() => (0, either_1.Left)(new Error(`Failed to separate the areas.`)), () => m)).fmap(seqA => (void window.dispatchEvent(new Event('pjax:unload')), config.sequence.unload(seqA, { ...response,
-    url: response.url.href
-  })))).then(m => either_1.Either.sequence(m)).then(process.promise).then(m => m.bind(seqB => (0, content_1.separate)(documents, config.areas).fmap(([area]) => [seqB, area]).extract(() => (0, either_1.Left)(new Error(`Failed to separate the areas.`)), process.either)).fmap(([seqB, area]) => {
+  return promise_1.AtomicPromise.resolve(seq).then(process.either).then(m => m.bind(() => (0, content_1.separate)(documents, config.areas).extract(() => (0, either_1.Left)(new Error(`Failed to separate the areas.`)), () => m))).then(m => m.bind(seqA => (0, content_1.separate)(documents, config.areas).fmap(([area]) => [seqA, area]).extract(() => (0, either_1.Left)(new Error(`Failed to separate the areas.`)), process.either)).fmap(([seqB, area]) => {
     const memory = event.type === router_1.RouterEventType.Popstate ? config.memory?.get(event.location.dest.path) : void 0;
     void config.update.rewrite(event.location.dest.path, documents.src, area, memory && (0, content_1.separate)({
       src: memory,
       dst: documents.dst
     }, [area]).extract(() => false) ? memory : void 0);
     return seqB;
-  }).bind(seqB => (0, content_1.separate)(documents, config.areas).fmap(([, areas]) => [seqB, areas]).extract(() => (0, either_1.Left)(new Error(`Failed to separate the areas.`)), process.either))).then(process.promise) // unload -> ready
+  }).bind(seqB => (0, content_1.separate)(documents, config.areas).fmap(([, areas]) => [seqB, areas]).extract(() => (0, either_1.Left)(new Error(`Failed to separate the areas.`)), process.either))) // fetch -> unload
+  .then(m => m.bind(() => (0, content_1.separate)(documents, config.areas).extract(() => (0, either_1.Left)(new Error(`Failed to separate the areas.`)), () => m)).fmap(async ([seqA, areas]) => {
+    const seqB = await config.sequence.unload(seqA, { ...response,
+      url: response.url.href
+    });
+    void window.dispatchEvent(new Event('pjax:unload'));
+    return [seqB, areas];
+  })).then(m => either_1.Either.sequence(m)).then(process.promise) // unload -> ready
   .then(m => m.fmap(([seqB, areas]) => (0, hlist_1.HList)().add((void (0, blur_1.blur)(documents.dst), void (0, path_1.savePjax)(), void (0, url_1.url)(new router_1.RouterEventLocation(event.location.orig, response.url), documents.src.title, event.type, event.source, config.replace), void (0, path_1.savePjax)(), void (0, title_1.title)(documents), void (0, path_1.saveTitle)(), void (0, head_1.head)(documents, config.update.head, config.update.ignore), process.either((0, content_1.content)(documents, areas)).fmap(([as, ps]) => [as, promise_1.AtomicPromise.all(ps)]))).unfold(async p => (await p).fmap(async ([areas]) => {
     config.update.css ? void (0, css_1.css)(documents, config.update.ignore) : void 0;
-    void io.document.dispatchEvent(new Event('pjax:content'));
     const seqC = await config.sequence.content(seqB, areas);
+    void io.document.dispatchEvent(new Event('pjax:content'));
     const ssm = config.update.script ? await (0, script_1.script)(documents, state.scripts, config.update, Math.max(config.fetch.timeout, 1000) * 10, process) : await process.either([[], promise_1.AtomicPromise.resolve(process.either([]))]);
     void (0, focus_1.focus)(event.type, documents.dst);
     void (0, scroll_1.scroll)(event.type, documents.dst, {
@@ -8361,11 +8353,10 @@ function update({
       position: io.position
     });
     void (0, path_1.savePosition)();
-    void io.document.dispatchEvent(new Event('pjax:ready'));
-    return [ssm.fmap(([ss, ap]) => [ss, ap.then(m => m.extract())]), await config.sequence.ready(seqC)];
+    return [ssm.fmap(([ss, ap]) => [ss, ap.then(m => m.extract())]), await config.sequence.ready(seqC), void io.document.dispatchEvent(new Event('pjax:ready'))];
   }).fmap(p => p.then(([m, seqD]) => m.fmap(sst => [sst, seqD]))).extract(err => promise_1.AtomicPromise.resolve((0, either_1.Left)(err)))).reverse())).then(process.promise) // ready -> load
   .then(m => m.fmap(([p1, p2]) => (void promise_1.AtomicPromise.all([p1, p2]).then(([m1, m2]) => m1.bind(([, cp]) => m2.fmap(([[, sp], seqD]) => // Asynchronously wait for load completion of elements and scripts.
-  void promise_1.AtomicPromise.all([cp, sp]).then(process.either).then(m => m.fmap(([events]) => (void window.dispatchEvent(new Event('pjax:load')), void config.sequence.load(seqD, events))).extract(() => void 0)))).extract(() => void 0)), p2))).then(m => either_1.Either.sequence(m).then(m => m.join())).then(m => m.fmap(([sst]) => sst));
+  void promise_1.AtomicPromise.all([cp, sp]).then(process.either).then(m => m.fmap(async ([events]) => (await config.sequence.load(seqD, events), void window.dispatchEvent(new Event('pjax:load')))).extract(() => void 0)))).extract(() => void 0)), p2))).then(m => either_1.Either.sequence(m).then(m => m.join())).then(m => m.fmap(([sst]) => sst));
 }
 
 exports.update = update;

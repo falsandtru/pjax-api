@@ -55,6 +55,10 @@ Give CSS to lock and protect the scroll position from unexpected scrolls caused 
     }`;
 ```
 
+## cache: Dict<string, unknown> = `new Cache(100)`
+
+Set a dictionary object having has/get/set/delete methods of Map to cache the requests.
+
 ## memory?: Dict<string, Document>
 
 Set a dictionary object having has/get/set/delete methods of Map to pass the document object matching the URL to the rewrite function.
@@ -64,12 +68,6 @@ Set a dictionary object having has/get/set/delete methods of Map to pass the doc
 ### rewrite: (path: string) => string = `path => path`
 
 Rewrite URL implicitly.
-
-### cache: (path: string, headers: Headers) => string = `() => ''`
-
-Give the key of the request cache.
-If you return the empty string, the current request doesn't make and use the cache.
-This option is only enabled with GET method.
 
 ### timeout: number = `3000`
 
