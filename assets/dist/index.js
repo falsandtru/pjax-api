@@ -8925,12 +8925,10 @@ function url(location, title, type, source, replaceable) {
 exports.url = url;
 
 function isRegisterable(type, location) {
-  if (location.dest.href === location.orig.href) return false;
-
   switch (type) {
     case router_1.RouterEventType.Click:
     case router_1.RouterEventType.Submit:
-      return true;
+      return location.dest.href !== location.orig.href;
 
     case router_1.RouterEventType.Popstate:
       return false;
