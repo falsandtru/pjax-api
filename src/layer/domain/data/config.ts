@@ -45,7 +45,7 @@ export class Config implements Option {
       ${window.innerWidth - document.body.clientWidth ? 'overflow-y: scroll;' : ''}
       ${window.innerHeight - document.body.clientHeight ? 'overflow-x: scroll;' : ''}
     }`;
-  public readonly memory?: Dict<string, Document>;
+  public readonly memory?: Dict<URL.Path<StandardURL>, Document>;
   public readonly fetch = {
     rewrite: (path: URL.Path<StandardURL>): string => path,
     cache: (_path: URL.Path<StandardURL>, _headers: Headers): string => '',

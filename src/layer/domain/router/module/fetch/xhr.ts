@@ -23,8 +23,11 @@ export function xhr(
   headers = new Headers(headers);
   void headers.set('Accept', headers.get('Accept') || 'text/html');
   const requestURL = new URL(standardize(rewrite(displayURL.path), base.href));
-  if (method === 'GET' && caches.has(requestURL.path) && Date.now() > caches.get(requestURL.path)!.expiry) {
-    void headers.set('If-None-Match', headers.get('If-None-Match') || caches.get(requestURL.path)!.etag);
+  if (method === 'GET' &&
+      !headers.has('If-None-Match') &&
+      caches.has(requestURL.path) &&
+      Date.now() > caches.get(requestURL.path)!.expiry) {
+    void headers.set('If-None-Match', caches.get(requestURL.path)!.etag);
   }
   const key = method === 'GET'
     ? cache(requestURL.path, headers) || void 0
