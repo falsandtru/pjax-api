@@ -50,10 +50,10 @@ export function route(
         void cancellation.cancel(err);
         return never;
       });
+      page.isAvailable() && config.memory?.set(event.location.orig.path, io.document.cloneNode(true));
       page.process(event.location.dest);
       const [scripts] = await env;
       window.history.scrollRestoration = 'manual';
-      config.memory?.set(event.location.orig.path, io.document.cloneNode(true));
       //void progressbar(config.progressbar);
       return router(config, event, { process: cancellation, scripts }, io)
         .then(m => m

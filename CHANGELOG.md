@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.37.1
+
+- Fix memory processing.
+
 ## 3.37.0
 
 - Add `memory` option.

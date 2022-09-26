@@ -81,7 +81,7 @@ Wait for the specified milliseconds after sending a request.
 
 ## update: {...} = ...
 
-### rewrite: (doc: Document, area: string, memory: Document | undefined) => void = `() => undefined`
+### rewrite: (doc: Document, area: string, memory?: Document) => void = `() => undefined`
 
 Rewrite the source document object.
 If you use the sequence option, you should use only it instead of this.

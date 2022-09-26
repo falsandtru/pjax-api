@@ -55,14 +55,20 @@ export function update(
             .extract(
               () => Left(new Error(`Failed to separate the areas.`)),
               process.either))
-        .bind(([seqB, area]) => (
+        .fmap(([seqB, area]) => {
+          const memory = event.type === RouterEventType.Popstate
+            ? config.memory?.get(event.location.dest.path)
+            : void 0;
           void config.update.rewrite(
             event.location.dest.path,
             documents.src,
             area,
-            event.type === RouterEventType.Popstate
-              ? config.memory?.get(event.location.dest.path)
-              : void 0),
+            memory && separate({ src: memory, dst: documents.dst }, [area]).extract(() => false)
+              ? memory
+              : void 0);
+          return seqB;
+        })
+        .bind(seqB => (
           separate(documents, config.areas)
             .fmap(([, areas]) =>
               [seqB, areas] as const)
