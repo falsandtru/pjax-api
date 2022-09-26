@@ -35,7 +35,6 @@ export async function fetch(
     document: Document;
   }
 ): Promise<Either<Error, readonly [FetchResponse, 'fetch']>> {
-  void window.dispatchEvent(new Event('pjax:fetch'));
   const { scrollX, scrollY } = window;
   if (type === RouterEventType.Popstate) {
     // 小さな画面でもチラつかない
@@ -43,7 +42,7 @@ export async function fetch(
     io.document.documentElement.appendChild(style);
   }
   const [seq, res] = await Promise.all([
-    await sequence.fetch(void 0, {
+    sequence.fetch(void 0, {
       path: url.path,
       method,
       headers,
@@ -51,6 +50,7 @@ export async function fetch(
     }),
     xhr(method, url, location.orig, headers, body, timeout, rewrite, cache, process),
     delay(wait),
+    void window.dispatchEvent(new Event('pjax:fetch')),
   ]);
   if (type === RouterEventType.Popstate) {
     style.parentNode?.removeChild(style);

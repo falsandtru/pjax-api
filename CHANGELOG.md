@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.38.0
+
+- Fix event sequence.
+
 ## 3.37.1
 
 - Fix memory processing.

@@ -42,9 +42,11 @@ export function update(
           .extract(
             () => Left(new Error(`Failed to separate the areas.`)),
             () => m))
-      .fmap(seqA => (
-        void window.dispatchEvent(new Event('pjax:unload')),
-        config.sequence.unload(seqA, { ...response, url: response.url.href }))))
+      .fmap(async seqA => {
+        const seqB = await config.sequence.unload(seqA, { ...response, url: response.url.href });
+        void window.dispatchEvent(new Event('pjax:unload'));
+        return seqB;
+      }))
     .then(m => Either.sequence(m))
     .then(process.promise)
     .then(m => m
@@ -101,8 +103,8 @@ export function update(
               config.update.css
                 ? void css(documents, config.update.ignore)
                 : void 0;
-              void io.document.dispatchEvent(new Event('pjax:content'));
               const seqC = await config.sequence.content(seqB, areas);
+              void io.document.dispatchEvent(new Event('pjax:content'));
               const ssm = config.update.script
                 ? await script(documents, state.scripts, config.update, Math.max(config.fetch.timeout, 1000) * 10, process)
                 : await process.either<[HTMLScriptElement[], AtomicPromise<Either<Error, HTMLScriptElement[]>>]>([[], AtomicPromise.resolve(process.either([]))]);
@@ -112,12 +114,12 @@ export function update(
                 position: io.position,
               });
               void savePosition();
-              void io.document.dispatchEvent(new Event('pjax:ready'));
               return [
                 ssm
                   .fmap(([ss, ap]) =>
                     [ss, ap.then(m => m.extract())] as const),
                 await config.sequence.ready(seqC),
+                void io.document.dispatchEvent(new Event('pjax:ready')),
               ] as const;
             })
             .fmap(p =>
@@ -138,9 +140,9 @@ export function update(
                 void AtomicPromise.all([cp, sp])
                   .then(process.either)
                   .then(m => m
-                    .fmap(([events]) => (
-                      void window.dispatchEvent(new Event('pjax:load')),
-                      void config.sequence.load(seqD, events)))
+                    .fmap(async ([events]) => (
+                      await config.sequence.load(seqD, events),
+                      void window.dispatchEvent(new Event('pjax:load'))))
                     .extract(() => void 0))))
               .extract(() => void 0)),
         p2)))

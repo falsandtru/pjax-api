@@ -64,7 +64,7 @@ describe('Integration: Package', function () {
       const document = parse('').extract();
       const sequence: Sequence<1, 2, 3, 4> = {
         async fetch(r, req) {
-          assert(cnt === 1 && ++cnt);
+          assert(cnt === 0 && ++cnt);
           assert(r === undefined);
           assert(window.history.scrollRestoration === 'manual');
           assert.deepStrictEqual(req, {
@@ -76,17 +76,17 @@ describe('Integration: Package', function () {
           return 1;
         },
         async unload(r, res) {
-          assert(cnt === 3 && ++cnt);
+          assert(cnt === 2 && ++cnt);
           assert(r === 1);
           assert(res.header('Content-Type') === 'text/html');
           assert(res.document instanceof Document);
           assert(res.document !== window.document);
-          assert(window.history.scrollRestoration === 'auto');
+          assert(window.history.scrollRestoration === 'manual');
           assert(window.location.pathname !== path);
           return 2;
         },
         async content(r, areas) {
-          assert(cnt === 5 && ++cnt);
+          assert(cnt === 4 && ++cnt);
           assert(r === 2);
           assert.deepStrictEqual(areas, [document.body]);
           assert(window.history.scrollRestoration === 'auto');
@@ -96,13 +96,13 @@ describe('Integration: Package', function () {
           return 3;
         },
         async ready(r) {
-          assert(cnt === 7 && ++cnt);
+          assert(cnt === 6 && ++cnt);
           assert(r === 3);
           assert(window.history.scrollRestoration === 'auto');
           return 4;
         },
         async load(r, events) {
-          assert(cnt === 9 && ++cnt);
+          assert(cnt === 8 && ++cnt);
           assert(r === 4);
           assert.deepStrictEqual(events, []);
           assert(window.history.scrollRestoration === 'auto');
@@ -116,15 +116,15 @@ describe('Integration: Package', function () {
         .assign(path);
       let cnt = 0;
       once(window, 'pjax:fetch', () =>
-        assert(cnt === 0 && ++cnt));
+        assert(cnt === 1 && ++cnt));
       once(window, 'pjax:unload', () =>
-        assert(cnt === 2 && ++cnt));
+        assert(cnt === 3 && ++cnt));
       once(document, 'pjax:content', () =>
-        assert(cnt === 4 && ++cnt));
+        assert(cnt === 5 && ++cnt));
       once(document, 'pjax:ready', () =>
-        assert(cnt === 6 && ++cnt));
+        assert(cnt === 7 && ++cnt));
       once(window, 'pjax:load', () =>
-        assert(cnt === 8 && ++cnt));
+        assert(cnt === 9 && ++cnt));
     });
 
   });
