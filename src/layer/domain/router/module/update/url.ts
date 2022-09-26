@@ -35,11 +35,10 @@ function isRegisterable(
   type: RouterEventType,
   location: RouterEventLocation
 ): boolean {
-  if (location.dest.href === location.orig.href) return false;
   switch (type) {
     case RouterEventType.Click:
     case RouterEventType.Submit:
-      return true;
+      return location.dest.href !== location.orig.href;
     case RouterEventType.Popstate:
       return false;
     default:
