@@ -35,6 +35,40 @@ export function update(
   };
   return AtomicPromise.resolve(seq)
     .then(process.either)
+    .then(m => m
+      .bind(() =>
+        separate(documents, config.areas)
+          .extract(
+            () => Left(new Error(`Failed to separate the areas.`)),
+            () => m)))
+    .then(m => m
+      .bind(seqA =>
+        separate(documents, config.areas)
+          .fmap(([area]) =>
+            [seqA, area] as const)
+          .extract(
+            () => Left(new Error(`Failed to separate the areas.`)),
+            process.either))
+      .fmap(([seqB, area]) => {
+        const memory = event.type === RouterEventType.Popstate
+          ? config.memory?.get(event.location.dest.path)
+          : void 0;
+        void config.update.rewrite(
+          event.location.dest.path,
+          documents.src,
+          area,
+          memory && separate({ src: memory, dst: documents.dst }, [area]).extract(() => false)
+            ? memory
+            : void 0);
+        return seqB;
+      })
+      .bind(seqB =>
+        separate(documents, config.areas)
+          .fmap(([, areas]) =>
+            [seqB, areas] as const)
+          .extract(
+            () => Left(new Error(`Failed to separate the areas.`)),
+            process.either)))
     // fetch -> unload
     .then(m => m
       .bind(() =>
@@ -42,41 +76,12 @@ export function update(
           .extract(
             () => Left(new Error(`Failed to separate the areas.`)),
             () => m))
-      .fmap(async seqA => {
+      .fmap(async ([seqA, areas]) => {
         const seqB = await config.sequence.unload(seqA, { ...response, url: response.url.href });
         void window.dispatchEvent(new Event('pjax:unload'));
-        return seqB;
+        return [seqB, areas] as const;
       }))
     .then(m => Either.sequence(m))
-    .then(process.promise)
-    .then(m => m
-        .bind(seqB =>
-          separate(documents, config.areas)
-            .fmap(([area]) =>
-              [seqB, area] as const)
-            .extract(
-              () => Left(new Error(`Failed to separate the areas.`)),
-              process.either))
-        .fmap(([seqB, area]) => {
-          const memory = event.type === RouterEventType.Popstate
-            ? config.memory?.get(event.location.dest.path)
-            : void 0;
-          void config.update.rewrite(
-            event.location.dest.path,
-            documents.src,
-            area,
-            memory && separate({ src: memory, dst: documents.dst }, [area]).extract(() => false)
-              ? memory
-              : void 0);
-          return seqB;
-        })
-        .bind(seqB => (
-          separate(documents, config.areas)
-            .fmap(([, areas]) =>
-              [seqB, areas] as const)
-            .extract(
-              () => Left(new Error(`Failed to separate the areas.`)),
-              process.either))))
     .then(process.promise)
     // unload -> ready
     .then(m => m
