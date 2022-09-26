@@ -5,6 +5,7 @@ import { SubmitView } from '../module/view/submit';
 import { NavigationView } from '../module/view/navigation';
 import { ScrollView } from '../module/view/scroll';
 import { route, Config, RouterEvent } from './router';
+import { page } from './state/page';
 import './state/scroll-restoration';
 import { process } from './state/process';
 import { savePosition } from '../../application/store';
@@ -42,7 +43,7 @@ class View extends Copropagator<never> {
     },
   ) {
     const config = new Config(option);
-    const router = (event: Event) => void io.router(config, new RouterEvent(event), process, io);
+    const router = (event: Event) => void io.router(config, new RouterEvent(event, page.url), process, io);
     super([
       new ClickView(io.document, config.link, router),
       new SubmitView(io.document, config.form, router),

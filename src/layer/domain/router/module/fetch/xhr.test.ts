@@ -10,6 +10,7 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
       xhr(
         RouterEventMethod.GET,
         new URL(standardize('', window.location.href)),
+        new URL(standardize(window.location.href)),
         new Headers(),
         null,
         0,
@@ -28,6 +29,7 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
       xhr(
         RouterEventMethod.GET,
         new URL(standardize('?timeout', window.location.href)),
+        new URL(standardize(window.location.href)),
         new Headers(),
         null,
         1,
@@ -45,6 +47,7 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
       xhr(
         RouterEventMethod.GET,
         new URL(standardize('', window.location.href)),
+        new URL(standardize(window.location.href)),
         new Headers(),
         null,
         0,
@@ -62,6 +65,7 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
       xhr(
         RouterEventMethod.GET,
         new URL(standardize('', window.location.href)),
+        new URL(standardize(window.location.href)),
         new Headers(),
         null,
         0,

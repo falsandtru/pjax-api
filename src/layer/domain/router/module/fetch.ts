@@ -12,6 +12,7 @@ const style = html('style');
 export async function fetch(
   {
     type,
+    location,
     request: {
       method,
       url,
@@ -48,7 +49,7 @@ export async function fetch(
       headers,
       body,
     }),
-    xhr(method, url, headers, body, timeout, rewrite, cache, process),
+    xhr(method, url, location.orig, headers, body, timeout, rewrite, cache, process),
     delay(wait),
   ]);
   if (type === RouterEventType.Popstate) {

@@ -50,14 +50,16 @@ export function route(
         void cancellation.cancel(err);
         return never;
       });
+      page.process(event.location.dest);
       const [scripts] = await env;
       window.history.scrollRestoration = 'manual';
+      config.memory?.set(event.location.orig.path, io.document.cloneNode(true));
       //void progressbar(config.progressbar);
       return router(config, event, { process: cancellation, scripts }, io)
         .then(m => m
           .fmap(async ([ss, p]) => (
             void kill(),
-            void page.sync(),
+            void page.complete(),
             void ss
               .filter(s => s.hasAttribute('src'))
               .forEach(s =>
@@ -69,7 +71,7 @@ export function route(
           .extract())
         .catch(reason => (
           void kill(),
-          void page.sync(),
+          void page.complete(),
           window.history.scrollRestoration = 'auto',
           cancellation.isAlive() || reason instanceof FatalError
             ? void config.fallback(event.source, reason)
@@ -101,10 +103,6 @@ export function route(
       () => true);
 }
 
-export function sync(): void {
-  void page.sync();
-}
-
 function validate(url: URL<StandardURL>, config: Config, event: RouterEvent): boolean {
   if (event.original.defaultPrevented) return false;
   switch (event.type) {
@@ -126,12 +124,12 @@ function validate(url: URL<StandardURL>, config: Config, event: RouterEvent): bo
   }
 
   function isAccessible(dest: URL<StandardURL>): boolean {
-    const orig: URL<StandardURL> = new URL(page.href);
+    const orig: URL<StandardURL> = page.url;
     return orig.origin === dest.origin;
   }
 
   function isHashClick(dest: URL<StandardURL>): boolean {
-    const orig: URL<StandardURL> = new URL(page.href);
+    const orig: URL<StandardURL> = page.url;
     return orig.resource === dest.resource
         && dest.fragment !== '';
   }
@@ -151,7 +149,7 @@ function validate(url: URL<StandardURL>, config: Config, event: RouterEvent): bo
 export { validate as _validate }
 
 function isHashChange(dest: URL<StandardURL>): boolean {
-  const orig: URL<StandardURL> = new URL(page.href);
+  const orig: URL<StandardURL> = page.url;
   return orig.resource === dest.resource
       && orig.fragment !== dest.fragment;
 }

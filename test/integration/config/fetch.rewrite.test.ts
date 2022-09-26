@@ -8,7 +8,7 @@ describe('Integration: Config', function () {
     Pjax['resources'].clear();
   });
 
-  describe('rewrite', function () {
+  describe('fetch.rewrite', function () {
     it('', function (done) {
       const url = '/base/test/integration/fixture/basic/1.html';
       const document = parse('').extract();

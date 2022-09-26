@@ -1,5 +1,5 @@
 import { RouterEntity } from '../model/eav/entity';
-import { RouterEventLocation } from '../../event/router';
+import { RouterEventType, RouterEventLocation } from '../../event/router';
 import { FetchResponse } from '../model/eav/value/fetch';
 import { blur } from '../module/update/blur';
 import { url } from '../module/update/url';
@@ -56,7 +56,13 @@ export function update(
               () => Left(new Error(`Failed to separate the areas.`)),
               process.either))
         .bind(([seqB, area]) => (
-          void config.update.rewrite(documents.src, area),
+          void config.update.rewrite(
+            event.location.dest.path,
+            documents.src,
+            area,
+            event.type === RouterEventType.Popstate
+              ? config.memory?.get(event.location.dest.path)
+              : void 0),
           separate(documents, config.areas)
             .fmap(([, areas]) =>
               [seqB, areas] as const)
@@ -72,7 +78,7 @@ export function update(
             void blur(documents.dst),
             void savePjax(),
             void url(
-              new RouterEventLocation(response.url),
+              new RouterEventLocation(event.location.orig, response.url),
               documents.src.title,
               event.type,
               event.source,

@@ -12,7 +12,7 @@ export class NavigationView extends Coroutine<never> {
     super(async function* () {
       return this.finally(bind(window, 'popstate', ev => {
         if (!isTransitable(page.state) || !isTransitable(window.history.state)) return;
-        if (standardize(window.location.href) === page.href) return;
+        if (standardize(window.location.href) === page.url.href) return;
         void listener(ev);
       }));
     }, { delay: false });

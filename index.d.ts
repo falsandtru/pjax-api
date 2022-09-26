@@ -1,3 +1,5 @@
+import { Dict } from 'spica/dict';
+
 export default Pjax;
 
 export class Pjax {
@@ -18,6 +20,7 @@ export interface Config {
   readonly form?: string;
   readonly replace?: string;
   readonly lock?: () => string;
+  readonly memory?: Dict<string, Document>;
   readonly fetch?: {
     readonly rewrite?: (path: string) => string;
     readonly cache?: (path: string, headers: Headers) => string;
@@ -26,7 +29,7 @@ export interface Config {
     readonly wait?: number;
   };
   readonly update?: {
-    readonly rewrite?: (doc: Document, area: string) => void;
+    readonly rewrite?: (path: string, doc: Document, area: string, memory: Document | undefined) => void;
     readonly head?: string;
     readonly css?: boolean;
     readonly script?: boolean;

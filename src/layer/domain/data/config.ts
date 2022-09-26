@@ -1,12 +1,12 @@
-import { DeepRequired } from 'spica/type';
 import { Object } from 'spica/global';
 import { Config as Option, Sequence as ISequence } from '../../../../';
+import { Dict } from 'spica/dict';
 import { URL, StandardURL } from 'spica/url';
 import { extend, overwrite } from 'spica/assign';
 
 export { scope } from './config/scope';
 
-export class Config implements DeepRequired<Option, Config['scope']> {
+export class Config implements Option {
   constructor(option: Option) {
     void Object.defineProperties(this.update, {
       ignore: {
@@ -22,7 +22,7 @@ export class Config implements DeepRequired<Option, Config['scope']> {
         },
       },
     });
-    void extend(this, option);
+    void extend<Option>(this, option);
     void overwrite(this.scope, option?.scope ?? {});
     this.fetch.headers = new Headers(this.fetch.headers);
     void Object.freeze(this);
@@ -45,6 +45,7 @@ export class Config implements DeepRequired<Option, Config['scope']> {
       ${window.innerWidth - document.body.clientWidth ? 'overflow-y: scroll;' : ''}
       ${window.innerHeight - document.body.clientHeight ? 'overflow-x: scroll;' : ''}
     }`;
+  public readonly memory?: Dict<string, Document>;
   public readonly fetch = {
     rewrite: (path: URL.Path<StandardURL>): string => path,
     cache: (_path: URL.Path<StandardURL>, _headers: Headers): string => '',
@@ -53,7 +54,7 @@ export class Config implements DeepRequired<Option, Config['scope']> {
     wait: 0,
   };
   public readonly update = {
-    rewrite: (_doc: Document, _area: string): void => undefined,
+    rewrite: (_path: string, _doc: Document, _area: string, _memory: Document | undefined): void => undefined,
     head: 'base, meta, link',
     css: true,
     script: true,

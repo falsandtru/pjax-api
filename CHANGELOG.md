@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.37.0
+
+- Add `memory` option.
+- Refine `update.rewrite` option.
+
 ## 3.36.1
 
 - Update dependencies.

@@ -12,6 +12,7 @@ const caches = new Cache<URL.Path<StandardURL>, { etag: string; expiry: number; 
 export function xhr(
   method: RouterEventMethod,
   displayURL: URL<StandardURL>,
+  base: URL<StandardURL>,
   headers: Headers,
   body: FormData | null,
   timeout: number,
@@ -21,7 +22,7 @@ export function xhr(
 ): AtomicPromise<Either<Error, FetchResponse>> {
   headers = new Headers(headers);
   void headers.set('Accept', headers.get('Accept') || 'text/html');
-  const requestURL = new URL(standardize(rewrite(displayURL.path), window.location.href));
+  const requestURL = new URL(standardize(rewrite(displayURL.path), base.href));
   if (method === 'GET' && caches.has(requestURL.path) && Date.now() > caches.get(requestURL.path)!.expiry) {
     void headers.set('If-None-Match', headers.get('If-None-Match') || caches.get(requestURL.path)!.etag);
   }
@@ -50,9 +51,9 @@ export function xhr(
       void resolve(Left(new Error(`Failed to request a page by timeout.`))));
 
     void xhr.addEventListener("load", () =>
-      void verify(xhr, method)
+      void verify(xhr, base, method)
         .fmap(xhr => {
-          const responseURL: URL<StandardURL> = new URL(standardize(xhr.responseURL, window.location.href));
+          const responseURL: URL<StandardURL> = new URL(standardize(xhr.responseURL, base.href));
           assert(responseURL.origin === new URL('', window.location.origin).origin);
           if (method === 'GET') {
             const cc = new Map<string, string>(
@@ -100,10 +101,10 @@ export function xhr(
   });
 }
 
-function verify(xhr: XMLHttpRequest, method: RouterEventMethod): Either<Error, XMLHttpRequest> {
+function verify(xhr: XMLHttpRequest, base: URL<StandardURL>, method: RouterEventMethod): Either<Error, XMLHttpRequest> {
   return Right<Error, XMLHttpRequest>(xhr)
     .bind(xhr => {
-      const url = new URL(standardize(xhr.responseURL, window.location.href));
+      const url = new URL(standardize(xhr.responseURL, base.href));
       switch (true) {
         case !xhr.responseURL:
           return Left(new Error(`Failed to get the response URL.`));

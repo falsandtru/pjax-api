@@ -1,25 +1,35 @@
 import { window } from 'spica/global';
 import { isTransitable } from '../../../data/store/state';
-import { StandardURL, standardize } from 'spica/url';
+import { URL, StandardURL, standardize } from 'spica/url';
 import { bind } from 'typed-dom/listener';
 
 void bind(window, 'hashchange', () =>
-  void page.sync());
+  void page.sync(), true);
 
 void bind(window, 'popstate', () =>
-  isTransitable(page.state) && isTransitable(window.history.state) || void page.sync());
+  isTransitable(page.state) && isTransitable(window.history.state) || void page.sync(), true);
 
 export const page = new class {
-  private url: StandardURL = standardize(window.location.href);
-  private state_: any = window.history.state;
-  public get href(): StandardURL {
-    return this.url;
+  private $url: URL<StandardURL> = new URL(standardize(window.location.href));
+  private target?: URL<StandardURL>;
+  private $state: any = window.history.state;
+  public get url(): URL<StandardURL> {
+    return this.$url;
   }
   public get state(): any {
-    return this.state_;
+    return this.$state;
   }
   public sync(): void {
-    this.url = standardize(window.location.href);
-    this.state_ = window.history.state;
+    this.$url = new URL(standardize(window.location.href));
+    this.target = void 0;
+    this.$state = window.history.state;
+  }
+  public complete(): void {
+    this.$url = this.target ?? new URL(standardize(window.location.href));
+    this.target = void 0;
+    this.$state = window.history.state;
+  }
+  public process(url: URL<StandardURL>): void {
+    this.target = url;
   }
 }();

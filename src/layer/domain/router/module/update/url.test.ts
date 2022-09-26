@@ -6,21 +6,21 @@ import { html } from 'typed-dom';
 describe('Unit: layer/domain/router/module/update/url', () => {
   describe('isRegisterable', () => {
     it('same location', () => {
-      assert(!isRegisterable(RouterEventType.Click, new RouterEventLocation(new URL(standardize(window.location.href)))));
-      assert(!isRegisterable(RouterEventType.Submit, new RouterEventLocation(new URL(standardize(window.location.href)))));
-      assert(!isRegisterable(RouterEventType.Popstate, new RouterEventLocation(new URL(standardize(window.location.href)))));
+      assert(!isRegisterable(RouterEventType.Click, new RouterEventLocation(new URL(standardize(window.location.href)), new URL(standardize(window.location.href)))));
+      assert(!isRegisterable(RouterEventType.Submit, new RouterEventLocation(new URL(standardize(window.location.href)), new URL(standardize(window.location.href)))));
+      assert(!isRegisterable(RouterEventType.Popstate, new RouterEventLocation(new URL(standardize(window.location.href)), new URL(standardize(window.location.href)))));
     });
 
     it('click', () => {
-      assert(isRegisterable(RouterEventType.Click, new RouterEventLocation(new URL(standardize(`#${Math.random()}`, window.location.href)))));
+      assert(isRegisterable(RouterEventType.Click, new RouterEventLocation(new URL(standardize(window.location.href)), new URL(standardize(`#${Math.random()}`, window.location.href)))));
     });
 
     it('submit', () => {
-      assert(isRegisterable(RouterEventType.Submit, new RouterEventLocation(new URL(standardize(`#${Math.random()}`, window.location.href)))));
+      assert(isRegisterable(RouterEventType.Submit, new RouterEventLocation(new URL(standardize(window.location.href)), new URL(standardize(`#${Math.random()}`, window.location.href)))));
     });
 
     it('popstate', () => {
-      assert(!isRegisterable(RouterEventType.Popstate, new RouterEventLocation(new URL(standardize(`#${Math.random()}`, window.location.href)))));
+      assert(!isRegisterable(RouterEventType.Popstate, new RouterEventLocation(new URL(standardize(window.location.href)), new URL(standardize(`#${Math.random()}`, window.location.href)))));
     });
 
   });
