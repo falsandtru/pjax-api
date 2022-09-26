@@ -40,7 +40,7 @@ Set target links that replace the current URL.
 
 ## lock: () => string = ...
 
-Give CSS to lock and protect the scroll position from unexpected scrolling caused by a browser bug.
+Give CSS to lock and protect the scroll position from unexpected scrolls caused by a browser bug.
 
 ```ts
   // Default
@@ -54,6 +54,10 @@ Give CSS to lock and protect the scroll position from unexpected scrolling cause
       ${window.innerHeight - document.body.clientHeight ? 'overflow-x: scroll;' : ''}
     }`;
 ```
+
+## memory?: Dict<string, Document>
+
+Set a dictionary object having has/get/set/delete methods of Map to pass the document object matching the URL to the rewrite function.
 
 ## fetch: {...} = ...
 
@@ -77,7 +81,7 @@ Wait for the specified milliseconds after sending a request.
 
 ## update: {...} = ...
 
-### rewrite: (doc: Document, area: string) => void = `() => undefined`
+### rewrite: (doc: Document, area: string, memory: Document | undefined) => void = `() => undefined`
 
 Rewrite the source document object.
 If you use the sequence option, you should use only it instead of this.

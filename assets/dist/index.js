@@ -398,18 +398,19 @@ class Cache {
   constructor(capacity, opts = {}) {
     this.settings = {
       capacity: 0,
+      window: 100,
       age: global_1.Infinity,
       earlyExpiring: false,
       capture: {
         delete: true,
         clear: true
       },
-      window: 0,
       resolution: 1,
       offset: 0,
-      block: 20,
+      entrance: 50,
+      threshold: 20,
       sweep: 10,
-      limit: 950
+      test: false
     };
     this.overlap = 0;
     this.SIZE = 0;
@@ -433,14 +434,15 @@ class Cache {
     });
     this.capacity = settings.capacity;
     if (this.capacity >= 1 === false) throw new Error(`Spica: Cache: Capacity must be 1 or more.`);
-    this.window = settings.window || this.capacity;
+    this.window = settings.window * this.capacity / 100 >>> 0 || this.capacity;
     if (this.window * 1000 >= this.capacity === false) throw new Error(`Spica: Cache: Window must be 0.1% of capacity or more.`);
-    this.block = settings.block;
-    this.limit = settings.limit;
+    this.threshold = settings.threshold;
+    this.limit = 1000 - settings.entrance;
     this.age = settings.age;
     this.earlyExpiring = settings.earlyExpiring;
     this.disposer = settings.disposer;
-    this.stats = new Stats(this.window, settings.resolution, settings.offset);
+    this.stats = opts.resolution || opts.offset ? new StatsExperimental(this.window, settings.resolution, settings.offset) : new Stats(this.window);
+    this.test = settings.test;
   }
 
   get length() {
@@ -498,7 +500,7 @@ class Cache {
         // fallthrough
 
         default:
-          if (this.misses * 100 > LRU.length * this.block) {
+          if (this.misses * 100 > LRU.length * this.threshold) {
             this.sweep ||= LRU.length * this.settings.sweep / 100 + 1 >>> 0;
 
             if (this.sweep > 0) {
@@ -600,7 +602,7 @@ class Cache {
     this.misses &&= 0;
     this.sweep &&= 0; // Optimization for memoize.
 
-    if (this.capacity > 3 && node === node.list.head) return node.value.value;
+    if (!this.test && node === node.list.head) return node.value.value;
     this.access(node);
     this.adjust();
     return node.value.value;
@@ -735,13 +737,25 @@ class Cache {
 exports.Cache = Cache;
 
 class Stats {
-  constructor(window, resolution, offset) {
+  constructor(window) {
     this.window = window;
-    this.resolution = resolution;
-    this.offset = offset;
-    this.max = (0, alias_1.ceil)(this.resolution * (100 + this.offset) / 100) + 1;
+    this.offset = 0;
+    this.max = 2;
     this.LRU = [0];
     this.LFU = [0];
+  }
+
+  static rate(window, hits1, hits2, offset) {
+    const currTotal = hits1[0] + hits2[0];
+    const prevTotal = hits1[1] + hits2[1];
+    const currHits = hits1[0];
+    const prevHits = hits1[1];
+    const prevRate = prevHits * 100 / prevTotal | 0;
+    const currRatio = currTotal * 100 / window - offset;
+    if (currRatio <= 0) return prevRate * 100;
+    const currRate = currHits * 100 / currTotal | 0;
+    const prevRatio = 100 - currRatio;
+    return currRate * currRatio + prevRate * prevRatio | 0;
   }
 
   get length() {
@@ -753,11 +767,83 @@ class Stats {
   }
 
   rateLRU(offset = false) {
-    return rate(this.window, this.LRU, this.LFU, +offset && this.offset);
+    return Stats.rate(this.window, this.LRU, this.LFU, +offset & 0);
   }
 
   rateLFU(offset = false) {
-    return rate(this.window, this.LFU, this.LRU, +offset && this.offset);
+    return Stats.rate(this.window, this.LFU, this.LRU, +offset & 0);
+  }
+
+  subtotal() {
+    const {
+      LRU,
+      LFU,
+      window
+    } = this;
+    const subtotal = LRU[0] + LFU[0];
+    subtotal >= window && this.slide();
+    return LRU[0] + LFU[0];
+  }
+
+  slide() {
+    const {
+      LRU,
+      LFU,
+      max
+    } = this;
+
+    if (LRU.length === max) {
+      LRU.pop();
+      LFU.pop();
+    }
+
+    LRU.unshift(0);
+    LFU.unshift(0);
+  }
+
+  clear() {
+    this.LRU = [0];
+    this.LFU = [0];
+  }
+
+}
+
+class StatsExperimental extends Stats {
+  constructor(window, resolution, offset) {
+    super(window);
+    this.resolution = resolution;
+    this.offset = offset;
+    this.max = (0, alias_1.ceil)(this.resolution * (100 + this.offset) / 100) + 1;
+  }
+
+  static rate(window, hits1, hits2, offset) {
+    let total = 0;
+    let hits = 0;
+    let ratio = 100;
+
+    for (let len = hits1.length, i = 0; i < len; ++i) {
+      const subtotal = hits1[i] + hits2[i];
+      if (subtotal === 0) continue;
+      offset = i + 1 === len ? 0 : offset;
+      const subratio = (0, alias_1.min)(subtotal * 100 / window, ratio) - offset;
+      offset = offset && subratio < 0 ? -subratio : 0;
+      if (subratio <= 0) continue;
+      const rate = window * subratio / subtotal;
+      total += subtotal * rate;
+      hits += hits1[i] * rate;
+      ratio -= subratio;
+      if (ratio <= 0) break;
+    }
+
+    return hits * 10000 / total | 0;
+  }
+
+  rateLRU(offset = false) {
+    return StatsExperimental.rate(this.window, this.LRU, this.LFU, +offset && this.offset);
+  }
+
+  rateLFU(offset = false) {
+    return StatsExperimental.rate(this.window, this.LFU, this.LRU, +offset && this.offset);
   }
 
   subtotal() {
@@ -785,49 +871,6 @@ class Stats {
     return LRU[0] + LFU[0];
   }
 
-  slide() {
-    const {
-      LRU,
-      LFU,
-      max
-    } = this;
-
-    if (LRU.length === max) {
-      LRU.pop();
-      LFU.pop();
-    }
-
-    LRU.unshift(0);
-    LFU.unshift(0);
-  }
-
-  clear() {
-    this.LRU = [0];
-    this.LFU = [0];
-  }
-
-}
-
-function rate(window, hits1, hits2, offset) {
-  let total = 0;
-  let hits = 0;
-  let ratio = 100;
-
-  for (let len = hits1.length, i = 0; i < len; ++i) {
-    const subtotal = hits1[i] + hits2[i];
-    if (subtotal === 0) continue;
-    offset = i + 1 === len ? 0 : offset;
-    const subratio = (0, alias_1.min)(subtotal * 100 / window, ratio) - offset;
-    offset = offset && subratio < 0 ? -subratio : 0;
-    if (subratio <= 0) continue;
-    const rate = window * subratio / subtotal;
-    total += subtotal * rate;
-    hits += hits1[i] * rate;
-    ratio -= subratio;
-    if (ratio <= 0) break;
-  }
-
-  return hits * 10000 / total | 0;
 }
 
 /***/ }),
@@ -915,10 +958,11 @@ class Cancellation {
 
     for (let {
       listeners
-    } = this; listeners.length;) {
-      listeners.shift()?.(reason);
+    } = this, i = 0; i < listeners.length; ++i) {
+      listeners[i](reason);
     }
 
+    this.listeners = [];
     this[promise_1.internal].resolve(reason);
   }
 
@@ -929,6 +973,7 @@ class Cancellation {
   close$(reason) {
     if (this.reason.length !== 0) return;
     this.reason = [void 0, reason];
+    this.listeners = [];
     this[promise_1.internal].resolve(promise_1.AtomicPromise.reject(reason));
   }
 
@@ -7096,7 +7141,7 @@ function type(value) {
           return 'Object';
 
         default:
-          return (0, alias_1.toString)(value).slice(8, -1);
+          return value?.constructor?.name || (0, alias_1.toString)(value).slice(8, -1);
       }
 
     default:
@@ -7642,7 +7687,7 @@ class Config {
       wait: 0
     };
     this.update = {
-      rewrite: (_doc, _area) => undefined,
+      rewrite: (_path, _doc, _area, _memory) => undefined,
       head: 'base, meta, link',
       css: true,
       script: true,
@@ -7799,12 +7844,13 @@ const url_1 = __webpack_require__(2261);
 const listener_1 = __webpack_require__(1051);
 
 class RouterEvent {
-  constructor(original) {
+  constructor(original, base) {
     this.original = original;
+    this.base = base;
     this.type = this.original.type.toLowerCase();
     this.source = this.original[listener_1.currentTarget];
-    this.request = new RouterEventRequest(this.source);
-    this.location = new RouterEventLocation(this.request.url);
+    this.request = new RouterEventRequest(this.source, this.base);
+    this.location = new RouterEventLocation(this.base, this.request.url);
     void global_1.Object.freeze(this);
   }
 
@@ -7836,8 +7882,9 @@ var RouterEventMethod;
 })(RouterEventMethod = exports.RouterEventMethod || (exports.RouterEventMethod = {}));
 
 class RouterEventRequest {
-  constructor(source) {
+  constructor(source, base) {
     this.source = source;
+    this.base = base;
 
     this.method = (() => {
       if (this.source instanceof RouterEventSource.Anchor || this.source instanceof RouterEventSource.Area) {
@@ -7857,11 +7904,11 @@ class RouterEventRequest {
 
     this.url = (() => {
       if (this.source instanceof RouterEventSource.Anchor || this.source instanceof RouterEventSource.Area) {
-        return new url_1.URL((0, url_1.standardize)(this.source.href, window.location.href));
+        return new url_1.URL((0, url_1.standardize)(this.source.href, this.base.href));
       }
 
       if (this.source instanceof RouterEventSource.Form) {
-        return this.source.method.toUpperCase() === RouterEventMethod.GET ? new url_1.URL((0, url_1.standardize)(this.source.action.split(/[?#]/)[0] + `?${(0, dom_1.serialize)(this.source)}`, window.location.href)) : new url_1.URL((0, url_1.standardize)(this.source.action.split(/[?#]/)[0], window.location.href));
+        return this.source.method.toUpperCase() === RouterEventMethod.GET ? new url_1.URL((0, url_1.standardize)(this.source.action.split(/[?#]/)[0] + `?${(0, dom_1.serialize)(this.source)}`, this.base.href)) : new url_1.URL((0, url_1.standardize)(this.source.action.split(/[?#]/)[0], this.base.href));
       }
 
       if (this.source instanceof RouterEventSource.Window) {
@@ -7881,9 +7928,9 @@ class RouterEventRequest {
 exports.RouterEventRequest = RouterEventRequest;
 
 class RouterEventLocation {
-  constructor(dest) {
+  constructor(orig, dest) {
+    this.orig = orig;
     this.dest = dest;
-    this.orig = new url_1.URL((0, url_1.standardize)(window.location.href));
     void global_1.Object.freeze(this);
   }
 
@@ -8050,6 +8097,7 @@ const style = (0, dom_1.html)('style');
 
 async function fetch({
   type,
+  location,
   request: {
     method,
     url,
@@ -8083,7 +8131,7 @@ async function fetch({
     method,
     headers,
     body
-  }), (0, xhr_1.xhr)(method, url, headers, body, timeout, rewrite, cache, process), (0, timer_1.wait)(wait)]);
+  }), (0, xhr_1.xhr)(method, url, location.orig, headers, body, timeout, rewrite, cache, process), (0, timer_1.wait)(wait)]);
 
   if (type === router_1.RouterEventType.Popstate) {
     style.parentNode?.removeChild(style);
@@ -8121,10 +8169,10 @@ const url_1 = __webpack_require__(2261);
 const memory = new cache_1.Cache(100);
 const caches = new cache_1.Cache(100);
 
-function xhr(method, displayURL, headers, body, timeout, rewrite, cache, cancellation) {
+function xhr(method, displayURL, base, headers, body, timeout, rewrite, cache, cancellation) {
   headers = new Headers(headers);
   void headers.set('Accept', headers.get('Accept') || 'text/html');
-  const requestURL = new url_1.URL((0, url_1.standardize)(rewrite(displayURL.path), window.location.href));
+  const requestURL = new url_1.URL((0, url_1.standardize)(rewrite(displayURL.path), base.href));
 
   if (method === 'GET' && caches.has(requestURL.path) && Date.now() > caches.get(requestURL.path).expiry) {
     void headers.set('If-None-Match', headers.get('If-None-Match') || caches.get(requestURL.path).etag);
@@ -8146,8 +8194,8 @@ function xhr(method, displayURL, headers, body, timeout, rewrite, cache, cancell
     void xhr.addEventListener("abort", () => void resolve((0, either_1.Left)(new Error(`Failed to request a page by abort.`))));
     void xhr.addEventListener("error", () => void resolve((0, either_1.Left)(new Error(`Failed to request a page by error.`))));
     void xhr.addEventListener("timeout", () => void resolve((0, either_1.Left)(new Error(`Failed to request a page by timeout.`))));
-    void xhr.addEventListener("load", () => void verify(xhr, method).fmap(xhr => {
-      const responseURL = new url_1.URL((0, url_1.standardize)(xhr.responseURL, window.location.href));
+    void xhr.addEventListener("load", () => void verify(xhr, base, method).fmap(xhr => {
+      const responseURL = new url_1.URL((0, url_1.standardize)(xhr.responseURL, base.href));
 
       if (method === 'GET') {
         const cc = new Map(xhr.getResponseHeader('Cache-Control') // eslint-disable-next-line redos/no-vulnerable
@@ -8180,9 +8228,9 @@ function xhr(method, displayURL, headers, body, timeout, rewrite, cache, cancell
 
 exports.xhr = xhr;
 
-function verify(xhr, method) {
+function verify(xhr, base, method) {
   return (0, either_1.Right)(xhr).bind(xhr => {
-    const url = new url_1.URL((0, url_1.standardize)(xhr.responseURL, window.location.href));
+    const url = new url_1.URL((0, url_1.standardize)(xhr.responseURL, base.href));
 
     switch (true) {
       case !xhr.responseURL:
@@ -8294,8 +8342,8 @@ function update({
   return promise_1.AtomicPromise.resolve(seq).then(process.either) // fetch -> unload
   .then(m => m.bind(() => (0, content_1.separate)(documents, config.areas).extract(() => (0, either_1.Left)(new Error(`Failed to separate the areas.`)), () => m)).fmap(seqA => (void window.dispatchEvent(new Event('pjax:unload')), config.sequence.unload(seqA, { ...response,
     url: response.url.href
-  })))).then(m => either_1.Either.sequence(m)).then(process.promise).then(m => m.bind(seqB => (0, content_1.separate)(documents, config.areas).fmap(([area]) => [seqB, area]).extract(() => (0, either_1.Left)(new Error(`Failed to separate the areas.`)), process.either)).bind(([seqB, area]) => (void config.update.rewrite(documents.src, area), (0, content_1.separate)(documents, config.areas).fmap(([, areas]) => [seqB, areas]).extract(() => (0, either_1.Left)(new Error(`Failed to separate the areas.`)), process.either)))).then(process.promise) // unload -> ready
-  .then(m => m.fmap(([seqB, areas]) => (0, hlist_1.HList)().add((void (0, blur_1.blur)(documents.dst), void (0, path_1.savePjax)(), void (0, url_1.url)(new router_1.RouterEventLocation(response.url), documents.src.title, event.type, event.source, config.replace), void (0, path_1.savePjax)(), void (0, title_1.title)(documents), void (0, path_1.saveTitle)(), void (0, head_1.head)(documents, config.update.head, config.update.ignore), process.either((0, content_1.content)(documents, areas)).fmap(([as, ps]) => [as, promise_1.AtomicPromise.all(ps)]))).unfold(async p => (await p).fmap(async ([areas]) => {
+  })))).then(m => either_1.Either.sequence(m)).then(process.promise).then(m => m.bind(seqB => (0, content_1.separate)(documents, config.areas).fmap(([area]) => [seqB, area]).extract(() => (0, either_1.Left)(new Error(`Failed to separate the areas.`)), process.either)).bind(([seqB, area]) => (void config.update.rewrite(event.location.dest.path, documents.src, area, event.type === router_1.RouterEventType.Popstate ? config.memory?.get(event.location.dest.path) : void 0), (0, content_1.separate)(documents, config.areas).fmap(([, areas]) => [seqB, areas]).extract(() => (0, either_1.Left)(new Error(`Failed to separate the areas.`)), process.either)))).then(process.promise) // unload -> ready
+  .then(m => m.fmap(([seqB, areas]) => (0, hlist_1.HList)().add((void (0, blur_1.blur)(documents.dst), void (0, path_1.savePjax)(), void (0, url_1.url)(new router_1.RouterEventLocation(event.location.orig, response.url), documents.src.title, event.type, event.source, config.replace), void (0, path_1.savePjax)(), void (0, title_1.title)(documents), void (0, path_1.saveTitle)(), void (0, head_1.head)(documents, config.update.head, config.update.ignore), process.either((0, content_1.content)(documents, areas)).fmap(([as, ps]) => [as, promise_1.AtomicPromise.all(ps)]))).unfold(async p => (await p).fmap(async ([areas]) => {
     config.update.css ? void (0, css_1.css)(documents, config.update.ignore) : void 0;
     void io.document.dispatchEvent(new Event('pjax:content'));
     const seqC = await config.sequence.content(seqB, areas);
@@ -8357,6 +8405,8 @@ const maybe_1 = __webpack_require__(6512);
 
 const array_1 = __webpack_require__(8112);
 
+const query_1 = __webpack_require__(6120);
+
 const listener_1 = __webpack_require__(1051);
 
 function content(documents, areas, io = {
@@ -8368,7 +8418,7 @@ function content(documents, areas, io = {
     return area.src.map((_, i) => ({
       src: documents.dst.importNode(area.src[i].cloneNode(true), true),
       dst: area.dst[i]
-    })).map(area => (void replace(area), [...area.src.querySelectorAll('img, iframe, frame')].map(wait))).reduce(array_1.push, []);
+    })).map(area => (void replace(area), (0, query_1.querySelectorAll)(area.src, 'img, iframe, frame').map(wait))).reduce(array_1.push, []);
 
     function replace(area) {
       const unescape = [...area.src.querySelectorAll('script')].map(script_1.escape).reduce((f, g) => () => (void f(), void g()), () => void 0);
@@ -8385,11 +8435,12 @@ function separate(documents, areas) {
 
   function sep(documents, area) {
     return (0, maybe_1.Just)(split(area)).bind(areas => areas.reduce((m, area) => m.bind(acc => {
-      const record = {
-        src: [...documents.src.querySelectorAll(area)],
-        dst: [...documents.dst.querySelectorAll(area)]
-      };
-      return record.src.length > 0 && record.src.length === record.dst.length ? (0, maybe_1.Just)((0, array_1.push)(acc, [record])) : maybe_1.Nothing;
+      const src = (0, query_1.querySelectorAll)(documents.src, area);
+      const dst = (0, query_1.querySelectorAll)(documents.dst, area);
+      return src.length > 0 && src.length === dst.length ? (0, maybe_1.Just)((0, array_1.push)(acc, [{
+        src,
+        dst
+      }])) : maybe_1.Nothing;
     }), (0, maybe_1.Just)([])));
   }
 }
@@ -8998,7 +9049,7 @@ class NavigationView extends coroutine_1.Coroutine {
     super(async function* () {
       return this.finally((0, listener_1.bind)(window, 'popstate', ev => {
         if (!(0, state_1.isTransitable)(page_1.page.state) || !(0, state_1.isTransitable)(window.history.state)) return;
-        if ((0, url_1.standardize)(window.location.href) === page_1.page.href) return;
+        if ((0, url_1.standardize)(window.location.href) === page_1.page.url.href) return;
         void listener(ev);
       }));
     }, {
@@ -9037,7 +9088,7 @@ class ScrollView extends coroutine_1.Coroutine {
   constructor(window, listener) {
     super(async function* () {
       return this.finally((0, listener_1.bind)(window, 'scroll', (0, throttle_1.debounce)(100, ev => {
-        if ((0, url_1.standardize)(window.location.href) !== page_1.page.href) return;
+        if ((0, url_1.standardize)(window.location.href) !== page_1.page.url.href) return;
         void listener(ev);
       }), {
         passive: true
@@ -9101,6 +9152,8 @@ const router_1 = __webpack_require__(574);
 
 const process_1 = __webpack_require__(4318);
 
+const page_1 = __webpack_require__(9114);
+
 const state_1 = __webpack_require__(2090);
 
 const html_1 = __webpack_require__(6301);
@@ -9115,7 +9168,7 @@ class API {
     router: router_1.route
   }) {
     let result;
-    void click(url, event => result = io.router(new router_1.Config(option), new router_1.RouterEvent(event), process_1.process, io));
+    void click(url, event => result = io.router(new router_1.Config(option), new router_1.RouterEvent(event, page_1.page.url), process_1.process, io));
     return result;
   }
 
@@ -9126,14 +9179,14 @@ class API {
     let result;
     void click(url, event => result = io.router(new router_1.Config((0, assign_1.assign)({}, option, {
       replace: '*'
-    })), new router_1.RouterEvent(event), process_1.process, io));
+    })), new router_1.RouterEvent(event, page_1.page.url), process_1.process, io));
     return result;
   }
 
   static sync(isPjaxPage) {
     isPjaxPage && void (0, state_1.savePjax)();
     void process_1.process.cast('', new Error(`Canceled.`));
-    void (0, router_1.sync)();
+    void page_1.page.sync();
   }
 
   static pushURL(url, title, state = null) {
@@ -9185,6 +9238,8 @@ const scroll_1 = __webpack_require__(9078);
 
 const router_1 = __webpack_require__(574);
 
+const page_1 = __webpack_require__(9114);
+
 __webpack_require__(4650);
 
 const process_1 = __webpack_require__(4318);
@@ -9225,7 +9280,7 @@ class View extends copropagator_1.Copropagator {
   constructor(option, io) {
     const config = new router_1.Config(option);
 
-    const router = event => void io.router(config, new router_1.RouterEvent(event), process_1.process, io);
+    const router = event => void io.router(config, new router_1.RouterEvent(event, page_1.page.url), process_1.process, io);
 
     super([new click_1.ClickView(io.document, config.link, router), new submit_1.SubmitView(io.document, config.form, router), new navigation_1.NavigationView(window, router), new scroll_1.ScrollView(window, store_1.savePosition)]);
   }
@@ -9243,7 +9298,7 @@ class View extends copropagator_1.Copropagator {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports._validate = exports.sync = exports.route = exports.RouterEventSource = exports.RouterEvent = exports.Config = void 0;
+exports._validate = exports.route = exports.RouterEventSource = exports.RouterEvent = exports.Config = void 0;
 
 const router_1 = __webpack_require__(2345);
 
@@ -9317,13 +9372,15 @@ function route(config, event, process, io) {
       void cancellation.cancel(err);
       return promise_1.never;
     });
+    page_1.page.process(event.location.dest);
     const [scripts] = await env_1.env;
-    window.history.scrollRestoration = 'manual'; //void progressbar(config.progressbar);
+    window.history.scrollRestoration = 'manual';
+    config.memory?.set(event.location.orig.path, io.document.cloneNode(true)); //void progressbar(config.progressbar);
 
     return (0, router_1.route)(config, event, {
       process: cancellation,
       scripts
-    }, io).then(m => m.fmap(async ([ss, p]) => (void kill(), void page_1.page.sync(), void ss.filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_1.URL((0, url_1.standardize)(s.src)).href)), void (await p).filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_1.URL((0, url_1.standardize)(s.src)).href)))).extract()).catch(reason => (void kill(), void page_1.page.sync(), window.history.scrollRestoration = 'auto', cancellation.isAlive() || reason instanceof error_1.FatalError ? void config.fallback(event.source, reason) : void 0));
+    }, io).then(m => m.fmap(async ([ss, p]) => (void kill(), void page_1.page.complete(), void ss.filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_1.URL((0, url_1.standardize)(s.src)).href)), void (await p).filter(s => s.hasAttribute('src')).forEach(s => void scripts.add(new url_1.URL((0, url_1.standardize)(s.src)).href)))).extract()).catch(reason => (void kill(), void page_1.page.complete(), window.history.scrollRestoration = 'auto', cancellation.isAlive() || reason instanceof error_1.FatalError ? void config.fallback(event.source, reason) : void 0));
   }).extract(() => {
     switch (event.type) {
       case router_1.RouterEventType.Click:
@@ -9352,12 +9409,6 @@ function route(config, event, process, io) {
 
 exports.route = route;
 
-function sync() {
-  void page_1.page.sync();
-}
-
-exports.sync = sync;
-
 function validate(url, config, event) {
   if (event.original.defaultPrevented) return false;
 
@@ -9376,12 +9427,12 @@ function validate(url, config, event) {
   }
 
   function isAccessible(dest) {
-    const orig = new url_1.URL(page_1.page.href);
+    const orig = page_1.page.url;
     return orig.origin === dest.origin;
   }
 
   function isHashClick(dest) {
-    const orig = new url_1.URL(page_1.page.href);
+    const orig = page_1.page.url;
     return orig.resource === dest.resource && dest.fragment !== '';
   }
 
@@ -9397,7 +9448,7 @@ function validate(url, config, event) {
 exports._validate = validate;
 
 function isHashChange(dest) {
-  const orig = new url_1.URL(page_1.page.href);
+  const orig = page_1.page.url;
   return orig.resource === dest.resource && orig.fragment !== dest.fragment;
 }
 
@@ -9439,25 +9490,36 @@ const url_1 = __webpack_require__(2261);
 
 const listener_1 = __webpack_require__(1051);
 
-void (0, listener_1.bind)(global_1.window, 'hashchange', () => void exports.page.sync());
-void (0, listener_1.bind)(global_1.window, 'popstate', () => (0, state_1.isTransitable)(exports.page.state) && (0, state_1.isTransitable)(global_1.window.history.state) || void exports.page.sync());
+void (0, listener_1.bind)(global_1.window, 'hashchange', () => void exports.page.sync(), true);
+void (0, listener_1.bind)(global_1.window, 'popstate', () => (0, state_1.isTransitable)(exports.page.state) && (0, state_1.isTransitable)(global_1.window.history.state) || void exports.page.sync(), true);
 exports.page = new class {
   constructor() {
-    this.url = (0, url_1.standardize)(global_1.window.location.href);
-    this.state_ = global_1.window.history.state;
+    this.$url = new url_1.URL((0, url_1.standardize)(global_1.window.location.href));
+    this.$state = global_1.window.history.state;
   }
 
-  get href() {
-    return this.url;
+  get url() {
+    return this.$url;
   }
 
   get state() {
-    return this.state_;
+    return this.$state;
   }
 
   sync() {
-    this.url = (0, url_1.standardize)(global_1.window.location.href);
-    this.state_ = global_1.window.history.state;
+    this.$url = new url_1.URL((0, url_1.standardize)(global_1.window.location.href));
+    this.target = void 0;
+    this.$state = global_1.window.history.state;
+  }
+
+  complete() {
+    this.$url = this.target ?? new url_1.URL((0, url_1.standardize)(global_1.window.location.href));
+    this.target = void 0;
+    this.$state = global_1.window.history.state;
+  }
+
+  process(url) {
+    this.target = url;
   }
 
 }();
@@ -9492,12 +9554,14 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.scripts = void 0;
 
+const page_1 = __webpack_require__(9114);
+
 const url_1 = __webpack_require__(2261);
 
 const listener_1 = __webpack_require__(1051);
 
 exports.scripts = new Set();
-void (0, listener_1.bind)(window, 'pjax:unload', () => void document.querySelectorAll('script[src]').forEach(script => void exports.scripts.add(new url_1.URL((0, url_1.standardize)(script.src)).href)));
+void (0, listener_1.bind)(window, 'pjax:unload', () => void document.querySelectorAll('script[src]').forEach(script => void exports.scripts.add(new url_1.URL((0, url_1.standardize)(script.src, page_1.page.url.href)).href)));
 
 /***/ }),
 
@@ -9684,7 +9748,7 @@ function test(parser) {
 /***/ 3252:
 /***/ (function(module) {
 
-/*! typed-dom v0.0.309 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
+/*! typed-dom v0.0.310 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(true)
 		module.exports = factory();
@@ -10116,7 +10180,7 @@ exports.defrag = defrag;
 /***/ 1051:
 /***/ (function(module) {
 
-/*! typed-dom v0.0.309 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
+/*! typed-dom v0.0.310 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(true)
 		module.exports = factory();
@@ -10252,10 +10316,6 @@ class AtomicPromise {
     } catch (reason) {
       this[exports.internal].reject(reason);
     }
-  }
-
-  static get [Symbol.species]() {
-    return AtomicPromise;
   }
 
   static all(vs) {
@@ -10504,7 +10564,7 @@ class Internal {
     this.rejectReactions = [];
   }
 
-  get isPending() {
+  isPending() {
     return this.status.state === 0
     /* State.pending */
     ;
@@ -10660,7 +10720,7 @@ function react(reactions, param) {
 }
 
 function call(resolve, reject, cont, callback, param) {
-  if (!callback) return cont(param);
+  if (!callback) return void cont(param);
 
   try {
     resolve(callback(param));
@@ -10705,7 +10765,7 @@ exports.never = new class Never extends Promise {
 /***/ }),
 
 /***/ 251:
-/***/ ((__unused_webpack_module, exports, __nested_webpack_require_14199__) => {
+/***/ ((__unused_webpack_module, exports, __nested_webpack_require_14135__) => {
 
 
 
@@ -10714,13 +10774,13 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.bind = exports.delegate = exports.once = exports.listen = exports.currentTarget = void 0;
 
-const global_1 = __nested_webpack_require_14199__(128);
+const global_1 = __nested_webpack_require_14135__(128);
 
-const alias_1 = __nested_webpack_require_14199__(406);
+const alias_1 = __nested_webpack_require_14135__(406);
 
-const promise_1 = __nested_webpack_require_14199__(879);
+const promise_1 = __nested_webpack_require_14135__(879);
 
-const function_1 = __nested_webpack_require_14199__(288);
+const function_1 = __nested_webpack_require_14135__(288);
 
 exports.currentTarget = Symbol.for('typed-dom::currentTarget');
 
@@ -10827,7 +10887,7 @@ exports.bind = bind;
 /******/ 	var __webpack_module_cache__ = {};
 /******/ 	
 /******/ 	// The require function
-/******/ 	function __nested_webpack_require_17316__(moduleId) {
+/******/ 	function __nested_webpack_require_17252__(moduleId) {
 /******/ 		// Check if module is in cache
 /******/ 		var cachedModule = __webpack_module_cache__[moduleId];
 /******/ 		if (cachedModule !== undefined) {
@@ -10841,7 +10901,7 @@ exports.bind = bind;
 /******/ 		};
 /******/ 	
 /******/ 		// Execute the module function
-/******/ 		__webpack_modules__[moduleId](module, module.exports, __nested_webpack_require_17316__);
+/******/ 		__webpack_modules__[moduleId](module, module.exports, __nested_webpack_require_17252__);
 /******/ 	
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
@@ -10852,8 +10912,72 @@ exports.bind = bind;
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nested_webpack_require_17316__(251);
+/******/ 	var __webpack_exports__ = __nested_webpack_require_17252__(251);
 /******/ 	
+/******/ 	return __webpack_exports__;
+/******/ })()
+;
+});
+
+/***/ }),
+
+/***/ 6120:
+/***/ (function(module) {
+
+/*! typed-dom v0.0.310 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
+(function webpackUniversalModuleDefinition(root, factory) {
+	if(true)
+		module.exports = factory();
+	else {}
+})(this, () => {
+return /******/ (() => { // webpackBootstrap
+/******/ 	"use strict";
+var __webpack_exports__ = {};
+// This entry need to be wrapped in an IIFE because it uses a non-standard name for the exports (exports).
+(() => {
+var exports = __webpack_exports__;
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.querySelectorAll = exports.querySelectorAllWith = exports.querySelectorWith = void 0;
+
+function querySelectorWith(node, selector) {
+  return 'matches' in node && node.matches(selector) ? node : node.querySelector(selector);
+}
+
+exports.querySelectorWith = querySelectorWith;
+
+function querySelectorAllWith(node, selector) {
+  const acc = [];
+
+  if ('matches' in node && node.matches(selector)) {
+    acc.push(node);
+  }
+
+  for (let es = node.querySelectorAll(selector), len = es.length, i = 0; i < len; ++i) {
+    acc.push(es[i]);
+  }
+
+  return acc;
+}
+
+exports.querySelectorAllWith = querySelectorAllWith;
+
+function querySelectorAll(node, selector) {
+  const acc = [];
+
+  for (let es = node.querySelectorAll(selector), len = es.length, i = 0; i < len; ++i) {
+    acc.push(es[i]);
+  }
+
+  return acc;
+}
+
+exports.querySelectorAll = querySelectorAll;
+})();
+
 /******/ 	return __webpack_exports__;
 /******/ })()
 ;
