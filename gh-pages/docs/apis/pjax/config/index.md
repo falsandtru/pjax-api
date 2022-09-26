@@ -55,6 +55,10 @@ Give CSS to lock and protect the scroll position from unexpected scrolls caused 
     }`;
 ```
 
+## cache: Dict<string, unknown> = `new Cache(100)`
+
+Set a dictionary object having has/get/set/delete methods of Map to cache the requests.
+
 ## memory?: Dict<string, Document>
 
 Set a dictionary object having has/get/set/delete methods of Map to pass the document object matching the URL to the rewrite function.

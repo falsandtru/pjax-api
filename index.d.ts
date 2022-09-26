@@ -20,6 +20,7 @@ export interface Config {
   readonly form?: string;
   readonly replace?: string;
   readonly lock?: () => string;
+  readonly cache?: Dict<string, unknown>;
   readonly memory?: Dict<string, Document>;
   readonly fetch?: {
     readonly rewrite?: (path: string) => string;

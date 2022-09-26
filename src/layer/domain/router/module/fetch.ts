@@ -21,6 +21,7 @@ export async function fetch(
   }: RouterEvent,
   {
     lock,
+    cache,
     fetch: {
       rewrite,
       headers,
@@ -47,7 +48,7 @@ export async function fetch(
       headers,
       body,
     }),
-    xhr(method, url, location.orig, headers, body, timeout, rewrite, process),
+    xhr(method, url, location.orig, headers, body, timeout, rewrite, cache, process),
     delay(wait),
     void window.dispatchEvent(new Event('pjax:fetch')),
   ]);

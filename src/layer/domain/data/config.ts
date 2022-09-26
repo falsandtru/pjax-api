@@ -1,6 +1,7 @@
 import { Object } from 'spica/global';
 import { Config as Option, Sequence as ISequence } from '../../../../';
 import { Dict } from 'spica/dict';
+import { Cache } from 'spica/cache';
 import { URL, StandardURL } from 'spica/url';
 import { extend, overwrite } from 'spica/assign';
 
@@ -45,6 +46,7 @@ export class Config implements Option {
       ${window.innerWidth - document.body.clientWidth ? 'overflow-y: scroll;' : ''}
       ${window.innerHeight - document.body.clientHeight ? 'overflow-x: scroll;' : ''}
     }`;
+  public readonly cache: Dict<URL.Path<StandardURL>, { etag: string; expiry: number; xhr: XMLHttpRequest; }> = new Cache(100);
   public readonly memory?: Dict<URL.Path<StandardURL>, Document>;
   public readonly fetch = {
     rewrite: (path: URL.Path<StandardURL>): string => path,
