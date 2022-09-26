@@ -6,11 +6,7 @@ export class Pjax {
   static sync(isPjaxPage?: boolean): void;
   static pushURL(url: string, title: string, state?: any): void;
   static replaceURL(url: string, title: string, state?: any): void;
-  constructor(
-    config: Config,
-    io?: {
-      document: Document;
-    });
+  constructor(config: Config);
   assign(url: string): boolean;
   replace(url: string): boolean;
 }
