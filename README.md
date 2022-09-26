@@ -5,16 +5,18 @@
 The advanced PJAX for web services.
 
 The pjax-api provides almost complete original web experience.
-Most other SPA frameworks and pjax libraries lack many important functions to keep the original web experience such as follows.
+Most SPA frameworks and pjax libraries lack many essential functions to keep the original web experience such as follows.
 
 - **Browser history fix (Fix for browsers)**
-  - Browsers set the wrong title to the current URL in fast page back/forward.
+  - Browsers set the wrong title to the current URL in page back/forward.
 - **Scroll position restoration (Fix for browsers)**
   - Browsers cannot restore the scroll position if the current content doesn't have sufficient scroll size.
 - **Unexpected scroll prevention (Fix for browsers)**
   - Browsers unexpectedly scroll the page before updating the page in page back/forward.
 - Scroll behaviors around hash links
-  - Most other frameworks and libraries reproduce wrong scroll behaviors.
+  - Most frameworks and libraries reproduce wrong scroll behaviors around hash links.
+- Scroll position after reloading.
+  - Most frameworks break the current scroll position after reloading.
 
 ## Features
 
