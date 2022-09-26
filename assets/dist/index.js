@@ -8342,7 +8342,14 @@ function update({
   return promise_1.AtomicPromise.resolve(seq).then(process.either) // fetch -> unload
   .then(m => m.bind(() => (0, content_1.separate)(documents, config.areas).extract(() => (0, either_1.Left)(new Error(`Failed to separate the areas.`)), () => m)).fmap(seqA => (void window.dispatchEvent(new Event('pjax:unload')), config.sequence.unload(seqA, { ...response,
     url: response.url.href
-  })))).then(m => either_1.Either.sequence(m)).then(process.promise).then(m => m.bind(seqB => (0, content_1.separate)(documents, config.areas).fmap(([area]) => [seqB, area]).extract(() => (0, either_1.Left)(new Error(`Failed to separate the areas.`)), process.either)).bind(([seqB, area]) => (void config.update.rewrite(event.location.dest.path, documents.src, area, event.type === router_1.RouterEventType.Popstate ? config.memory?.get(event.location.dest.path) : void 0), (0, content_1.separate)(documents, config.areas).fmap(([, areas]) => [seqB, areas]).extract(() => (0, either_1.Left)(new Error(`Failed to separate the areas.`)), process.either)))).then(process.promise) // unload -> ready
+  })))).then(m => either_1.Either.sequence(m)).then(process.promise).then(m => m.bind(seqB => (0, content_1.separate)(documents, config.areas).fmap(([area]) => [seqB, area]).extract(() => (0, either_1.Left)(new Error(`Failed to separate the areas.`)), process.either)).fmap(([seqB, area]) => {
+    const memory = event.type === router_1.RouterEventType.Popstate ? config.memory?.get(event.location.dest.path) : void 0;
+    void config.update.rewrite(event.location.dest.path, documents.src, area, memory && (0, content_1.separate)({
+      src: memory,
+      dst: documents.dst
+    }, [area]).extract(() => false) ? memory : void 0);
+    return seqB;
+  }).bind(seqB => (0, content_1.separate)(documents, config.areas).fmap(([, areas]) => [seqB, areas]).extract(() => (0, either_1.Left)(new Error(`Failed to separate the areas.`)), process.either))).then(process.promise) // unload -> ready
   .then(m => m.fmap(([seqB, areas]) => (0, hlist_1.HList)().add((void (0, blur_1.blur)(documents.dst), void (0, path_1.savePjax)(), void (0, url_1.url)(new router_1.RouterEventLocation(event.location.orig, response.url), documents.src.title, event.type, event.source, config.replace), void (0, path_1.savePjax)(), void (0, title_1.title)(documents), void (0, path_1.saveTitle)(), void (0, head_1.head)(documents, config.update.head, config.update.ignore), process.either((0, content_1.content)(documents, areas)).fmap(([as, ps]) => [as, promise_1.AtomicPromise.all(ps)]))).unfold(async p => (await p).fmap(async ([areas]) => {
     config.update.css ? void (0, css_1.css)(documents, config.update.ignore) : void 0;
     void io.document.dispatchEvent(new Event('pjax:content'));
@@ -9372,10 +9379,10 @@ function route(config, event, process, io) {
       void cancellation.cancel(err);
       return promise_1.never;
     });
+    page_1.page.isAvailable() && config.memory?.set(event.location.orig.path, io.document.cloneNode(true));
     page_1.page.process(event.location.dest);
     const [scripts] = await env_1.env;
-    window.history.scrollRestoration = 'manual';
-    config.memory?.set(event.location.orig.path, io.document.cloneNode(true)); //void progressbar(config.progressbar);
+    window.history.scrollRestoration = 'manual'; //void progressbar(config.progressbar);
 
     return (0, router_1.route)(config, event, {
       process: cancellation,
@@ -9496,6 +9503,7 @@ exports.page = new class {
   constructor() {
     this.$url = new url_1.URL((0, url_1.standardize)(global_1.window.location.href));
     this.$state = global_1.window.history.state;
+    this.available = true;
   }
 
   get url() {
@@ -9506,20 +9514,26 @@ exports.page = new class {
     return this.$state;
   }
 
-  sync() {
-    this.$url = new url_1.URL((0, url_1.standardize)(global_1.window.location.href));
-    this.target = void 0;
-    this.$state = global_1.window.history.state;
+  isAvailable() {
+    return this.available;
+  }
+
+  process(url) {
+    this.available = false;
+    this.target = url;
   }
 
   complete() {
     this.$url = this.target ?? new url_1.URL((0, url_1.standardize)(global_1.window.location.href));
     this.target = void 0;
     this.$state = global_1.window.history.state;
+    this.available = true;
   }
 
-  process(url) {
-    this.target = url;
+  sync() {
+    this.$url = new url_1.URL((0, url_1.standardize)(global_1.window.location.href));
+    this.target = void 0;
+    this.$state = global_1.window.history.state;
   }
 
 }();
