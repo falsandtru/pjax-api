@@ -6,7 +6,6 @@ import { Either, Left, Right } from 'spica/either';
 import { Cache } from 'spica/cache';
 import { URL, StandardURL, standardize } from 'spica/url';
 
-const memory = new Cache<string, (displayURL: URL<StandardURL>, requestURL: URL<StandardURL>) => FetchResponse>(100);
 const caches = new Cache<URL.Path<StandardURL>, { etag: string; expiry: number; xhr: XMLHttpRequest; }>(100);
 
 export function xhr(
@@ -17,7 +16,6 @@ export function xhr(
   body: FormData | null,
   timeout: number,
   rewrite: (path: URL.Path<StandardURL>) => string,
-  cache: (path: string, headers: Headers) => string,
   cancellation: Cancellee<Error>
 ): AtomicPromise<Either<Error, FetchResponse>> {
   headers = new Headers(headers);
@@ -29,11 +27,7 @@ export function xhr(
       Date.now() > caches.get(requestURL.path)!.expiry) {
     void headers.set('If-None-Match', caches.get(requestURL.path)!.etag);
   }
-  const key = method === 'GET'
-    ? cache(requestURL.path, headers) || void 0
-    : void 0;
   return new AtomicPromise<Either<Error, FetchResponse>>(resolve => {
-    if (key && memory.has(key)) return resolve(Right(memory.get(key)!(displayURL, requestURL)));
     const xhr = new XMLHttpRequest();
     void xhr.open(method, requestURL.path, true);
     for (const [name, value] of headers) {
@@ -81,20 +75,13 @@ export function xhr(
               }
             }
           }
-          return (overriddenDisplayURL: URL<StandardURL>, overriddenRequestURL: URL<StandardURL>) =>
-            new FetchResponse(
-              responseURL.path === overriddenRequestURL.path
-                ? overriddenDisplayURL
-                : overriddenRequestURL.path === requestURL.path || !key
-                    ? responseURL
-                    : overriddenDisplayURL,
-              xhr);
-        })
-        .fmap(f => {
-          if (key) {
-            void memory.set(key, f);
-          }
-          return f(displayURL, requestURL);
+          return new FetchResponse(
+            responseURL.path === requestURL.path
+              ? displayURL
+              : requestURL.path === requestURL.path
+                ? responseURL
+                : displayURL,
+            xhr);
         })
         .extract(
           err => void resolve(Left(err)),

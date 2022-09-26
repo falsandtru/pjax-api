@@ -65,12 +65,6 @@ Set a dictionary object having has/get/set/delete methods of Map to pass the doc
 
 Rewrite URL implicitly.
 
-### cache: (path: string, headers: Headers) => string = `() => ''`
-
-Give the key of the request cache.
-If you return the empty string, the current request doesn't make and use the cache.
-This option is only enabled with GET method.
-
 ### timeout: number = `3000`
 
 Set timeout for request by ms.

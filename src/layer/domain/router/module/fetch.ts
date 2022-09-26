@@ -23,7 +23,6 @@ export async function fetch(
     lock,
     fetch: {
       rewrite,
-      cache,
       headers,
       timeout,
       wait,
@@ -48,7 +47,7 @@ export async function fetch(
       headers,
       body,
     }),
-    xhr(method, url, location.orig, headers, body, timeout, rewrite, cache, process),
+    xhr(method, url, location.orig, headers, body, timeout, rewrite, process),
     delay(wait),
     void window.dispatchEvent(new Event('pjax:fetch')),
   ]);

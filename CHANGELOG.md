@@ -2,6 +2,7 @@
 
 ## 3.38.0
 
+- Remove `fetch.cache` option.
 - Fix event sequence.
 
 ## 3.37.1

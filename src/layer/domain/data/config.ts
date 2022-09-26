@@ -48,7 +48,6 @@ export class Config implements Option {
   public readonly memory?: Dict<URL.Path<StandardURL>, Document>;
   public readonly fetch = {
     rewrite: (path: URL.Path<StandardURL>): string => path,
-    cache: (_path: URL.Path<StandardURL>, _headers: Headers): string => '',
     headers: new Headers(),
     timeout: 3000,
     wait: 0,

@@ -23,7 +23,6 @@ export interface Config {
   readonly memory?: Dict<string, Document>;
   readonly fetch?: {
     readonly rewrite?: (path: string) => string;
-    readonly cache?: (path: string, headers: Headers) => string;
     readonly headers?: Headers;
     readonly timeout?: number;
     readonly wait?: number;
