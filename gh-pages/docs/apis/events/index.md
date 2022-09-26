@@ -18,7 +18,7 @@ Dispatched from the `window` object before updating the page.
 
 ## pjax:content
 
-Dispatched from the `document` object after updating the contents, styles, and scripts, before scrolling.
+Dispatched from the `document` object after updating the contents, styles, and scripts, before scrolls.
 
 ## pjax:ready
 
