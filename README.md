@@ -15,7 +15,7 @@ Most SPA frameworks and pjax libraries lack many essential functions to keep the
   - Browsers unexpectedly scroll the page before updating the page in page back/forward.
 - Scroll behaviors around hash links
   - Most frameworks and libraries reproduce wrong scroll behaviors around hash links.
-- Scroll position after reloading.
+- Scroll position after reloading
   - Most frameworks break the current scroll position after reloading.
 
 ## Features
