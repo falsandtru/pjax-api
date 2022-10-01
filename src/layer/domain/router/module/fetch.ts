@@ -34,7 +34,7 @@ export async function fetch(
   io: {
     document: Document;
   }
-): Promise<Either<Error, readonly [Response, 'fetch']>> {
+): Promise<Either<Error, readonly [Response, 'seq:fetch']>> {
   const { scrollX, scrollY } = window;
   if (type === RouterEventType.Popstate) {
     // 小さな画面でもチラつかない

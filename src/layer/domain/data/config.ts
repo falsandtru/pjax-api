@@ -79,24 +79,24 @@ export class Config implements Option {
     }
     throw reason;
   }
-  public readonly sequence: ISequence<'fetch', 'unload', 'content', 'ready'> = new Sequence();
+  public readonly sequence: ISequence<'seq:fetch', 'seq:unload', 'seq:content', 'seq:ready'> = new Sequence();
   public readonly progressbar: string = 'display:none;position:absolute;bottom:0;left:0;width:0;height:2px;background:rgb(40, 105, 255);';
   public readonly scope: Record<string, Option | undefined> = {};
 }
 
-class Sequence implements ISequence<'fetch', 'unload', 'content', 'ready'> {
-  public async fetch(): Promise<'fetch'> {
-    return 'fetch';
+class Sequence implements ISequence<'seq:fetch', 'seq:unload', 'seq:content', 'seq:ready'> {
+  public async fetch() {
+    return 'seq:fetch' as const;
   }
-  public async unload(): Promise<'unload'> {
-    return 'unload';
+  public async unload() {
+    return 'seq:unload' as const;
   }
-  public async content(): Promise<'content'> {
-    return 'content';
+  public async content() {
+    return 'seq:content' as const;
   }
-  public async ready(): Promise<'ready'> {
-    return 'ready';
+  public async ready() {
+    return 'seq:ready' as const;
   }
-  public async load(): Promise<void> {
+  public async load() {
   }
 }

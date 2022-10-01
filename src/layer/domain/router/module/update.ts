@@ -22,7 +22,7 @@ export function update(
     state,
   }: RouterEntity,
   response: Response,
-  seq: 'fetch',
+  seq: 'seq:fetch',
   io: {
     document: Document;
     position: () => { top: number; left: number; };
