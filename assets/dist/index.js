@@ -7752,19 +7752,19 @@ exports.Config = Config;
 
 class Sequence {
   async fetch() {
-    return 'fetch';
+    return 'seq:fetch';
   }
 
   async unload() {
-    return 'unload';
+    return 'seq:unload';
   }
 
   async content() {
-    return 'content';
+    return 'seq:content';
   }
 
   async ready() {
-    return 'ready';
+    return 'seq:ready';
   }
 
   async load() {}
@@ -8043,7 +8043,7 @@ exports.RouterEntityState = RouterEntityState;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.FetchResponse = void 0;
+exports.Response = void 0;
 
 const global_1 = __webpack_require__(4128);
 
@@ -8051,7 +8051,7 @@ const html_1 = __webpack_require__(6301);
 
 const url_1 = __webpack_require__(2261);
 
-class FetchResponse {
+class Response {
   constructor(url, xhr) {
     this.url = url;
     this.xhr = xhr;
@@ -8072,7 +8072,7 @@ class FetchResponse {
 
 }
 
-exports.FetchResponse = FetchResponse;
+exports.Response = Response;
 
 /***/ }),
 
@@ -8208,7 +8208,7 @@ function xhr(method, displayURL, base, headers, body, timeout, rewrite, cache, c
         }
       }
 
-      return new fetch_1.FetchResponse(responseURL.path === requestURL.path ? displayURL : requestURL.path === requestURL.path ? responseURL : displayURL, xhr);
+      return new fetch_1.Response(responseURL.path === requestURL.path ? displayURL : requestURL.path === requestURL.path ? responseURL : displayURL, xhr);
     }).extract(err => void resolve((0, either_1.Left)(err)), res => void resolve((0, either_1.Right)(res))));
     void cancellation.register(() => void xhr.abort());
   });
@@ -8690,9 +8690,9 @@ async function fetch(script, timeout) {
   if (!script.hasAttribute('src')) return (0, either_1.Right)([script, script.text]);
   if (script.type.toLowerCase() === 'module') return (0, either_1.Right)([script, '']);
   return promise_1.AtomicPromise.race([window.fetch(script.src, {
-    headers: new Headers({
+    headers: {
       Accept: 'application/javascript'
-    }),
+    },
     integrity: script.integrity
   }), (0, timer_1.wait)(timeout).then(() => promise_1.AtomicPromise.reject(new Error(`${script.src}: Timeout.`)))]).then(async res => res.ok ? (0, either_1.Right)([script, await res.text()]) : script.matches('[src][async]') ? retry(script).then(() => (0, either_1.Right)([script, '']), () => (0, either_1.Left)(new Error(`${script.src}: ${res.statusText}`))) : (0, either_1.Left)(new Error(res.statusText)), error => (0, either_1.Left)(error));
 }
@@ -9152,8 +9152,6 @@ const page_1 = __webpack_require__(9114);
 
 const state_1 = __webpack_require__(2090);
 
-const html_1 = __webpack_require__(6301);
-
 const assign_1 = __webpack_require__(4401);
 
 const listener_1 = __webpack_require__(1051);
@@ -9203,7 +9201,7 @@ exports.API = API;
 function click(url, callback) {
   const el = document.createElement('a');
   el.href = url;
-  void (0, html_1.parse)('').extract().body.appendChild(el);
+  void document.createDocumentFragment().appendChild(el);
   void (0, listener_1.once)(el, 'click', callback);
   void (0, listener_1.once)(el, 'click', ev => void ev.preventDefault());
   void el.click();
@@ -9669,7 +9667,7 @@ FatalError.prototype.name = 'FatalError';
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports._fixNoscript = exports.fix = exports.parse = void 0;
+exports.fix = exports.parse = void 0;
 
 const maybe_1 = __webpack_require__(6512);
 
@@ -9693,20 +9691,17 @@ function parseByDoc(html) {
 }
 
 function fix(doc) {
-  void fixNoscript(doc).forEach(([src, fixed]) => src.textContent = fixed.textContent);
+  void fixNoscript(doc);
 }
 
 exports.fix = fix;
 
 function fixNoscript(doc) {
-  return [...doc.querySelectorAll('noscript')].filter(el => el.children.length > 0).map(el => {
-    const clone = el.cloneNode(true);
-    clone.textContent = el.innerHTML;
-    return [el, clone];
-  });
+  for (const el of doc.querySelectorAll('noscript')) {
+    if (!el.firstElementChild) continue;
+    el.textContent = el.innerHTML;
+  }
 }
-
-exports._fixNoscript = fixNoscript;
 
 function test(parser) {
   try {
