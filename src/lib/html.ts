@@ -25,20 +25,15 @@ function parseByDoc(html: string): Document {
 }
 
 export function fix(doc: Document): void {
-  void fixNoscript(doc)
-    .forEach(([src, fixed]) => src.textContent = fixed.textContent);
+  void fixNoscript(doc);
 }
 
-function fixNoscript(doc: Document): [HTMLElement, HTMLElement][] {
-  return [...doc.querySelectorAll('noscript')]
-    .filter(el => el.children.length > 0)
-    .map(el => {
-      const clone = el.cloneNode(true) as HTMLElement;
-      clone.textContent = el.innerHTML;
-      return [el, clone];
-    });
+function fixNoscript(doc: Document): void {
+  for (const el of doc.querySelectorAll('noscript')) {
+    if (!el.firstElementChild) continue;
+    el.textContent = el.innerHTML;
+  }
 }
-export { fixNoscript as _fixNoscript }
 
 function test(parser: (html: string) => Document): boolean {
   try {
