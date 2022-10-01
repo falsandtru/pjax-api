@@ -2,7 +2,7 @@ import { Object } from 'spica/global';
 import { fix } from '../../../../../../lib/html';
 import { URL, StandardURL } from 'spica/url';
 
-export class FetchResponse {
+export class Response {
   constructor(
     public readonly url: URL<StandardURL>,
     private readonly xhr: XMLHttpRequest,

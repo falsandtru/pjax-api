@@ -1,5 +1,5 @@
 import { RouterEventMethod } from '../../../event/router';
-import { FetchResponse } from '../../model/eav/value/fetch';
+import { Response } from '../../model/eav/value/fetch';
 import { Dict } from 'spica/dict';
 import { AtomicPromise } from 'spica/promise';
 import { Cancellee } from 'spica/cancellation';
@@ -16,7 +16,7 @@ export function xhr(
   rewrite: (path: URL.Path<StandardURL>) => string,
   cache: Dict<URL.Path<StandardURL>, { etag: string; expiry: number; xhr: XMLHttpRequest; }>,
   cancellation: Cancellee<Error>
-): AtomicPromise<Either<Error, FetchResponse>> {
+): AtomicPromise<Either<Error, Response>> {
   headers = new Headers(headers);
   void headers.set('Accept', headers.get('Accept') || 'text/html');
   const requestURL = new URL(standardize(rewrite(displayURL.path), base.href));
@@ -26,7 +26,7 @@ export function xhr(
       Date.now() > cache.get(requestURL.path)!.expiry) {
     void headers.set('If-None-Match', cache.get(requestURL.path)!.etag);
   }
-  return new AtomicPromise<Either<Error, FetchResponse>>(resolve => {
+  return new AtomicPromise<Either<Error, Response>>(resolve => {
     const xhr = new XMLHttpRequest();
     void xhr.open(method, requestURL.path, true);
     for (const [name, value] of headers) {
@@ -74,7 +74,7 @@ export function xhr(
               }
             }
           }
-          return new FetchResponse(
+          return new Response(
             responseURL.path === requestURL.path
               ? displayURL
               : requestURL.path === requestURL.path

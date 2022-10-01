@@ -1,6 +1,6 @@
 import { RouterEntity } from '../model/eav/entity';
 import { RouterEventType, RouterEventLocation } from '../../event/router';
-import { FetchResponse } from '../model/eav/value/fetch';
+import { Response } from '../model/eav/value/fetch';
 import { blur } from '../module/update/blur';
 import { url } from '../module/update/url';
 import { title } from '../module/update/title';
@@ -21,7 +21,7 @@ export function update(
     config,
     state,
   }: RouterEntity,
-  response: FetchResponse,
+  response: Response,
   seq: 'fetch',
   io: {
     document: Document;

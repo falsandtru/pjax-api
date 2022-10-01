@@ -1,6 +1,6 @@
 import { Config } from '../../data/config';
 import { RouterEvent, RouterEventType } from '../../event/router';
-import { FetchResponse } from '../model/eav/value/fetch';
+import { Response } from '../model/eav/value/fetch';
 import { xhr } from '../module/fetch/xhr';
 import { Cancellee } from 'spica/cancellation';
 import { Either } from 'spica/either';
@@ -34,7 +34,7 @@ export async function fetch(
   io: {
     document: Document;
   }
-): Promise<Either<Error, readonly [FetchResponse, 'fetch']>> {
+): Promise<Either<Error, readonly [Response, 'fetch']>> {
   const { scrollX, scrollY } = window;
   if (type === RouterEventType.Popstate) {
     // 小さな画面でもチラつかない
