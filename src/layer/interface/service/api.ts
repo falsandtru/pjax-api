@@ -3,7 +3,6 @@ import { route, Config, RouterEvent, RouterEventSource } from './router';
 import { process } from './state/process';
 import { page } from './state/page';
 import { savePjax, isTransitable } from '../../data/store/state';
-import { parse } from '../../../lib/html';
 import { assign } from 'spica/assign';
 import { once } from 'typed-dom/listener';
 
@@ -41,7 +40,7 @@ export class API {
 function click(url: string, callback: (ev: Event) => void): void {
   const el: RouterEventSource.Link = document.createElement('a');
   el.href = url;
-  void parse('').extract().body.appendChild(el);
+  void document.createDocumentFragment().appendChild(el);
   void once(el, 'click', callback);
   void once(el, 'click', ev => void ev.preventDefault());
   void el.click();
