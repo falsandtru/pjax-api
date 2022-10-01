@@ -115,9 +115,9 @@ async function fetch(
   if (script.type.toLowerCase() === 'module') return Right<FetchData>([script, '']);
   return AtomicPromise.race([
     window.fetch(script.src, {
-      headers: new Headers({
+      headers: {
         Accept: 'application/javascript',
-      }),
+      },
       integrity: script.integrity,
     }),
     wait(timeout).then(() => AtomicPromise.reject(new Error(`${script.src}: Timeout.`))),
