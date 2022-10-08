@@ -1,7 +1,7 @@
 import { State } from '../schema/state';
 
-void saveTitle();
-void savePosition();
+saveTitle();
+savePosition();
 
 export function loadTitle(): State.Title {
   return window.history.state?.title
@@ -9,7 +9,7 @@ export function loadTitle(): State.Title {
 }
 
 export function saveTitle(): void {
-  void window.history.replaceState(
+  window.history.replaceState(
     {
       ...window.history.state,
       title: document.title,
@@ -26,7 +26,7 @@ export function loadPosition(): State.Position {
 }
 
 export function savePosition(): void {
-  void window.history.replaceState(
+  window.history.replaceState(
     {
       ...window.history.state,
       position: {
@@ -44,7 +44,7 @@ export function isTransitable(state: State | null): boolean {
 }
 
 export function savePjax(): void {
-  void window.history.replaceState(
+  window.history.replaceState(
     {
       ...window.history.state,
       pjax: {

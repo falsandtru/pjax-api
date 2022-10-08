@@ -42,7 +42,7 @@ export async function fetch(
     io.document.documentElement.appendChild(style);
   }
   const [seq, res] = await Promise.all([
-    sequence.fetch(void 0, {
+    sequence.fetch(undefined, {
       path: url.path,
       method,
       headers,
@@ -50,7 +50,7 @@ export async function fetch(
     }),
     xhr(method, url, location.orig, headers, body, timeout, rewrite, cache, process),
     delay(wait),
-    void window.dispatchEvent(new Event('pjax:fetch')),
+    window.dispatchEvent(new Event('pjax:fetch')),
   ]);
   if (type === RouterEventType.Popstate) {
     style.parentNode?.removeChild(style);

@@ -3,7 +3,7 @@ import { RouterEventType } from '../../../event/router';
 export function focus(
   type: RouterEventType,
   document: Document,
-): undefined {
+): void {
   switch (type) {
     case RouterEventType.Click:
     case RouterEventType.Submit:

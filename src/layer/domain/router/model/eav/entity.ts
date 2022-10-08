@@ -1,4 +1,3 @@
-import { Object } from 'spica/global';
 import { RouterEvent } from '../../../event/router';
 import { Config } from '../../../data/config';
 import { Cancellee } from 'spica/cancellation';
@@ -10,7 +9,7 @@ export class RouterEntity {
     public readonly event: RouterEvent,
     public readonly state: RouterEntityState
   ) {
-    void Object.freeze(this);
+    Object.freeze(this);
   }
 }
 
@@ -19,6 +18,6 @@ export class RouterEntityState {
     public readonly process: Cancellee<Error>,
     public readonly scripts: ReadonlySet<URL.Href<StandardURL>>,
   ) {
-    void Object.freeze(this);
+    Object.freeze(this);
   }
 }

@@ -18,35 +18,35 @@ export function xhr(
   cancellation: Cancellee<Error>
 ): AtomicPromise<Either<Error, Response>> {
   headers = new Headers(headers);
-  void headers.set('Accept', headers.get('Accept') || 'text/html');
+  headers.set('Accept', headers.get('Accept') || 'text/html');
   const requestURL = new URL(standardize(rewrite(displayURL.path), base.href));
   if (method === 'GET' &&
       !headers.has('If-None-Match') &&
       cache.has(requestURL.path) &&
       Date.now() > cache.get(requestURL.path)!.expiry) {
-    void headers.set('If-None-Match', cache.get(requestURL.path)!.etag);
+    headers.set('If-None-Match', cache.get(requestURL.path)!.etag);
   }
   return new AtomicPromise<Either<Error, Response>>(resolve => {
     const xhr = new XMLHttpRequest();
-    void xhr.open(method, requestURL.path, true);
+    xhr.open(method, requestURL.path, true);
     for (const [name, value] of headers) {
-      void xhr.setRequestHeader(name, value);
+      xhr.setRequestHeader(name, value);
     }
 
     xhr.responseType = 'document';
     xhr.timeout = timeout;
-    void xhr.send(body);
+    xhr.send(body);
 
-    void xhr.addEventListener("abort", () =>
+    xhr.addEventListener("abort", () =>
       void resolve(Left(new Error(`Failed to request a page by abort.`))));
 
-    void xhr.addEventListener("error", () =>
+    xhr.addEventListener("error", () =>
       void resolve(Left(new Error(`Failed to request a page by error.`))));
 
-    void xhr.addEventListener("timeout", () =>
+    xhr.addEventListener("timeout", () =>
       void resolve(Left(new Error(`Failed to request a page by timeout.`))));
 
-    void xhr.addEventListener("load", () =>
+    xhr.addEventListener("load", () =>
       void verify(base, method, xhr, cache)
         .fmap(xhr => {
           const responseURL: URL<StandardURL> = new URL(standardize(xhr.responseURL, base.href));
@@ -61,7 +61,7 @@ export function xhr(
                 : []);
             for (const path of new Set([requestURL.path, responseURL.path])) {
               if (xhr.getResponseHeader('ETag') && !cc.has('no-store')) {
-                void cache.set(path, {
+                cache.set(path, {
                   etag: xhr.getResponseHeader('ETag')!,
                   expiry: cc.has('max-age') && !cc.has('no-cache')
                     ? Date.now() + +cc.get('max-age')! * 1000 || 0
@@ -70,7 +70,7 @@ export function xhr(
                 });
               }
               else {
-                void cache.delete(path);
+                cache.delete(path);
               }
             }
           }
@@ -86,7 +86,7 @@ export function xhr(
           err => void resolve(Left(err)),
           res => void resolve(Right(res))));
 
-    void cancellation.register(() => void xhr.abort());
+    cancellation.register(() => void xhr.abort());
   });
 }
 

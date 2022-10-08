@@ -1,4 +1,3 @@
-import { undefined, Object } from 'spica/global';
 import { FatalError } from '../../../../../lib/error';
 import { AtomicPromise } from 'spica/promise';
 import { Cancellee } from 'spica/cancellation';
@@ -40,10 +39,10 @@ export function script(
   const { ss, as } = scripts.reduce((o, script) => {
     switch (true) {
       case script.matches('[src][async], [src][defer]'):
-        void o.as.push(script);
+        o.as.push(script);
         break;
       default:
-        void o.ss.push(script);
+        o.ss.push(script);
     }
     return o;
   }, {
@@ -159,9 +158,9 @@ function evaluate(
       : '_') || document.body;
   assert(container.closest('html') === document.documentElement);
   const unescape = escape(script);
-  void container.appendChild(script);
-  void unescape();
-  !logging && void script.remove();
+  container.appendChild(script);
+  unescape();
+  !logging && script.remove();
   const result = AtomicPromise.resolve(wait).then(evaluate);
   return script.matches('[src][async]')
     ? Right(result)
@@ -177,21 +176,21 @@ function evaluate(
             : AtomicPromise.reject(reason))
         .then(
           () => (
-            void script.dispatchEvent(new Event('load')),
+            script.dispatchEvent(new Event('load')),
             Right(script)),
           reason => (
-            void script.dispatchEvent(new Event('error')),
+            script.dispatchEvent(new Event('error')),
             Left(new FatalError(reason instanceof Error ? reason.message : reason + ''))));
     }
     else {
       try {
         if (skip.has(new URL(standardize(window.location.href)).href)) throw new FatalError('Expired.');
-        void (0, eval)(code);
-        script.hasAttribute('src') && void script.dispatchEvent(new Event('load'));
+        (0, eval)(code);
+        script.hasAttribute('src') && script.dispatchEvent(new Event('load'));
         return AtomicPromise.resolve(Right(script));
       }
       catch (reason) {
-        script.hasAttribute('src') && void script.dispatchEvent(new Event('error'));
+        script.hasAttribute('src') && script.dispatchEvent(new Event('error'));
         return AtomicPromise.resolve(Left(new FatalError(reason instanceof Error ? reason.message : reason + '')));
       }
     }
@@ -199,25 +198,25 @@ function evaluate(
 }
 export { evaluate as _evaluate }
 
-export function escape(script: HTMLScriptElement): () => undefined {
+export function escape(script: HTMLScriptElement): () => void {
   const src: string | null = script.hasAttribute('src') ? script.getAttribute('src') : null;
   const code = script.text;
-  void script.removeAttribute('src');
+  script.removeAttribute('src');
   script.text = '';
-  return () => (
-    script.text = ' ',
-    script.text = code,
-    typeof src === 'string'
-      ? void script.setAttribute('src', src)
-      : void 0);
+  return () => {
+    script.text = ' ';
+    script.text = code;
+    typeof src === 'string' && void script.setAttribute('src', src);
+  };
 }
 
 function retry(script: HTMLScriptElement): AtomicPromise<undefined> {
   if (new URL(standardize(script.src)).origin === new URL(standardize(window.location.href)).origin) return AtomicPromise.reject(new Error());
   script = html('script', Object.values(script.attributes).reduce((o, { name, value }) => (o[name] = value, o), {}), [...script.childNodes]);
-  return new AtomicPromise((resolve, reject) => (
-    void script.addEventListener('load', () => void resolve(undefined)),
-    void script.addEventListener('error', reject),
-    void document.body.appendChild(script),
-    void script.remove()));
+  return new AtomicPromise((resolve, reject) => {
+    script.addEventListener('load', () => void resolve(undefined));
+    script.addEventListener('error', reject);
+    document.body.appendChild(script);
+    script.remove();
+  });
 }

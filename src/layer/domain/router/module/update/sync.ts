@@ -8,18 +8,17 @@ export function sync<T extends HTMLElement>(
     before,
     remove
   }
-): undefined {
+): void {
   return void pairs
-    .forEach(([srcs, dst]) => (
-      void io.before(
+    .forEach(([srcs, dst]) => {
+      io.before(
         parent(dst),
         srcs.slice(-1).some(src => !!dst && src.outerHTML === dst.outerHTML)
           ? srcs.slice(0, -1)
           : srcs,
-        dst),
-      dst && srcs.length === 0
-        ? void io.remove(dst)
-        : void 0));
+        dst);
+      dst && srcs.length === 0 && io.remove(dst);
+    });
 
   function parent(dst: T | null): HTMLElement {
     return dst
@@ -30,7 +29,7 @@ export function sync<T extends HTMLElement>(
 
 export function pair<T>(srcs: T[], dsts: T[], compare: (a: T, b: T) => boolean): [T[], T | null][] {
   const link = bind(srcs, dsts, compare);
-  void dsts
+  dsts
     .filter(dst =>
       !link.has(dst))
     .forEach(dst =>
@@ -48,8 +47,8 @@ export function pair<T>(srcs: T[], dsts: T[], compare: (a: T, b: T) => boolean):
                 m.bind(link =>
                   !link.has(dst) && compare(src, dst)
                     ? (
-                      void link.set(dst, push(link.get(null) || [], [src])),
-                      void link.delete(null),
+                      link.set(dst, push(link.get(null) || [], [src])),
+                      link.delete(null),
                       Left(link))
                     : Right(link))
               , Right(link))
@@ -61,13 +60,13 @@ export function pair<T>(srcs: T[], dsts: T[], compare: (a: T, b: T) => boolean):
   }
 }
 
-function before(parent: HTMLElement, children: HTMLElement[], ref: HTMLElement | null): undefined {
+function before(parent: HTMLElement, children: HTMLElement[], ref: HTMLElement | null): void {
   assert(!ref || ref.parentElement === parent);
   return void children
     .map(child => parent.ownerDocument!.importNode(child.cloneNode(true), true) as HTMLElement)
     .forEach(child => void parent.insertBefore(child, ref));
 }
 
-function remove(el: HTMLElement): undefined {
+function remove(el: HTMLElement): void {
   return void el.remove();
 }

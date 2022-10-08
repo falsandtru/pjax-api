@@ -6,7 +6,7 @@ export function css(
     dst: Document;
   },
   ignore: string
-): undefined {
+): void {
   const selector: string = 'link[rel~="stylesheet"], style';
   return void (['head', 'body'] as const)
     .map(query => [

@@ -11,21 +11,21 @@ export const parse: Parser = [parseByDOM, parseByDoc]
 
 function parseByDOM(html: string): Document {
   const document = new DOMParser().parseFromString(html, 'text/html');
-  void fix(document);
+  fix(document);
   return document;
 }
 
 function parseByDoc(html: string): Document {
   const document = window.document.implementation.createHTMLDocument('');
-  void document.open();
-  void document.write(html);
-  void document.close();
-  void fix(document);
+  document.open();
+  document.write(html);
+  document.close();
+  fix(document);
   return document;
 }
 
 export function fix(doc: Document): void {
-  void fixNoscript(doc);
+  fixNoscript(doc);
 }
 
 function fixNoscript(doc: Document): void {
@@ -63,7 +63,7 @@ function test(parser: (html: string) => Document): boolean {
       case doc.querySelector('img')!.src.endsWith('abc'):
       case doc.querySelector('head > noscript')!.textContent === '<style>/**/</style>':
       case doc.querySelector('body > noscript')!.textContent === 'noscript':
-        throw void 0;
+        throw undefined;
     }
     return true;
   }

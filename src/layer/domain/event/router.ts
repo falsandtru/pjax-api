@@ -1,4 +1,3 @@
-import { Object } from 'spica/global';
 import { serialize } from '../../../lib/dom';
 import { URL, StandardURL, standardize } from 'spica/url';
 import { currentTarget } from 'typed-dom/listener';
@@ -10,7 +9,7 @@ export class RouterEvent {
   ) {
     assert(['click', 'submit', 'popstate'].includes(this.original.type));
     assert([HTMLAnchorElement, HTMLAreaElement, HTMLFormElement, Window].some(Class => this.source instanceof Class));
-    void Object.freeze(this);
+    Object.freeze(this);
   }
   public readonly type: RouterEventType = this.original.type.toLowerCase() as RouterEventType;
   public readonly source: RouterEventSource = this.original[currentTarget] as RouterEventSource;
@@ -55,7 +54,7 @@ export class RouterEventRequest {
     private readonly source: RouterEventSource,
     private readonly base: URL<StandardURL>,
   ) {
-    void Object.freeze(this);
+    Object.freeze(this);
   }
   public readonly method: RouterEventMethod = (() => {
     if (this.source instanceof RouterEventSource.Anchor || this.source instanceof RouterEventSource.Area) {
@@ -96,6 +95,6 @@ export class RouterEventLocation {
     public readonly orig: URL<StandardURL>,
     public readonly dest: URL<StandardURL>
   ) {
-    void Object.freeze(this);
+    Object.freeze(this);
   }
 }

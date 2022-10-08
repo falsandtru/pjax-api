@@ -1,4 +1,3 @@
-import { Object } from 'spica/global';
 import { Config as Option, Sequence as ISequence } from '../../../../';
 import { Dict } from 'spica/dict';
 import { Cache } from 'spica/cache';
@@ -9,7 +8,7 @@ export { scope } from './config/scope';
 
 export class Config implements Option {
   constructor(option: Option) {
-    void Object.defineProperties(this.update, {
+    Object.defineProperties(this.update, {
       ignore: {
         enumerable: false,
         set(this: Config['update'], value: string) {
@@ -23,12 +22,12 @@ export class Config implements Option {
         },
       },
     });
-    void extend<Option>(this, option);
-    void overwrite(this.scope, option?.scope ?? {});
+    extend<Option>(this, option);
+    overwrite(this.scope, option?.scope ?? {});
     this.fetch.headers = new Headers(this.fetch.headers);
-    void Object.freeze(this);
-    void this.fetch.headers.set('X-Requested-With', 'XMLHttpRequest');
-    void this.fetch.headers.set('X-Pjax', '1');
+    Object.freeze(this);
+    this.fetch.headers.set('X-Requested-With', 'XMLHttpRequest');
+    this.fetch.headers.set('X-Pjax', '1');
   }
   public readonly areas = ['body'];
   public readonly link = ':is(a, area)[href]:not([target])';

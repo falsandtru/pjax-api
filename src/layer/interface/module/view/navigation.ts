@@ -13,7 +13,7 @@ export class NavigationView extends Coroutine<never> {
       return this.finally(bind(window, 'popstate', ev => {
         if (!isTransitable(page.state) || !isTransitable(window.history.state)) return;
         if (standardize(window.location.href) === page.url.href) return;
-        void listener(ev);
+        listener(ev);
       }));
     }, { delay: false });
   }

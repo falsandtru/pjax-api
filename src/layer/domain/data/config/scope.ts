@@ -1,4 +1,3 @@
-import { Object } from 'spica/global';
 import { Config as Option } from '../../../../../';
 import { Config } from '../../../domain/data/config';
 import { router } from 'spica/router';

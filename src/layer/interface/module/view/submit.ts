@@ -10,7 +10,7 @@ export class SubmitView extends Coroutine<never> {
     super(async function* () {
       return this.finally(delegate(document, selector, 'submit', ev => {
         if (!(ev.currentTarget instanceof HTMLFormElement)) return;
-        void listener(ev);
+        listener(ev);
       }));
     }, { delay: false });
   }

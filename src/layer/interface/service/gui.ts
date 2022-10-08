@@ -22,8 +22,8 @@ export class GUI extends API {
     },
   ) {
     super();
-    void GUI.resources.clear();
-    void GUI.resources.register('view', this.view);
+    GUI.resources.clear();
+    GUI.resources.register('view', this.view);
   }
   private readonly view = new View(this.option, this.io);
   public assign(url: string): boolean {

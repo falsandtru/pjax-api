@@ -2,7 +2,7 @@ import { RouterEventSource, RouterEventType, RouterEventLocation } from '../../.
 import { bind } from 'typed-dom/listener';
 
 // A part of the workaround to record the correct browser history.
-void bind(document, 'pjax:ready', () =>
+bind(document, 'pjax:ready', () =>
   void window.history.replaceState(
     window.history.state,
     window.document.title));

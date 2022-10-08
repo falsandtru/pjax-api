@@ -1,12 +1,11 @@
-import { window } from 'spica/global';
 import { isTransitable } from '../../../data/store/state';
 import { URL, StandardURL, standardize } from 'spica/url';
 import { bind } from 'typed-dom/listener';
 
-void bind(window, 'hashchange', () =>
+bind(window, 'hashchange', () =>
   void page.sync(), true);
 
-void bind(window, 'popstate', () =>
+bind(window, 'popstate', () =>
   isTransitable(page.state) && isTransitable(window.history.state) || void page.sync(), true);
 
 export const page = new class {
@@ -29,13 +28,13 @@ export const page = new class {
   }
   public complete(): void {
     this.$url = this.target ?? new URL(standardize(window.location.href));
-    this.target = void 0;
+    this.target = undefined;
     this.$state = window.history.state;
     this.available = true;
   }
   public sync(): void {
     this.$url = new URL(standardize(window.location.href));
-    this.target = void 0;
+    this.target = undefined;
     this.$state = window.history.state;
   }
 }();

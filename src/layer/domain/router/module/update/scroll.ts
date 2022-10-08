@@ -41,7 +41,7 @@ function hash(
   if (index.length === 0) return false;
   const el = document.getElementById(index) || document.getElementsByName(index)[0];
   if (!el) return false;
-  void io.scrollToElement(el);
+  io.scrollToElement(el);
   return true;
 }
 export { hash as _hash }

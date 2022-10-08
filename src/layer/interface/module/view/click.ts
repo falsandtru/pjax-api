@@ -11,7 +11,7 @@ export class ClickView extends Coroutine<never> {
       return this.finally(delegate(document, selector, 'click', ev => {
         if (!(ev.currentTarget instanceof HTMLAnchorElement || ev.currentTarget instanceof HTMLAreaElement)) return;
         assert(typeof ev.currentTarget.href === 'string');
-        void listener(ev);
+        listener(ev);
       }));
     }, { delay: false });
   }

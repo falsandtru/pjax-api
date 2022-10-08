@@ -7,7 +7,7 @@ export function head(
   },
   selector: string,
   ignore: string
-): undefined {
+): void {
   ignore += selector.includes('link') ? ', link[rel~="stylesheet"]' : '';
   return void sync(
     pair(

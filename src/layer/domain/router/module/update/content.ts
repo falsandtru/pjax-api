@@ -31,7 +31,7 @@ export function content(
         dst: area.dst[i]
       }))
       .map(area => (
-        void replace(area),
+        replace(area),
         querySelectorAll(area.src, 'img, iframe, frame')
           .map(wait)))
       .reduce<AtomicPromise<Event>[]>(push, []);
@@ -39,12 +39,12 @@ export function content(
     function replace(area: { src: HTMLElement, dst: HTMLElement; }): void {
       const unescape = [...area.src.querySelectorAll('script')]
         .map(escape)
-        .reduce((f, g) => () => (
-          void f(),
-          void g())
-        , () => void 0);
-      void io.replace(area.src, area.dst);
-      void unescape();
+        .reduce((f, g) => () => {
+          f();
+          g();
+        }, () => undefined);
+      io.replace(area.src, area.dst);
+      unescape();
     }
   }
 }

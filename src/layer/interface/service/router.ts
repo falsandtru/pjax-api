@@ -11,7 +11,7 @@ import { Just } from 'spica/maybe';
 import { never } from 'spica/promise';
 import { bind } from 'typed-dom/listener';
 
-void bind(window, 'pjax:unload', () =>
+bind(window, 'pjax:unload', () =>
   window.history.scrollRestoration = 'auto', true);
 
 export { Config, RouterEvent, RouterEventSource }
@@ -28,7 +28,7 @@ export function route(
   switch (event.type) {
     case RouterEventType.Click:
     case RouterEventType.Submit:
-      void savePosition();
+      savePosition();
       break;
     case RouterEventType.Popstate:
       io.document.title = loadTitle();
@@ -42,61 +42,61 @@ export function route(
     .bind(() =>
       scope(config, (({ orig, dest }) => ({ orig: orig.pathname, dest: dest.pathname }))(event.location)))
     .fmap(async config => {
-      void event.original.preventDefault();
-      void process.cast('', new Error(`Canceled.`));
+      event.original.preventDefault();
+      process.cast('', new Error(`Canceled.`));
       const cancellation = new Cancellation<Error>();
       const kill = process.register('', err => {
-        void kill();
-        void cancellation.cancel(err);
+        kill();
+        cancellation.cancel(err);
         return never;
       });
       page.isAvailable() && config.memory?.set(event.location.orig.path, io.document.cloneNode(true));
       page.process(event.location.dest);
       const [scripts] = await env;
       window.history.scrollRestoration = 'manual';
-      //void progressbar(config.progressbar);
+      //progressbar(config.progressbar);
       return router(config, event, { process: cancellation, scripts }, io)
         .then(m => m
-          .fmap(async ([ss, p]) => (
-            void kill(),
-            void page.complete(),
-            void ss
-              .filter(s => s.hasAttribute('src'))
-              .forEach(s =>
-                void scripts.add(new URL(standardize(s.src)).href)),
-            void (await p)
-              .filter(s => s.hasAttribute('src'))
-              .forEach(s =>
-                void scripts.add(new URL(standardize(s.src)).href))))
+          .fmap(async ([ss, p]) => {
+            kill();
+            page.complete();
+            for (const el of ss.filter(s => s.hasAttribute('src'))) {
+              scripts.add(new URL(standardize(el.src)).href);
+            }
+            for (const el of (await p).filter(s => s.hasAttribute('src'))) {
+              scripts.add(new URL(standardize(el.src)).href);
+            }
+          })
           .extract())
-        .catch(reason => (
-          void kill(),
-          void page.complete(),
-          window.history.scrollRestoration = 'auto',
-          cancellation.isAlive() || reason instanceof FatalError
-            ? void config.fallback(event.source, reason)
-            : void 0));
+        .catch(reason => {
+          kill();
+          page.complete();
+          window.history.scrollRestoration = 'auto';
+          if (cancellation.isAlive() || reason instanceof FatalError) {
+            config.fallback(event.source, reason);
+          }
+        });
     })
     .extract(
       () => {
         assert(!event.original.defaultPrevented);
         switch (event.type) {
           case RouterEventType.Click:
-            (event.source as RouterEventSource.Link).matches('[href]') && void process.cast('', new Error(`Canceled.`));
-            void page.sync();
+            (event.source as RouterEventSource.Link).matches('[href]') && process.cast('', new Error(`Canceled.`));
+            page.sync();
             return false;
           case RouterEventType.Submit:
-            void process.cast('', new Error(`Canceled.`));
-            void page.sync();
+            process.cast('', new Error(`Canceled.`));
+            page.sync();
             return false;
           case RouterEventType.Popstate:
             if (isHashChange(event.location.dest)) {
-              void process.cast('', new Error(`Canceled.`));
-              void page.sync();
+              process.cast('', new Error(`Canceled.`));
+              page.sync();
               return false;
             }
-            void config.fallback(event.source, new Error(`Disabled.`));
-            void page.sync();
+            config.fallback(event.source, new Error(`Disabled.`));
+            page.sync();
             return true;
         }
       },
