@@ -13,7 +13,7 @@ import { Supervisor } from 'spica/supervisor';
 import { Copropagator } from 'spica/copropagator';
 
 export class GUI extends API {
-  private static readonly resources = new class extends Supervisor { }();
+  private static readonly resources = new class extends Supervisor<string> { }();
   constructor(
     private readonly option: Option,
     private readonly io = {
