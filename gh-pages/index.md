@@ -1,6 +1,6 @@
 ---
 layout: layout
-title: PJAX
+title: PJAX - The advanced PJAX for web services.
 type: index
 class: style-top
 ---
