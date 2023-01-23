@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.38.1
+
+- Micro refactoring.
+
 ## 3.38.0
 
 - Add `cache` option.
