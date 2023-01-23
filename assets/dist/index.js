@@ -6329,7 +6329,11 @@ class Config {
       ${window.innerWidth - document.body.clientWidth ? 'overflow-y: scroll;' : ''}
       ${window.innerHeight - document.body.clientHeight ? 'overflow-x: scroll;' : ''}
     }`;
-    this.cache = new cache_1.Cache(100);
+    this.cache = new cache_1.Cache(100, {
+      sweep: {
+        threshold: 0
+      }
+    });
     this.fetch = {
       rewrite: path => path,
       headers: new Headers(),
