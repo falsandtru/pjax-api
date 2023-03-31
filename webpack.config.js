@@ -75,7 +75,7 @@ module.exports = env => {
       return merge(config);
     case 'lint':
       return merge(config, {
-        entry: glob.sync('./!(node_modules)**/*.ts'),
+        entry: glob.sync('./!(node_modules)/**/*.ts'),
         plugins: [
           new ESLintPlugin({
             extensions: ['ts'],
