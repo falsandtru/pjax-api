@@ -28,7 +28,7 @@ module.exports = env => {
     resolve: {
       extensions: ['.ts', '.js'],
     },
-    entry: glob.sync('./{src,test}/**/*.ts'),
+    entry: glob.sync('./{src,test}/**/*.ts', { absolute: true }),
     output: {
       filename: 'index.js',
       path: path.resolve(__dirname, 'dist'),
@@ -75,7 +75,7 @@ module.exports = env => {
       return merge(config);
     case 'lint':
       return merge(config, {
-        entry: glob.sync('./!(node_modules)/**/*.ts'),
+        entry: glob.sync('./!(node_modules)/**/*.ts', { absolute: true }),
         plugins: [
           new ESLintPlugin({
             extensions: ['ts'],
@@ -84,7 +84,7 @@ module.exports = env => {
       });
     case 'bench':
       return merge(config, {
-        entry: glob.sync('./benchmark/**/*.ts'),
+        entry: glob.sync('./benchmark/**/*.ts', { absolute: true }),
         module: {
           rules: [
             {
@@ -103,7 +103,7 @@ module.exports = env => {
       });
     case 'dist':
       return merge(config, {
-        entry: glob.sync('./index.ts'),
+        entry: glob.sync('./index.ts', { absolute: true }),
         module: {
           rules: [
             {
