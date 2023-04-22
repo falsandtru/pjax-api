@@ -11,7 +11,7 @@ describe('Integration: Config', function () {
 
   describe('update.rewrite', function () {
     it('', function (done) {
-      const url = '/base/test/integration/fixture/basic/1.html';
+      const url = '/base/test/integration/fixture/basic/2.html';
       const document = parse('').extract();
       new Pjax({
         memory: new Cache(100),
@@ -27,16 +27,16 @@ describe('Integration: Config', function () {
         .assign(url);
       once(document, 'pjax:ready', () => {
         assert(window.location.pathname === url);
-        assert(document.title === 'Title 1');
-        assert(document.querySelector('#primary')!.textContent === 'Primary 1');
-        document.querySelector('#primary')!.textContent = 'PRIMARY 1';
+        assert(document.title === 'Title 2');
+        assert(document.querySelector('#primary')!.textContent === 'Primary 2');
+        document.querySelector('#primary')!.textContent = 'PRIMARY 2';
         once(document, 'pjax:ready', () => {
           assert(window.location.pathname !== url);
-          assert(document.title !== 'Title 1');
+          assert(document.title !== 'Title 2');
           once(document, 'pjax:ready', () => {
             assert(window.location.pathname === url);
-            assert(document.title === 'Title 1');
-            assert(document.querySelector('#primary')!.textContent === 'PRIMARY 1');
+            assert(document.title === 'Title 2');
+            assert(document.querySelector('#primary')!.textContent === 'PRIMARY 2');
             done();
           });
           window.history.go(1);

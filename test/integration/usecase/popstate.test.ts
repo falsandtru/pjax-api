@@ -11,20 +11,20 @@ describe('Integration: Usecase', function () {
 
   describe('popstate', function () {
     it('basic', function (done) {
-      const url = '/base/test/integration/fixture/basic/1.html';
+      const url = '/base/test/integration/fixture/basic/2.html';
       const document = parse('').extract();
       new Pjax({}, { document, router });
       once(document, 'pjax:ready', () => {
         assert(window.location.pathname === url);
-        assert(document.title === 'Title 1');
-        assert(document.querySelector('#primary')!.textContent === 'Primary 1');
+        assert(document.title === 'Title 2');
+        assert(document.querySelector('#primary')!.textContent === 'Primary 2');
         once(document, 'pjax:ready', () => {
           assert(window.location.pathname !== url);
-          assert(document.title !== 'Title 1');
+          assert(document.title !== 'Title 2');
           once(document, 'pjax:ready', () => {
             assert(window.location.pathname === url);
-            assert(document.title === 'Title 1');
-            assert(document.querySelector('#primary')!.textContent === 'Primary 1');
+            assert(document.title === 'Title 2');
+            assert(document.querySelector('#primary')!.textContent === 'Primary 2');
             done();
           });
           window.history.go(1);

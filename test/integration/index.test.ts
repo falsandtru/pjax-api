@@ -17,7 +17,7 @@ describe('Integration: Package', function () {
 
   describe('event', function () {
     it('sequence', function (done) {
-      const path = '/base/test/integration/fixture/basic/2.html';
+      const path = '/base/test/integration/fixture/basic/1.html';
       const document = parse('').extract();
       new Pjax({
         fallback: done
@@ -39,8 +39,8 @@ describe('Integration: Package', function () {
         assert(ev instanceof Event);
         assert(window.history.scrollRestoration === 'auto');
         assert(window.location.pathname === path);
-        assert(document.title === 'Title 2');
-        assert(document.querySelector('header')!.innerHTML === 'Header 2');
+        assert(document.title === 'Title 1');
+        assert(document.querySelector('header')!.innerHTML === 'Header 1');
         assert(cnt === 2 && ++cnt);
       });
       once(document, 'pjax:ready', ev => {
@@ -60,7 +60,7 @@ describe('Integration: Package', function () {
 
   describe('sequence', function () {
     it('sequence', function (done) {
-      const path = '/base/test/integration/fixture/basic/1.html';
+      const path = '/base/test/integration/fixture/basic/2.html';
       const document = parse('').extract();
       const sequence: Sequence<1, 2, 3, 4> = {
         async fetch(r, req) {
@@ -91,8 +91,8 @@ describe('Integration: Package', function () {
           assert.deepStrictEqual(areas, [document.body]);
           assert(window.history.scrollRestoration === 'auto');
           assert(window.location.pathname === path);
-          assert(document.title === 'Title 1');
-          assert(document.querySelector('header')!.innerHTML === 'Header 1');
+          assert(document.title === 'Title 2');
+          assert(document.querySelector('header')!.innerHTML === 'Header 2');
           return 3;
         },
         async ready(r) {
