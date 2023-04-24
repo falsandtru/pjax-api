@@ -1415,13 +1415,13 @@ class Coroutine {
     return await this;
   }
 }
-exports.Coroutine = Coroutine;
 _c = port;
 Coroutine.alive = alive;
 Coroutine.init = init;
 Coroutine.exit = exit;
 Coroutine.terminate = terminate;
 Coroutine.port = port;
+exports.Coroutine = Coroutine;
 Coroutine.prototype.then = promise_1.AtomicPromise.prototype.then;
 Coroutine.prototype.catch = promise_1.AtomicPromise.prototype.catch;
 Coroutine.prototype.finally = promise_1.AtomicPromise.prototype.finally;
@@ -1778,17 +1778,18 @@ AtomicFuture.prototype.finally = promise_1.AtomicPromise.prototype.finally;
 /***/ }),
 
 /***/ 4128:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
 __webpack_require__(6921);
-const global =  false || typeof globalThis !== 'undefined' && globalThis
-// @ts-ignore
-|| typeof self !== 'undefined' && self || Function('return this')();
+const global = globalThis;
 global.global = global;
-module.exports = global;
+exports["default"] = global;
 
 /***/ }),
 
@@ -1799,9 +1800,7 @@ module.exports = global;
 
 
 // @ts-ignore
-var globalThis;
-// @ts-ignore
-var global = (/* unused pure expression or super */ null && (globalThis));
+var global = globalThis;
 
 /***/ }),
 
@@ -1892,9 +1891,9 @@ class Heap {
     this.$length = 0;
   }
 }
-exports.Heap = Heap;
 Heap.max = (a, b) => a > b ? -1 : a < b ? 1 : 0;
 Heap.min = (a, b) => a > b ? 1 : a < b ? -1 : 0;
+exports.Heap = Heap;
 function sort(cmp, array, index, length, stable) {
   if (length === 0) return false;
   switch (index) {
@@ -2036,9 +2035,9 @@ class MultiHeap {
     this.$length = 0;
   }
 }
-exports.MultiHeap = MultiHeap;
 MultiHeap.max = Heap.max;
 MultiHeap.min = Heap.min;
+exports.MultiHeap = MultiHeap;
 
 /***/ }),
 
@@ -4707,10 +4706,10 @@ class PriorityQueue {
     return;
   }
 }
-exports.PriorityQueue = PriorityQueue;
 PriorityQueue.priority = Symbol('priority');
 PriorityQueue.max = heap_1.Heap.max;
 PriorityQueue.min = heap_1.Heap.min;
+exports.PriorityQueue = PriorityQueue;
 class MultiQueue {
   constructor(entries) {
     this.dict = new Map();
@@ -5602,9 +5601,9 @@ class Supervisor extends coroutine_1.Coroutine {
     }
   }
 }
-exports.Supervisor = Supervisor;
 _a = coroutine_1.Coroutine.port;
 Supervisor.standalone = new WeakSet();
+exports.Supervisor = Supervisor;
 class NamePool {
   constructor(workers, selector) {
     this.workers = workers;
@@ -5954,7 +5953,10 @@ class URL {
     this.source = source;
     this.base = base;
     this.url = new format_1.ReadonlyURL(source, base);
+
+    //assert(this.href.startsWith(this.resource));
   }
+
   get href() {
     return this.params?.toString().replace(/^(?=.)/, `${this.url.href.slice(0, -this.url.query.length - this.url.fragment.length || this.url.href.length)}?`).concat(this.fragment) ?? this.url.href;
   }
@@ -6124,7 +6126,6 @@ class ReadonlyURL {
     return this.href;
   }
 }
-exports.ReadonlyURL = ReadonlyURL;
 // Can't freeze URL object in the Firefox extension environment.
 // ref: https://github.com/falsandtru/pjax-api/issues/44#issuecomment-633915035
 // Bug: Error in dependents.
@@ -6132,6 +6133,7 @@ exports.ReadonlyURL = ReadonlyURL;
 ReadonlyURL.get = (0, memoize_1.memoize)((url, base) => ({
   url: new __webpack_require__.g.URL(url, base)
 }), (url, base = '') => `${base.indexOf('\n') > -1 ? base.replace(/\n+/g, '') : base}\n${url}`, new cache_1.Cache(10000));
+exports.ReadonlyURL = ReadonlyURL;
 
 /***/ }),
 
@@ -7166,10 +7168,9 @@ function evaluate(script, code, logger, skip, wait, cancellation) {
   const result = promise_1.AtomicPromise.resolve(wait).then(evaluate);
   return script.matches('[src][async]') ? (0, either_1.Right)(result) : (0, either_1.Left)(result);
   function evaluate() {
-    var _a;
     if (!cancellation.isAlive()) throw new error_1.FatalError('Expired.');
     if (script.matches('[type="module"][src]')) {
-      return promise_1.AtomicPromise.resolve((_a = script.src, Promise.resolve().then(() => __importStar(__webpack_require__(8442)(_a))))).catch(reason => reason.message.startsWith('Failed to load ') && script.matches('[src][async]') ? retry(script).catch(() => promise_1.AtomicPromise.reject(reason)) : promise_1.AtomicPromise.reject(reason)).then(() => (script.dispatchEvent(new Event('load')), (0, either_1.Right)(script)), reason => (script.dispatchEvent(new Event('error')), (0, either_1.Left)(new error_1.FatalError(reason instanceof Error ? reason.message : reason + ''))));
+      return promise_1.AtomicPromise.resolve(Promise.resolve(`${script.src}`).then(s => __importStar(__webpack_require__(8442)(s)))).catch(reason => reason.message.startsWith('Failed to load ') && script.matches('[src][async]') ? retry(script).catch(() => promise_1.AtomicPromise.reject(reason)) : promise_1.AtomicPromise.reject(reason)).then(() => (script.dispatchEvent(new Event('load')), (0, either_1.Right)(script)), reason => (script.dispatchEvent(new Event('error')), (0, either_1.Left)(new error_1.FatalError(reason instanceof Error ? reason.message : reason + ''))));
     } else {
       try {
         if (skip.has(new url_1.URL((0, url_1.standardize)(window.location.href)).href)) throw new error_1.FatalError('Expired.');
@@ -7632,8 +7633,8 @@ class GUI extends api_1.API {
     return api_1.API.replace(url, this.option, this.io);
   }
 }
-exports.GUI = GUI;
 GUI.resources = new class extends supervisor_1.Supervisor {}();
+exports.GUI = GUI;
 class View extends copropagator_1.Copropagator {
   constructor(option, io) {
     const config = new router_1.Config(option);
@@ -8048,7 +8049,7 @@ function test(parser) {
 /***/ 3252:
 /***/ (function(module) {
 
-/*! typed-dom v0.0.315 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
+/*! typed-dom v0.0.330 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(true)
 		module.exports = factory();
@@ -8058,7 +8059,7 @@ return /******/ (() => { // webpackBootstrap
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 406:
+/***/ 5406:
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -8081,7 +8082,7 @@ exports.ObjectSetPrototypeOf = Object.setPrototypeOf;
 
 /***/ }),
 
-/***/ 529:
+/***/ 5529:
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -8097,8 +8098,8 @@ exports.equal = equal;
 
 /***/ }),
 
-/***/ 808:
-/***/ ((__unused_webpack_module, exports, __nested_webpack_require_3147__) => {
+/***/ 1808:
+/***/ ((__unused_webpack_module, exports, __nested_webpack_require_3150__) => {
 
 
 
@@ -8106,8 +8107,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.reduce = exports.memoize = void 0;
-const alias_1 = __nested_webpack_require_3147__(406);
-const compare_1 = __nested_webpack_require_3147__(529);
+const alias_1 = __nested_webpack_require_3150__(5406);
+const compare_1 = __nested_webpack_require_3150__(5529);
 function memoize(f, identify = (...as) => as[0], memory) {
   if (typeof identify === 'object') return memoize(f, undefined, identify);
   return (0, alias_1.isArray)(memory) || memory?.constructor === Object ? memoizeRecord(f, identify, memory) : memoizeDict(f, identify, memory ?? new Map());
@@ -8153,8 +8154,8 @@ exports.reduce = reduce;
 
 /***/ }),
 
-/***/ 521:
-/***/ ((__unused_webpack_module, exports, __nested_webpack_require_4662__) => {
+/***/ 7521:
+/***/ ((__unused_webpack_module, exports, __nested_webpack_require_4668__) => {
 
 
 
@@ -8162,8 +8163,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.defrag = exports.prepend = exports.append = exports.isChildren = exports.define = exports.element = exports.text = exports.svg = exports.html = exports.frag = exports.shadow = void 0;
-const alias_1 = __nested_webpack_require_4662__(406);
-const memoize_1 = __nested_webpack_require_4662__(808);
+const alias_1 = __nested_webpack_require_4668__(5406);
+const memoize_1 = __nested_webpack_require_4668__(1808);
 var caches;
 (function (caches) {
   caches.shadows = new WeakMap();
@@ -8192,20 +8193,22 @@ function text(source) {
 exports.text = text;
 function element(context, ns) {
   return (tag, attrs, children) => {
-    const el = elem(context, ns, tag);
-    return !attrs || isChildren(attrs) ? defineChildren(el, attrs ?? children) : defineChildren(defineAttrs(el, attrs), children);
+    return !attrs || isChildren(attrs) ? defineChildren(elem(context, ns, tag, {}), attrs ?? children) : defineChildren(defineAttrs(elem(context, ns, tag, attrs), attrs), children);
   };
 }
 exports.element = element;
-function elem(context, ns, tag) {
+function elem(context, ns, tag, attrs) {
   if (!('createElement' in context)) throw new Error(`TypedDOM: Scoped custom elements are not supported on this browser.`);
+  const opts = 'is' in attrs ? {
+    is: attrs['is']
+  } : undefined;
   switch (ns) {
     case "HTML" /* NS.HTML */:
-      return context.createElement(tag);
+      return context.createElement(tag, opts);
     case "SVG" /* NS.SVG */:
-      return context.createElementNS('http://www.w3.org/2000/svg', tag);
+      return context.createElementNS('http://www.w3.org/2000/svg', tag, opts);
     case "MathML" /* NS.MathML */:
-      return context.createElementNS('http://www.w3.org/1998/Math/MathML', tag);
+      return context.createElementNS('http://www.w3.org/1998/Math/MathML', tag, opts);
   }
 }
 function define(node, attrs, children) {
@@ -8220,8 +8223,11 @@ function define(node, attrs, children) {
 }
 exports.define = define;
 function defineAttrs(el, attrs) {
-  for (const name in attrs) {
-    if (!(0, alias_1.hasOwnProperty)(attrs, name)) continue;
+  for (const name of Object.keys(attrs)) {
+    switch (name) {
+      case 'is':
+        continue;
+    }
     const value = attrs[name];
     switch (typeof value) {
       case 'string':
@@ -8289,7 +8295,7 @@ function defineChildren(node, children) {
   return node;
 }
 function isChildren(value) {
-  return !!value?.[Symbol.iterator];
+  return value?.[Symbol.iterator] !== undefined;
 }
 exports.isChildren = isChildren;
 function append(node, children) {
@@ -8342,7 +8348,7 @@ exports.defrag = defrag;
 /******/ 	var __webpack_module_cache__ = {};
 /******/ 	
 /******/ 	// The require function
-/******/ 	function __nested_webpack_require_11449__(moduleId) {
+/******/ 	function __nested_webpack_require_11589__(moduleId) {
 /******/ 		// Check if module is in cache
 /******/ 		var cachedModule = __webpack_module_cache__[moduleId];
 /******/ 		if (cachedModule !== undefined) {
@@ -8356,7 +8362,7 @@ exports.defrag = defrag;
 /******/ 		};
 /******/ 	
 /******/ 		// Execute the module function
-/******/ 		__webpack_modules__[moduleId](module, module.exports, __nested_webpack_require_11449__);
+/******/ 		__webpack_modules__[moduleId](module, module.exports, __nested_webpack_require_11589__);
 /******/ 	
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
@@ -8367,9 +8373,9 @@ exports.defrag = defrag;
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nested_webpack_require_11449__(521);
+/******/ 	var __nested_webpack_exports__ = __nested_webpack_require_11589__(7521);
 /******/ 	
-/******/ 	return __webpack_exports__;
+/******/ 	return __nested_webpack_exports__;
 /******/ })()
 ;
 });
@@ -8379,7 +8385,7 @@ exports.defrag = defrag;
 /***/ 1051:
 /***/ (function(module) {
 
-/*! typed-dom v0.0.315 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
+/*! typed-dom v0.0.330 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(true)
 		module.exports = factory();
@@ -8389,7 +8395,7 @@ return /******/ (() => { // webpackBootstrap
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 406:
+/***/ 5406:
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -8412,7 +8418,7 @@ exports.ObjectSetPrototypeOf = Object.setPrototypeOf;
 
 /***/ }),
 
-/***/ 288:
+/***/ 6288:
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -8451,8 +8457,8 @@ exports.noop = noop;
 
 /***/ }),
 
-/***/ 879:
-/***/ ((__unused_webpack_module, exports, __nested_webpack_require_3632__) => {
+/***/ 4879:
+/***/ ((__unused_webpack_module, exports, __nested_webpack_require_3635__) => {
 
 
 
@@ -8461,8 +8467,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.never = exports.isPromiseLike = exports.Internal = exports.AtomicPromise = exports.internal = void 0;
-const alias_1 = __nested_webpack_require_3632__(406);
-const function_1 = __nested_webpack_require_3632__(288);
+const alias_1 = __nested_webpack_require_3635__(5406);
+const function_1 = __nested_webpack_require_3635__(6288);
 exports.internal = Symbol.for('spica/promise::internal');
 class AtomicPromise {
   static all(vs) {
@@ -8795,8 +8801,8 @@ exports.never = new class Never extends Promise {
 
 /***/ }),
 
-/***/ 251:
-/***/ ((__unused_webpack_module, exports, __nested_webpack_require_13152__) => {
+/***/ 7251:
+/***/ ((__unused_webpack_module, exports, __nested_webpack_require_13158__) => {
 
 
 
@@ -8804,9 +8810,9 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.bind = exports.delegate = exports.once = exports.listen = exports.currentTarget = void 0;
-const alias_1 = __nested_webpack_require_13152__(406);
-const promise_1 = __nested_webpack_require_13152__(879);
-const function_1 = __nested_webpack_require_13152__(288);
+const alias_1 = __nested_webpack_require_13158__(5406);
+const promise_1 = __nested_webpack_require_13158__(4879);
+const function_1 = __nested_webpack_require_13158__(6288);
 exports.currentTarget = Symbol.for('typed-dom::currentTarget');
 function listen(target, selector, type, listener, option) {
   return typeof type === 'string' ? delegate(target, selector, type, listener, option) : bind(target, selector, type, listener);
@@ -8900,7 +8906,7 @@ exports.bind = bind;
 /******/ 	var __webpack_module_cache__ = {};
 /******/ 	
 /******/ 	// The require function
-/******/ 	function __nested_webpack_require_16239__(moduleId) {
+/******/ 	function __nested_webpack_require_16248__(moduleId) {
 /******/ 		// Check if module is in cache
 /******/ 		var cachedModule = __webpack_module_cache__[moduleId];
 /******/ 		if (cachedModule !== undefined) {
@@ -8914,7 +8920,7 @@ exports.bind = bind;
 /******/ 		};
 /******/ 	
 /******/ 		// Execute the module function
-/******/ 		__webpack_modules__[moduleId](module, module.exports, __nested_webpack_require_16239__);
+/******/ 		__webpack_modules__[moduleId](module, module.exports, __nested_webpack_require_16248__);
 /******/ 	
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
@@ -8925,9 +8931,9 @@ exports.bind = bind;
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nested_webpack_require_16239__(251);
+/******/ 	var __nested_webpack_exports__ = __nested_webpack_require_16248__(7251);
 /******/ 	
-/******/ 	return __webpack_exports__;
+/******/ 	return __nested_webpack_exports__;
 /******/ })()
 ;
 });
@@ -8937,7 +8943,7 @@ exports.bind = bind;
 /***/ 6120:
 /***/ (function(module) {
 
-/*! typed-dom v0.0.315 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
+/*! typed-dom v0.0.330 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(true)
 		module.exports = factory();
@@ -8945,10 +8951,10 @@ exports.bind = bind;
 })(this, () => {
 return /******/ (() => { // webpackBootstrap
 /******/ 	"use strict";
-var __webpack_exports__ = {};
+var __nested_webpack_exports__ = {};
 // This entry need to be wrapped in an IIFE because it uses a non-standard name for the exports (exports).
 (() => {
-var exports = __webpack_exports__;
+var exports = __nested_webpack_exports__;
 
 
 Object.defineProperty(exports, "__esModule", ({
@@ -8980,7 +8986,7 @@ function querySelectorAll(node, selector) {
 exports.querySelectorAll = querySelectorAll;
 })();
 
-/******/ 	return __webpack_exports__;
+/******/ 	return __nested_webpack_exports__;
 /******/ })()
 ;
 });
