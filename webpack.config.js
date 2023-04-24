@@ -28,7 +28,7 @@ module.exports = env => {
     resolve: {
       extensions: ['.ts', '.js'],
     },
-    entry: glob.sync('./{src,test}/**/*.ts', { absolute: true }),
+    entry: glob.sync('./{src,test}/**/*.ts', { absolute: true }).sort(),
     output: {
       filename: 'index.js',
       path: path.resolve(__dirname, 'dist'),
@@ -84,7 +84,7 @@ module.exports = env => {
       });
     case 'bench':
       return merge(config, {
-        entry: glob.sync('./benchmark/**/*.ts', { absolute: true }),
+        entry: glob.sync('./benchmark/**/*.ts', { absolute: true }).sort(),
         module: {
           rules: [
             {
