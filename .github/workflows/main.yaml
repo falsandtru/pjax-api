@@ -83,9 +83,10 @@ jobs:
           npm run dist
       - run: |
           git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
           git fetch --depth 9 origin $(git branch --show-current)
           npm i -g json
-          mkdir -p gh-pages/assets/dist
+          mkdir -p gh-pages/assets
           mv dist gh-pages/assets
           mkdir ../gh-pages
           mv gh-pages ..
@@ -97,12 +98,11 @@ jobs:
           git checkout $GITHUB_SHA package.json
           node -e 'if (!require("semver").gte(process.argv[1], process.argv[2])) process.exit(1)' $NEW_VERSION $OLD_VERSION || exit 0
           git fetch --depth 1 origin gh-pages:gh-pages
-          git checkout --orphan gh-pages || true
-          git checkout -f gh-pages
-          ls -a | grep -vE "^.git$|^\.+$" | xargs rm -r
+          git checkout -f gh-pages || git checkout --orphan gh-pages
+          rm -rf *
           mv ../gh-pages/* .
           find | grep -vE "^./.git(/|$)"
           sed -i 's|\(baseurl:\s\+\)|\1//falsandtru.github.io|' _config.yml
           git add -A
-          git commit -m "Update web contents" || true
+          git diff --staged --exit-code || git commit -m "Update web contents"
           git push origin gh-pages:gh-pages
