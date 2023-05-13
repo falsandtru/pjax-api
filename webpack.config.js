@@ -75,7 +75,7 @@ module.exports = env => {
       return merge(config);
     case 'lint':
       return merge(config, {
-        entry: glob.sync('./!(node_modules)/**/*.ts', { absolute: true }),
+        entry: glob.sync('./!(node_modules)/**/*.ts', { absolute: true }).sort(),
         plugins: [
           new ESLintPlugin({
             extensions: ['ts'],
@@ -103,7 +103,7 @@ module.exports = env => {
       });
     case 'dist':
       return merge(config, {
-        entry: glob.sync('./index.ts', { absolute: true }),
+        entry: glob.sync('./index.ts', { absolute: true }).sort(),
         module: {
           rules: [
             {
