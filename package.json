@@ -50,7 +50,7 @@
     "semver": "^7.5.0",
     "spica": "0.0.721",
     "ts-loader": "^9.4.2",
-    "typed-dom": "^0.0.330",
+    "typed-dom": "0.0.330",
     "typescript": "5.0.4",
     "webpack": "^5.80.0",
     "webpack-cli": "^5.0.2",
