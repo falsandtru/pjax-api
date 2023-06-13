@@ -46,6 +46,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports["default"] = void 0;
+__webpack_require__(4128);
 var export_1 = __webpack_require__(4279);
 Object.defineProperty(exports, "default", ({
   enumerable: true,
@@ -405,12 +406,12 @@ DWCはこの最適化を行っても状態数の多さに比例して増加し�
 
 */
 class Entry {
-  constructor(key, value, size, partition, region, expiration) {
+  constructor(key, value, size, partition, affiliation, expiration) {
     this.key = key;
     this.value = value;
     this.size = size;
     this.partition = partition;
-    this.region = region;
+    this.affiliation = affiliation;
     this.expiration = expiration;
     this.enode = undefined;
     this.next = undefined;
@@ -434,7 +435,9 @@ class Cache {
       },
       sweep: {
         threshold: 10,
+        ratio: 50,
         window: 2,
+        room: 50,
         range: 1,
         shift: 2
       }
@@ -445,7 +448,7 @@ class Cache {
     this.overlapLRU = 0;
     this.overlapLFU = 0;
     this.$size = 0;
-    this.injection = 0;
+    this.declination = 1;
     if (typeof capacity === 'object') {
       opts = capacity;
       capacity = opts.capacity ?? 0;
@@ -456,8 +459,9 @@ class Cache {
     this.capacity = capacity = settings.capacity;
     if (capacity >>> 0 !== capacity) throw new Error(`Spica: Cache: Capacity must be integer.`);
     if (capacity >= 1 === false) throw new Error(`Spica: Cache: Capacity must be 1 or more.`);
-    this.window = capacity * settings.window / 100 >>> 0;
+    this.window = capacity * settings.window / 100 >>> 0 || 1;
     this.partition = capacity - this.window;
+    this.injection = 100 * this.declination;
     this.sample = settings.sample;
     this.resource = settings.resource ?? capacity;
     this.expiration = opts.age !== undefined;
@@ -467,7 +471,7 @@ class Cache {
         stable: false
       });
     }
-    this.sweeper = new Sweeper(this.LRU, settings.sweep.threshold, capacity, settings.sweep.window, settings.sweep.range, settings.sweep.shift);
+    this.sweeper = new Sweeper(this.LRU, capacity, settings.sweep.window, settings.sweep.room, settings.sweep.threshold, settings.sweep.ratio, settings.sweep.range, settings.sweep.shift);
     this.disposer = settings.disposer;
   }
   get length() {
@@ -480,32 +484,80 @@ class Cache {
   get size() {
     return this.$size;
   }
+  resize(capacity, resource) {
+    if (capacity >>> 0 !== capacity) throw new Error(`Spica: Cache: Capacity must be integer.`);
+    if (capacity >= 1 === false) throw new Error(`Spica: Cache: Capacity must be 1 or more.`);
+    this.partition = this.partition / this.capacity * capacity >>> 0;
+    this.capacity = capacity;
+    const {
+      settings
+    } = this;
+    this.window = capacity * settings.window / 100 >>> 0 || 1;
+    this.resource = resource ?? settings.resource ?? capacity;
+    this.sweeper.resize(capacity, settings.sweep.window, settings.sweep.room, settings.sweep.range);
+    this.ensure(0);
+  }
+  clear() {
+    const {
+      LRU,
+      LFU
+    } = this;
+    this.$size = 0;
+    this.partition = this.capacity - this.window;
+    this.injection = 100 * this.declination;
+    this.dict = new Map();
+    this.LRU = new list_1.List();
+    this.LFU = new list_1.List();
+    this.overlapLRU = 0;
+    this.overlapLFU = 0;
+    this.expirations?.clear();
+    this.sweeper.clear();
+    this.sweeper.replace(this.LRU);
+    if (!this.disposer || !this.settings.capture.clear) return;
+    for (const {
+      key,
+      value
+    } of LRU) {
+      this.disposer(value, key);
+    }
+    for (const {
+      key,
+      value
+    } of LFU) {
+      this.disposer(value, key);
+    }
+  }
   evict$(entry, callback) {
     //assert(this.dict.size <= this.capacity);
 
-    entry.partition === this.LRU ? entry.region === 'LFU' && --this.overlapLFU : entry.region === 'LRU' && --this.overlapLRU;
+    this.overlap(entry, true);
     if (entry.enode !== undefined) {
       this.expirations.delete(entry.enode);
       entry.enode = undefined;
     }
-    entry.partition.delete(entry);
+    entry.partition === 'LRU' ? this.LRU.delete(entry) : this.LFU.delete(entry);
     this.dict.delete(entry.key);
     //assert(this.dict.size <= this.capacity);
     this.$size -= entry.size;
     callback && this.disposer?.(entry.value, entry.key);
   }
-  overlap(entry) {
-    if (entry.partition === this.LRU) {
-      if (entry.region === 'LRU') {
+  overlap(entry, eviction = false) {
+    if (entry.partition === 'LRU') {
+      if (entry.affiliation === 'LRU') {
+        if (eviction) return entry;
         ++this.overlapLRU;
       } else {
         --this.overlapLFU;
       }
     } else {
-      if (entry.region === 'LFU') {
+      if (entry.affiliation === 'LFU') {
+        if (eviction) return entry;
         ++this.overlapLFU;
       } else {
         --this.overlapLRU;
+        if (this.declination !== 1 && this.overlapLRU * 100 < this.LFU.length * this.sample) {
+          this.declination = 1;
+        }
       }
     }
     return entry;
@@ -518,7 +570,7 @@ class Cache {
       LFU
     } = this;
     while (this.size + margin - size > this.resource) {
-      this.injection = (0, alias_1.min)(this.injection + this.sample, 100);
+      this.injection = (0, alias_1.min)(this.injection + this.sample, 100 * this.declination);
       let victim = this.expirations?.peek()?.value;
       if (victim !== undefined && victim !== target && victim.expiration < (0, chrono_1.now)()) {} else if (LRU.length === 0) {
         victim = LFU.head.prev;
@@ -530,16 +582,17 @@ class Cache {
           if (entry !== undefined) {
             LFU.delete(entry);
             LRU.unshift(this.overlap(entry));
-            entry.partition = LRU;
+            entry.partition = 'LRU';
           }
         }
-        if (this.injection === 100 && LRU.length >= this.window && this.overlapLRU * 100 / (0, alias_1.min)(LFU.length, this.partition) < this.sample) {
+        if (LRU.length >= this.window && this.injection === 100 * this.declination) {
           const entry = LRU.head.prev;
-          if (entry.region === 'LRU') {
+          if (entry.affiliation === 'LRU') {
             LRU.delete(entry);
             LFU.unshift(this.overlap(entry));
-            entry.partition = LFU;
+            entry.partition = 'LFU';
             this.injection = 0;
+            this.declination = this.overlapLRU * 100 < LFU.length * this.sample ? 1 : (0, alias_1.min)(this.declination * 1.5, 5);
           }
         }
         if (this.sweeper.isActive()) {
@@ -586,29 +639,31 @@ class Cache {
       LRU,
       LFU
     } = this;
-    this.sweeper.hit();
-    if (entry.partition === LRU) {
-      // For memoize.
-      if (entry === LRU.head) return;
-      if (entry.region === 'LRU') {
-        entry.region = 'LFU';
+    if (entry.partition === 'LRU') {
+      if (entry.affiliation === 'LRU') {
+        // For memoize.
+        // Strict checks are ineffective for OLTP.
+        if (entry === LRU.head) return;
+        entry.affiliation = 'LFU';
       } else {
-        const delta = LRU.length > LFU.length && LRU.length >= this.capacity - this.partition ? LRU.length / (LFU.length || 1) * (this.overlapLRU || 1) / this.overlapLFU | 0 || 1 : 1;
+        const delta = LRU.length >= this.capacity - this.partition ? (0, alias_1.max)(LRU.length / (LFU.length || 1) * (0, alias_1.max)(this.overlapLRU / this.overlapLFU, 1) | 0, 1) : 0;
         this.partition = (0, alias_1.min)(this.partition + delta, this.capacity - this.window);
         --this.overlapLFU;
       }
       LRU.delete(entry);
       LFU.unshift(entry);
-      entry.partition = LFU;
+      entry.partition = 'LFU';
     } else {
-      // For memoize.
-      if (entry === LFU.head) return;
-      if (entry.region === 'LFU') {} else {
-        const delta = LFU.length > LRU.length && LFU.length >= this.partition ? LFU.length / (LRU.length || 1) * (this.overlapLFU || 1) / this.overlapLRU | 0 || 1 : 1;
+      if (entry.affiliation === 'LFU') {} else {
+        const delta = LFU.length >= this.partition ? (0, alias_1.max)(LFU.length / (LRU.length || 1) * (0, alias_1.max)(this.overlapLFU / this.overlapLRU, 1) | 0, 1) : 0;
         this.partition = (0, alias_1.max)(this.partition - delta, 0);
-        entry.region = 'LFU';
+        entry.affiliation = 'LFU';
         --this.overlapLRU;
+        if (this.declination !== 1 && this.overlapLRU * 100 < this.LFU.length * this.sample) {
+          this.declination = 1;
+        }
       }
+      if (entry === LFU.head) return;
       LFU.delete(entry);
       LFU.unshift(entry);
     }
@@ -637,16 +692,16 @@ class Cache {
     victim = this.ensure(size, victim, true);
     // Note that the key will be duplicate if the key is evicted and added again in disposing.
     if (victim !== undefined) {
-      victim.region === 'LFU' && --this.overlapLFU;
+      victim.affiliation === 'LFU' && --this.overlapLFU;
       this.dict.delete(victim.key);
       this.dict.set(key, victim);
-      victim.region = 'LRU';
+      victim.affiliation = 'LRU';
       LRU.head = victim;
       this.update(victim, key, value, size, expiration);
       return true;
     }
     this.$size += size;
-    const entry = new Entry(key, value, size, LRU, 'LRU', expiration);
+    const entry = new Entry(key, value, size, 'LRU', 'LRU', expiration);
     LRU.unshift(entry);
     this.dict.set(key, entry);
     if (this.expiration && this.expirations !== undefined && expiration !== Infinity) {
@@ -692,6 +747,7 @@ class Cache {
       this.evict$(entry, true);
       return;
     }
+    this.sweeper.hit();
     this.replace(entry);
     return entry.value;
   }
@@ -710,36 +766,6 @@ class Cache {
     this.evict$(entry, this.settings.capture.delete === true);
     return true;
   }
-  clear() {
-    const {
-      LRU,
-      LFU
-    } = this;
-    this.injection = 0;
-    this.$size = 0;
-    this.partition = this.capacity - this.window;
-    this.dict = new Map();
-    this.LRU = new list_1.List();
-    this.LFU = new list_1.List();
-    this.overlapLRU = 0;
-    this.overlapLFU = 0;
-    this.expirations?.clear();
-    this.sweeper.clear();
-    this.sweeper.replace(this.LRU);
-    if (!this.disposer || !this.settings.capture.clear) return;
-    for (const {
-      key,
-      value
-    } of LRU) {
-      this.disposer(value, key);
-    }
-    for (const {
-      key,
-      value
-    } of LFU) {
-      this.disposer(value, key);
-    }
-  }
   *[Symbol.iterator]() {
     for (const {
       key,
@@ -753,62 +779,88 @@ class Cache {
     } of this.LFU) {
       yield [key, value];
     }
-    return;
-  }
-  resize(capacity, resource) {
-    if (capacity >>> 0 !== capacity) throw new Error(`Spica: Cache: Capacity must be integer.`);
-    if (capacity >= 1 === false) throw new Error(`Spica: Cache: Capacity must be 1 or more.`);
-    this.partition = this.partition / this.capacity * capacity >>> 0;
-    this.capacity = capacity;
-    this.window = capacity * this.settings.window / 100 >>> 0;
-    this.resource = resource ?? this.settings.resource ?? capacity;
-    this.sweeper.resize(capacity, this.settings.sweep.window, this.settings.sweep.range);
-    this.ensure(0);
   }
 }
 exports.Cache = Cache;
 // Transitive Wide MRU with Cyclic Replacement
 class Sweeper {
-  constructor(target, threshold, capacity, window, range, shift) {
+  constructor(target, capacity, window, room, threshold, ratio, range, shift) {
     this.target = target;
-    this.threshold = threshold;
     this.window = window;
+    this.room = room;
+    this.threshold = threshold;
+    this.ratio = ratio;
     this.range = range;
     this.shift = shift;
-    this.currHits = 0;
-    this.currMisses = 0;
-    this.prevHits = 0;
-    this.prevMisses = 0;
+    this.currWindowHits = 0;
+    this.currWindowMisses = 0;
+    this.prevWindowHits = 0;
+    this.prevWindowMisses = 0;
+    this.currRoomHits = 0;
+    this.currRoomMisses = 0;
+    this.prevRoomHits = 0;
+    this.prevRoomMisses = 0;
     this.processing = false;
     this.direction = true;
     this.initial = true;
     this.back = 0;
     this.advance = 0;
     this.threshold *= 100;
-    this.window = (0, alias_1.round)(capacity * window / 100) || 1;
-    this.range = capacity * range / 100;
+    this.resize(capacity, window, room, range);
   }
-  slide() {
-    this.prevHits = this.currHits;
-    this.prevMisses = this.currMisses;
-    this.currHits = 0;
-    this.currMisses = 0;
+  replace(target) {
+    this.target = target;
+  }
+  resize(capacity, window, room, range) {
+    this.window = (0, alias_1.round)(capacity * window / 100) || 1;
+    this.room = (0, alias_1.round)(capacity * room / 100) || 1;
+    this.range = capacity * range / 100;
+    this.currWindowHits + this.currWindowMisses >= this.window && this.slideWindow();
+    this.currRoomHits + this.currRoomMisses >= this.room && this.slideRoom();
+    this.active = undefined;
+  }
+  clear() {
+    this.active = undefined;
+    this.processing = true;
+    this.reset();
+    this.slideWindow();
+    this.slideWindow();
+    this.slideRoom();
+    this.slideRoom();
+  }
+  slideWindow() {
+    this.prevWindowHits = this.currWindowHits;
+    this.prevWindowMisses = this.currWindowMisses;
+    this.currWindowHits = 0;
+    this.currWindowMisses = 0;
+  }
+  slideRoom() {
+    this.prevRoomHits = this.currRoomHits;
+    this.prevRoomMisses = this.currRoomMisses;
+    this.currRoomHits = 0;
+    this.currRoomMisses = 0;
   }
   hit() {
     this.active = undefined;
-    ++this.currHits + this.currMisses === this.window && this.slide();
+    ++this.currWindowHits + this.currWindowMisses === this.window && this.slideWindow();
+    ++this.currRoomHits + this.currRoomMisses === this.room && this.slideRoom();
     this.processing && !this.isActive() && this.reset();
   }
   miss() {
     this.active = undefined;
-    this.currHits + ++this.currMisses === this.window && this.slide();
+    this.currWindowHits + ++this.currWindowMisses === this.window && this.slideWindow();
+    this.currRoomHits + ++this.currRoomMisses === this.room && this.slideRoom();
   }
   isActive() {
-    if (this.prevHits === 0 && this.prevMisses === 0) return false;
-    return this.active ??= this.ratio() < this.threshold;
+    if (this.threshold === 0) return false;
+    if (this.prevWindowHits === 0 && this.prevWindowMisses === 0) return false;
+    return this.active ??= this.ratioWindow() < (0, alias_1.max)(this.ratioRoom() * this.ratio / 100, this.threshold);
   }
-  ratio() {
-    return ratio(this.window, [this.currHits, this.prevHits], [this.currMisses, this.prevMisses], 0);
+  ratioWindow() {
+    return ratio(this.window, [this.currWindowHits, this.prevWindowHits], [this.currWindowMisses, this.prevWindowMisses], 0);
+  }
+  ratioRoom() {
+    return ratio(this.room, [this.currRoomHits, this.prevRoomHits], [this.currRoomMisses, this.prevRoomMisses], 0);
   }
   sweep() {
     const {
@@ -854,22 +906,6 @@ class Sweeper {
     this.initial = true;
     this.back = 0;
     this.advance = 0;
-  }
-  clear() {
-    this.active = undefined;
-    this.processing = true;
-    this.reset();
-    this.slide();
-    this.slide();
-  }
-  replace(target) {
-    this.target = target;
-  }
-  resize(capacity, window, range) {
-    this.window = (0, alias_1.round)(capacity * window / 100) || 1;
-    this.range = capacity * range / 100;
-    this.currHits + this.currMisses >= this.window && this.slide();
-    this.active = undefined;
   }
 }
 function ratio(window, targets, remains, offset) {
@@ -1094,7 +1130,6 @@ class Channel {
     } catch (reason) {
       if (this.alive) throw reason;
     }
-    return;
   }
 }
 exports.Channel = Channel;
@@ -1415,13 +1450,13 @@ class Coroutine {
     return await this;
   }
 }
+exports.Coroutine = Coroutine;
 _c = port;
 Coroutine.alive = alive;
 Coroutine.init = init;
 Coroutine.exit = exit;
 Coroutine.terminate = terminate;
 Coroutine.port = port;
-exports.Coroutine = Coroutine;
 Coroutine.prototype.then = promise_1.AtomicPromise.prototype.then;
 Coroutine.prototype.catch = promise_1.AtomicPromise.prototype.catch;
 Coroutine.prototype.finally = promise_1.AtomicPromise.prototype.finally;
@@ -1684,9 +1719,10 @@ exports.noop = exports.fix = exports.id = exports.clear = exports.singleton = vo
 function singleton(f) {
   let result;
   return function (...as) {
-    if (result) return result[0];
-    result = [f.call(this, ...as)];
-    return result[0];
+    if (f === noop) return result;
+    result = f.call(this, ...as);
+    f = noop;
+    return result;
   };
 }
 exports.singleton = singleton;
@@ -1705,7 +1741,6 @@ function fix(f) {
   };
 }
 exports.fix = fix;
-// @ts-ignore
 function noop() {}
 exports.noop = noop;
 
@@ -1800,7 +1835,7 @@ exports["default"] = global;
 
 
 // @ts-ignore
-var global = globalThis;
+var global = (/* unused pure expression or super */ null && (globalThis));
 
 /***/ }),
 
@@ -1891,9 +1926,9 @@ class Heap {
     this.$length = 0;
   }
 }
+exports.Heap = Heap;
 Heap.max = (a, b) => a > b ? -1 : a < b ? 1 : 0;
 Heap.min = (a, b) => a > b ? 1 : a < b ? -1 : 0;
-exports.Heap = Heap;
 function sort(cmp, array, index, length, stable) {
   if (length === 0) return false;
   switch (index) {
@@ -2035,9 +2070,9 @@ class MultiHeap {
     this.$length = 0;
   }
 }
+exports.MultiHeap = MultiHeap;
 MultiHeap.max = Heap.max;
 MultiHeap.min = Heap.min;
-exports.MultiHeap = MultiHeap;
 
 /***/ }),
 
@@ -2294,7 +2329,7 @@ exports.List = List;
     }
   }
   List.Node = Node;
-})(List = exports.List || (exports.List = {}));
+})(List || (exports.List = List = {}));
 
 /***/ }),
 
@@ -2342,17 +2377,38 @@ Object.defineProperty(exports, "__esModule", ({
 exports.reduce = exports.memoize = void 0;
 const alias_1 = __webpack_require__(5406);
 const compare_1 = __webpack_require__(5529);
-function memoize(f, identify = (...as) => as[0], memory) {
-  if (typeof identify === 'object') return memoize(f, undefined, identify);
-  return (0, alias_1.isArray)(memory) || memory?.constructor === Object ? memoizeRecord(f, identify, memory) : memoizeDict(f, identify, memory ?? new Map());
+function memoize(f, identify, memory) {
+  if (typeof identify === 'object') {
+    memory = identify;
+    identify = undefined;
+  }
+  identify ??= (...as) => as[0];
+  switch (true) {
+    case (0, alias_1.isArray)(memory):
+      return memoizeArray(f, identify, memory);
+    case memory?.constructor === Object:
+      return memoizeObject(f, identify, memory);
+    default:
+      return memoizeDict(f, identify, memory ?? new Map());
+  }
 }
 exports.memoize = memoize;
-function memoizeRecord(f, identify, memory) {
+function memoizeArray(f, identify, memory) {
+  return (...as) => {
+    const b = identify(...as);
+    let z = memory[b];
+    if (z !== undefined) return z;
+    z = f(...as);
+    memory[b] = z;
+    return z;
+  };
+}
+function memoizeObject(f, identify, memory) {
   let nullable = false;
   return (...as) => {
     const b = identify(...as);
     let z = memory[b];
-    if (z !== undefined || nullable && memory[b] !== undefined) return z;
+    if (z !== undefined || nullable && b in memory) return z;
     z = f(...as);
     nullable ||= z === undefined;
     memory[b] = z;
@@ -2406,7 +2462,7 @@ exports.Applicative = Applicative;
     return aa ? af.bind(f => aa.fmap((0, curry_1.curry)(f))) : aa => ap(af, aa);
   }
   Applicative.ap = ap;
-})(Applicative = exports.Applicative || (exports.Applicative = {}));
+})(Applicative || (exports.Applicative = Applicative = {}));
 
 /***/ }),
 
@@ -2478,7 +2534,7 @@ exports.Either = Either;
     return fm instanceof Either ? fm.extract(b => promise_1.AtomicPromise.resolve(new Left(b)), a => promise_1.AtomicPromise.resolve(a).then(Either.Return)) : fm.reduce((acc, m) => acc.bind(as => m.fmap(a => [...as, a])), Either.Return([]));
   }
   Either.sequence = sequence;
-})(Either = exports.Either || (exports.Either = {}));
+})(Either || (exports.Either = Either = {}));
 class Left extends Either {
   constructor(value) {
     super(throwCallError);
@@ -2590,7 +2646,7 @@ exports.Functor = Functor;
     return f ? m.fmap(f) : f => m.fmap(f);
   }
   Functor.fmap = fmap;
-})(Functor = exports.Functor || (exports.Functor = {}));
+})(Functor || (exports.Functor = Functor = {}));
 
 /***/ }),
 
@@ -2688,7 +2744,7 @@ exports.Maybe = Maybe;
     return fm instanceof Maybe ? fm.extract(() => promise_1.AtomicPromise.resolve(Maybe.mzero), a => promise_1.AtomicPromise.resolve(a).then(Maybe.Return)) : fm.reduce((acc, m) => acc.bind(as => m.fmap(a => [...as, a])), Maybe.Return([]));
   }
   Maybe.sequence = sequence;
-})(Maybe = exports.Maybe || (exports.Maybe = {}));
+})(Maybe || (exports.Maybe = Maybe = {}));
 class Just extends Maybe {
   constructor(value) {
     super(throwCallError);
@@ -2721,7 +2777,7 @@ exports.Nothing = Nothing;
     return new Maybe(() => ml.fmap(() => ml).extract(() => mr));
   }
   Maybe.mplus = mplus;
-})(Maybe = exports.Maybe || (exports.Maybe = {}));
+})(Maybe || (exports.Maybe = Maybe = {}));
 function throwCallError() {
   throw new Error(`Spica: Maybe: Invalid thunk call.`);
 }
@@ -2804,7 +2860,7 @@ exports.Monad = Monad;
   }
   Monad.bind = bind;
   //export declare function sequence<a>(fm: Monad<PromiseLike<a>>): AtomicPromise<Monad<a>>;
-})(Monad = exports.Monad || (exports.Monad = {}));
+})(Monad || (exports.Monad = Monad = {}));
 
 /***/ }),
 
@@ -2821,7 +2877,7 @@ exports.MonadPlus = void 0;
 const monad_1 = __webpack_require__(7991);
 class MonadPlus extends monad_1.Monad {}
 exports.MonadPlus = MonadPlus;
-(function (MonadPlus) {})(MonadPlus = exports.MonadPlus || (exports.MonadPlus = {}));
+(function (MonadPlus) {})(MonadPlus || (exports.MonadPlus = MonadPlus = {}));
 
 /***/ }),
 
@@ -2921,7 +2977,7 @@ class Sequence extends monadplus_1.MonadPlus {
   }
 }
 exports.Sequence = Sequence;
-(function (Sequence) {})(Sequence = exports.Sequence || (exports.Sequence = {}));
+(function (Sequence) {})(Sequence || (exports.Sequence = Sequence = {}));
 (function (Sequence) {
   let Data;
   (function (Data) {
@@ -2984,7 +3040,7 @@ exports.Sequence = Sequence;
     }
     Exception.invalidThunkError = invalidThunkError;
   })(Exception = Sequence.Exception || (Sequence.Exception = {}));
-})(Sequence = exports.Sequence || (exports.Sequence = {}));
+})(Sequence || (exports.Sequence = Sequence = {}));
 function throwCallError() {
   throw new Error(`Spica: Sequence: Invalid thunk call.`);
 }
@@ -4224,6 +4280,9 @@ const alias_1 = __webpack_require__(5406);
 const function_1 = __webpack_require__(6288);
 exports.internal = Symbol.for('spica/promise::internal');
 class AtomicPromise {
+  static get [(_a = Symbol.toStringTag, Symbol.species)]() {
+    return AtomicPromise;
+  }
   static all(vs) {
     return new AtomicPromise((resolve, reject) => {
       const values = (0, alias_1.isArray)(vs) ? vs : [...vs];
@@ -4387,10 +4446,14 @@ class AtomicPromise {
     });
   }
   static resolve(value) {
-    return new AtomicPromise(resolve => resolve(value));
+    const p = new AtomicPromise(function_1.noop);
+    p[exports.internal].resolve(value);
+    return p;
   }
   static reject(reason) {
-    return new AtomicPromise((_, reject) => reject(reason));
+    const p = new AtomicPromise(function_1.noop);
+    p[exports.internal].reject(reason);
+    return p;
   }
   constructor(executor) {
     this[_a] = 'Promise';
@@ -4415,7 +4478,7 @@ class AtomicPromise {
   }
 }
 exports.AtomicPromise = AtomicPromise;
-_a = Symbol.toStringTag, _b = exports.internal;
+_b = exports.internal;
 class Internal {
   constructor() {
     this.status = {
@@ -4480,8 +4543,16 @@ class Internal {
         if (rejectReactions.length !== 0) break;
         return call(internal, false, onrejected, status.reason);
     }
-    fulfillReactions.push([internal, true, onfulfilled]);
-    rejectReactions.push([internal, false, onrejected]);
+    fulfillReactions.push({
+      internal,
+      state: true,
+      procedure: onfulfilled
+    });
+    rejectReactions.push({
+      internal,
+      state: false,
+      procedure: onrejected
+    });
   }
   resume() {
     const {
@@ -4515,8 +4586,12 @@ class Internal {
 exports.Internal = Internal;
 function react(reactions, param) {
   for (let i = 0; i < reactions.length; ++i) {
-    const reaction = reactions[i];
-    call(reaction[0], reaction[1], reaction[2], param);
+    const {
+      internal,
+      state,
+      procedure
+    } = reactions[i];
+    call(internal, state, procedure, param);
   }
 }
 function call(internal, state, procedure, param) {
@@ -4620,7 +4695,6 @@ class Queue {
     while (!this.isEmpty()) {
       yield this.pop();
     }
-    return;
   }
 }
 exports.Queue = Queue;
@@ -4703,13 +4777,12 @@ class PriorityQueue {
     while (!this.isEmpty()) {
       yield this.pop();
     }
-    return;
   }
 }
+exports.PriorityQueue = PriorityQueue;
 PriorityQueue.priority = Symbol('priority');
 PriorityQueue.max = heap_1.Heap.max;
 PriorityQueue.min = heap_1.Heap.min;
-exports.PriorityQueue = PriorityQueue;
 class MultiQueue {
   constructor(entries) {
     this.dict = new Map();
@@ -4783,7 +4856,6 @@ class MultiQueue {
         yield [k, vs.pop()];
       }
     }
-    return;
   }
 }
 exports.MultiQueue = MultiQueue;
@@ -4960,7 +5032,6 @@ class Ring {
     for (let i = 0; i < this.$length; ++i) {
       yield this.at(i);
     }
-    return;
   }
 }
 exports.Ring = Ring;
@@ -5222,7 +5293,7 @@ exports.router = router;
     };
   }
   router.helpers = helpers;
-})(router = exports.router || (exports.router = {}));
+})(router || (exports.router = router = {}));
 
 /***/ }),
 
@@ -5301,7 +5372,6 @@ class Stack {
     while (!this.isEmpty()) {
       yield this.pop();
     }
-    return;
   }
 }
 exports.Stack = Stack;
@@ -5601,9 +5671,9 @@ class Supervisor extends coroutine_1.Coroutine {
     }
   }
 }
+exports.Supervisor = Supervisor;
 _a = coroutine_1.Coroutine.port;
 Supervisor.standalone = new WeakSet();
-exports.Supervisor = Supervisor;
 class NamePool {
   constructor(workers, selector) {
     this.workers = workers;
@@ -6126,6 +6196,7 @@ class ReadonlyURL {
     return this.href;
   }
 }
+exports.ReadonlyURL = ReadonlyURL;
 // Can't freeze URL object in the Firefox extension environment.
 // ref: https://github.com/falsandtru/pjax-api/issues/44#issuecomment-633915035
 // Bug: Error in dependents.
@@ -6133,7 +6204,6 @@ class ReadonlyURL {
 ReadonlyURL.get = (0, memoize_1.memoize)((url, base) => ({
   url: new __webpack_require__.g.URL(url, base)
 }), (url, base = '') => `${base.indexOf('\n') > -1 ? base.replace(/\n+/g, '') : base}\n${url}`, new cache_1.Cache(10000));
-exports.ReadonlyURL = ReadonlyURL;
 
 /***/ }),
 
@@ -6482,18 +6552,18 @@ var RouterEventSource;
   RouterEventSource.Area = HTMLAreaElement;
   RouterEventSource.Form = HTMLFormElement;
   RouterEventSource.Window = window.Window;
-})(RouterEventSource = exports.RouterEventSource || (exports.RouterEventSource = {}));
+})(RouterEventSource || (exports.RouterEventSource = RouterEventSource = {}));
 var RouterEventType;
 (function (RouterEventType) {
   RouterEventType.Click = 'click';
   RouterEventType.Submit = 'submit';
   RouterEventType.Popstate = 'popstate';
-})(RouterEventType = exports.RouterEventType || (exports.RouterEventType = {}));
+})(RouterEventType || (exports.RouterEventType = RouterEventType = {}));
 var RouterEventMethod;
 (function (RouterEventMethod) {
   RouterEventMethod.GET = 'GET';
   RouterEventMethod.POST = 'POST';
-})(RouterEventMethod = exports.RouterEventMethod || (exports.RouterEventMethod = {}));
+})(RouterEventMethod || (exports.RouterEventMethod = RouterEventMethod = {}));
 class RouterEventRequest {
   constructor(source, base) {
     this.source = source;
@@ -7633,8 +7703,8 @@ class GUI extends api_1.API {
     return api_1.API.replace(url, this.option, this.io);
   }
 }
-GUI.resources = new class extends supervisor_1.Supervisor {}();
 exports.GUI = GUI;
+GUI.resources = new class extends supervisor_1.Supervisor {}();
 class View extends copropagator_1.Copropagator {
   constructor(option, io) {
     const config = new router_1.Config(option);
@@ -8049,7 +8119,7 @@ function test(parser) {
 /***/ 3252:
 /***/ (function(module) {
 
-/*! typed-dom v0.0.330 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
+/*! typed-dom v0.0.339 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(true)
 		module.exports = factory();
@@ -8109,17 +8179,38 @@ Object.defineProperty(exports, "__esModule", ({
 exports.reduce = exports.memoize = void 0;
 const alias_1 = __nested_webpack_require_3150__(5406);
 const compare_1 = __nested_webpack_require_3150__(5529);
-function memoize(f, identify = (...as) => as[0], memory) {
-  if (typeof identify === 'object') return memoize(f, undefined, identify);
-  return (0, alias_1.isArray)(memory) || memory?.constructor === Object ? memoizeRecord(f, identify, memory) : memoizeDict(f, identify, memory ?? new Map());
+function memoize(f, identify, memory) {
+  if (typeof identify === 'object') {
+    memory = identify;
+    identify = undefined;
+  }
+  identify ??= (...as) => as[0];
+  switch (true) {
+    case (0, alias_1.isArray)(memory):
+      return memoizeArray(f, identify, memory);
+    case memory?.constructor === Object:
+      return memoizeObject(f, identify, memory);
+    default:
+      return memoizeDict(f, identify, memory ?? new Map());
+  }
 }
 exports.memoize = memoize;
-function memoizeRecord(f, identify, memory) {
+function memoizeArray(f, identify, memory) {
+  return (...as) => {
+    const b = identify(...as);
+    let z = memory[b];
+    if (z !== undefined) return z;
+    z = f(...as);
+    memory[b] = z;
+    return z;
+  };
+}
+function memoizeObject(f, identify, memory) {
   let nullable = false;
   return (...as) => {
     const b = identify(...as);
     let z = memory[b];
-    if (z !== undefined || nullable && memory[b] !== undefined) return z;
+    if (z !== undefined || nullable && b in memory) return z;
     z = f(...as);
     nullable ||= z === undefined;
     memory[b] = z;
@@ -8155,18 +8246,19 @@ exports.reduce = reduce;
 /***/ }),
 
 /***/ 7521:
-/***/ ((__unused_webpack_module, exports, __nested_webpack_require_4668__) => {
+/***/ ((__unused_webpack_module, exports, __nested_webpack_require_5013__) => {
 
 
 
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.defrag = exports.prepend = exports.append = exports.isChildren = exports.define = exports.element = exports.text = exports.svg = exports.html = exports.frag = exports.shadow = void 0;
-const alias_1 = __nested_webpack_require_4668__(5406);
-const memoize_1 = __nested_webpack_require_4668__(1808);
+exports.defrag = exports.prepend = exports.append = exports.isChildren = exports.define = exports.element = exports.text = exports.math = exports.svg = exports.html = exports.frag = exports.shadow = void 0;
+const alias_1 = __nested_webpack_require_5013__(5406);
+const memoize_1 = __nested_webpack_require_5013__(1808);
 var caches;
 (function (caches) {
+  // Closed only.
   caches.shadows = new WeakMap();
   caches.shadow = (0, memoize_1.memoize)((el, opts) => el.attachShadow(opts), caches.shadows);
   caches.fragment = document.createDocumentFragment();
@@ -8178,7 +8270,7 @@ function shadow(el, opts, children, factory = exports.html) {
   if (isChildren(opts)) return shadow(el, undefined, opts, factory);
   return defineChildren(!opts ? el.shadowRoot ?? caches.shadows.get(el) ?? el.attachShadow({
     mode: 'open'
-  }) : opts.mode === 'open' ? el.shadowRoot ?? el.attachShadow(opts) : caches.shadows.get(el) ?? caches.shadow(el, opts), children);
+  }) : opts.mode === 'open' ? el.shadowRoot ?? el.attachShadow(opts) : caches.shadow(el, opts), children);
 }
 exports.shadow = shadow;
 function frag(children) {
@@ -8187,6 +8279,7 @@ function frag(children) {
 exports.frag = frag;
 exports.html = element(document, "HTML" /* NS.HTML */);
 exports.svg = element(document, "SVG" /* NS.SVG */);
+exports.math = element(document, "MathML" /* NS.Math */);
 function text(source) {
   return document.createTextNode(source);
 }
@@ -8198,7 +8291,7 @@ function element(context, ns) {
 }
 exports.element = element;
 function elem(context, ns, tag, attrs) {
-  if (!('createElement' in context)) throw new Error(`TypedDOM: Scoped custom elements are not supported on this browser.`);
+  if (!('createElement' in context)) throw new Error(`TypedDOM: Scoped custom elements are not supported on this browser`);
   const opts = 'is' in attrs ? {
     is: attrs['is']
   } : undefined;
@@ -8207,7 +8300,7 @@ function elem(context, ns, tag, attrs) {
       return context.createElement(tag, opts);
     case "SVG" /* NS.SVG */:
       return context.createElementNS('http://www.w3.org/2000/svg', tag, opts);
-    case "MathML" /* NS.MathML */:
+    case "MathML" /* NS.Math */:
       return context.createElementNS('http://www.w3.org/1998/Math/MathML', tag, opts);
   }
 }
@@ -8249,10 +8342,10 @@ function defineAttrs(el, attrs) {
         }
         continue;
       case 'function':
-        if (name.length < 3) throw new Error(`TypedDOM: Attribute names for event listeners must have an event name but got "${name}".`);
+        if (name.length < 3) throw new Error(`TypedDOM: Attribute names for event listeners must have an event name but got "${name}"`);
         const names = name.split(/\s+/);
         for (const name of names) {
-          if (!name.startsWith('on')) throw new Error(`TypedDOM: Attribute names for event listeners must start with "on" but got "${name}".`);
+          if (!name.startsWith('on')) throw new Error(`TypedDOM: Attribute names for event listeners must start with "on" but got "${name}"`);
           const type = name.slice(2).toLowerCase();
           el.addEventListener(type, value, {
             passive: ['wheel', 'mousewheel', 'touchstart', 'touchmove', 'touchend', 'touchcancel'].includes(type)
@@ -8284,7 +8377,7 @@ function defineChildren(node, children) {
   if (children === undefined) return node;
   if (typeof children === 'string') {
     node.textContent = children;
-  } else if ((0, alias_1.isArray)(children) && !node.firstChild) {
+  } else if (((0, alias_1.isArray)(children) || !(Symbol.iterator in children)) && !node.firstChild) {
     for (let i = 0; i < children.length; ++i) {
       const child = children[i];
       typeof child === 'object' ? node.appendChild(child) : node.append(child);
@@ -8302,6 +8395,11 @@ function append(node, children) {
   if (children === undefined) return node;
   if (typeof children === 'string') {
     node.append(children);
+  } else if ((0, alias_1.isArray)(children) || !(Symbol.iterator in children)) {
+    for (let i = 0; i < children.length; ++i) {
+      const child = children[i];
+      typeof child === 'object' ? node.appendChild(child) : node.append(child);
+    }
   } else {
     for (const child of children) {
       typeof child === 'object' ? node.appendChild(child) : node.append(child);
@@ -8314,6 +8412,11 @@ function prepend(node, children) {
   if (children === undefined) return node;
   if (typeof children === 'string') {
     node.prepend(children);
+  } else if ((0, alias_1.isArray)(children) || !(Symbol.iterator in children)) {
+    for (let i = 0; i < children.length; ++i) {
+      const child = children[i];
+      typeof child === 'object' ? node.insertBefore(child, null) : node.prepend(child);
+    }
   } else {
     for (const child of children) {
       typeof child === 'object' ? node.insertBefore(child, null) : node.prepend(child);
@@ -8325,15 +8428,14 @@ exports.prepend = prepend;
 function defrag(nodes) {
   const acc = [];
   let appendable = false;
-  for (let i = 0; i < nodes.length; ++i) {
+  for (let i = 0, len = nodes.length; i < len; ++i) {
     const node = nodes[i];
-    if (node === '') continue;
-    if (typeof node === 'string') {
-      appendable ? acc[acc.length - 1] += node : acc.push(node);
-      appendable = true;
-    } else {
+    if (typeof node === 'object') {
       acc.push(node);
       appendable = false;
+    } else if (node !== '') {
+      appendable ? acc[acc.length - 1] += node : acc.push(node);
+      appendable = true;
     }
   }
   return acc;
@@ -8348,7 +8450,7 @@ exports.defrag = defrag;
 /******/ 	var __webpack_module_cache__ = {};
 /******/ 	
 /******/ 	// The require function
-/******/ 	function __nested_webpack_require_11589__(moduleId) {
+/******/ 	function __nested_webpack_require_12531__(moduleId) {
 /******/ 		// Check if module is in cache
 /******/ 		var cachedModule = __webpack_module_cache__[moduleId];
 /******/ 		if (cachedModule !== undefined) {
@@ -8362,7 +8464,7 @@ exports.defrag = defrag;
 /******/ 		};
 /******/ 	
 /******/ 		// Execute the module function
-/******/ 		__webpack_modules__[moduleId](module, module.exports, __nested_webpack_require_11589__);
+/******/ 		__webpack_modules__[moduleId](module, module.exports, __nested_webpack_require_12531__);
 /******/ 	
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
@@ -8373,7 +8475,7 @@ exports.defrag = defrag;
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __nested_webpack_exports__ = __nested_webpack_require_11589__(7521);
+/******/ 	var __nested_webpack_exports__ = __nested_webpack_require_12531__(7521);
 /******/ 	
 /******/ 	return __nested_webpack_exports__;
 /******/ })()
@@ -8385,7 +8487,7 @@ exports.defrag = defrag;
 /***/ 1051:
 /***/ (function(module) {
 
-/*! typed-dom v0.0.330 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
+/*! typed-dom v0.0.339 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(true)
 		module.exports = factory();
@@ -8430,9 +8532,10 @@ exports.noop = exports.fix = exports.id = exports.clear = exports.singleton = vo
 function singleton(f) {
   let result;
   return function (...as) {
-    if (result) return result[0];
-    result = [f.call(this, ...as)];
-    return result[0];
+    if (f === noop) return result;
+    result = f.call(this, ...as);
+    f = noop;
+    return result;
   };
 }
 exports.singleton = singleton;
@@ -8451,14 +8554,13 @@ function fix(f) {
   };
 }
 exports.fix = fix;
-// @ts-ignore
 function noop() {}
 exports.noop = noop;
 
 /***/ }),
 
 /***/ 4879:
-/***/ ((__unused_webpack_module, exports, __nested_webpack_require_3635__) => {
+/***/ ((__unused_webpack_module, exports, __nested_webpack_require_3631__) => {
 
 
 
@@ -8467,10 +8569,13 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.never = exports.isPromiseLike = exports.Internal = exports.AtomicPromise = exports.internal = void 0;
-const alias_1 = __nested_webpack_require_3635__(5406);
-const function_1 = __nested_webpack_require_3635__(6288);
+const alias_1 = __nested_webpack_require_3631__(5406);
+const function_1 = __nested_webpack_require_3631__(6288);
 exports.internal = Symbol.for('spica/promise::internal');
 class AtomicPromise {
+  static get [(_a = Symbol.toStringTag, Symbol.species)]() {
+    return AtomicPromise;
+  }
   static all(vs) {
     return new AtomicPromise((resolve, reject) => {
       const values = (0, alias_1.isArray)(vs) ? vs : [...vs];
@@ -8634,10 +8739,14 @@ class AtomicPromise {
     });
   }
   static resolve(value) {
-    return new AtomicPromise(resolve => resolve(value));
+    const p = new AtomicPromise(function_1.noop);
+    p[exports.internal].resolve(value);
+    return p;
   }
   static reject(reason) {
-    return new AtomicPromise((_, reject) => reject(reason));
+    const p = new AtomicPromise(function_1.noop);
+    p[exports.internal].reject(reason);
+    return p;
   }
   constructor(executor) {
     this[_a] = 'Promise';
@@ -8662,7 +8771,7 @@ class AtomicPromise {
   }
 }
 exports.AtomicPromise = AtomicPromise;
-_a = Symbol.toStringTag, _b = exports.internal;
+_b = exports.internal;
 class Internal {
   constructor() {
     this.status = {
@@ -8727,8 +8836,16 @@ class Internal {
         if (rejectReactions.length !== 0) break;
         return call(internal, false, onrejected, status.reason);
     }
-    fulfillReactions.push([internal, true, onfulfilled]);
-    rejectReactions.push([internal, false, onrejected]);
+    fulfillReactions.push({
+      internal,
+      state: true,
+      procedure: onfulfilled
+    });
+    rejectReactions.push({
+      internal,
+      state: false,
+      procedure: onrejected
+    });
   }
   resume() {
     const {
@@ -8762,8 +8879,12 @@ class Internal {
 exports.Internal = Internal;
 function react(reactions, param) {
   for (let i = 0; i < reactions.length; ++i) {
-    const reaction = reactions[i];
-    call(reaction[0], reaction[1], reaction[2], param);
+    const {
+      internal,
+      state,
+      procedure
+    } = reactions[i];
+    call(internal, state, procedure, param);
   }
 }
 function call(internal, state, procedure, param) {
@@ -8802,7 +8923,7 @@ exports.never = new class Never extends Promise {
 /***/ }),
 
 /***/ 7251:
-/***/ ((__unused_webpack_module, exports, __nested_webpack_require_13158__) => {
+/***/ ((__unused_webpack_module, exports, __nested_webpack_require_13427__) => {
 
 
 
@@ -8810,9 +8931,9 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.bind = exports.delegate = exports.once = exports.listen = exports.currentTarget = void 0;
-const alias_1 = __nested_webpack_require_13158__(5406);
-const promise_1 = __nested_webpack_require_13158__(4879);
-const function_1 = __nested_webpack_require_13158__(6288);
+const alias_1 = __nested_webpack_require_13427__(5406);
+const promise_1 = __nested_webpack_require_13427__(4879);
+const function_1 = __nested_webpack_require_13427__(6288);
 exports.currentTarget = Symbol.for('typed-dom::currentTarget');
 function listen(target, selector, type, listener, option) {
   return typeof type === 'string' ? delegate(target, selector, type, listener, option) : bind(target, selector, type, listener);
@@ -8906,7 +9027,7 @@ exports.bind = bind;
 /******/ 	var __webpack_module_cache__ = {};
 /******/ 	
 /******/ 	// The require function
-/******/ 	function __nested_webpack_require_16248__(moduleId) {
+/******/ 	function __nested_webpack_require_16517__(moduleId) {
 /******/ 		// Check if module is in cache
 /******/ 		var cachedModule = __webpack_module_cache__[moduleId];
 /******/ 		if (cachedModule !== undefined) {
@@ -8920,7 +9041,7 @@ exports.bind = bind;
 /******/ 		};
 /******/ 	
 /******/ 		// Execute the module function
-/******/ 		__webpack_modules__[moduleId](module, module.exports, __nested_webpack_require_16248__);
+/******/ 		__webpack_modules__[moduleId](module, module.exports, __nested_webpack_require_16517__);
 /******/ 	
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
@@ -8931,7 +9052,7 @@ exports.bind = bind;
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __nested_webpack_exports__ = __nested_webpack_require_16248__(7251);
+/******/ 	var __nested_webpack_exports__ = __nested_webpack_require_16517__(7251);
 /******/ 	
 /******/ 	return __nested_webpack_exports__;
 /******/ })()
@@ -8943,7 +9064,7 @@ exports.bind = bind;
 /***/ 6120:
 /***/ (function(module) {
 
-/*! typed-dom v0.0.330 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
+/*! typed-dom v0.0.339 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(true)
 		module.exports = factory();
