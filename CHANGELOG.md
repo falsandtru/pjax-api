@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.38.2
+
+- Update dependencies.
+
 ## 3.38.1
 
 - Micro refactoring.
