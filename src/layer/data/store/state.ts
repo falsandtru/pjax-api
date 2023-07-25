@@ -39,8 +39,7 @@ export function savePosition(): void {
 }
 
 export function isTransitable(state: State | null): boolean {
-  return state?.pjax?.transition === true
-      ?? false;
+  return state?.pjax?.transition === true;
 }
 
 export function savePjax(): void {
