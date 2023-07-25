@@ -28,7 +28,7 @@ export function script(
     fetch,
     evaluate,
   }
-): AtomicPromise<Result> {
+): AtomicPromise<readonly [AtomicPromise<Result>]> {
   const scripts = [...documents.src.querySelectorAll('script')]
     .filter(el => !el.type || /(?:application|text)\/(?:java|ecma)script|module/i.test(el.type))
     .filter(el => !el.matches(selector.ignore.trim() || '_'))
@@ -36,41 +36,35 @@ export function script(
       el.hasAttribute('src')
         ? !skip.has(new URL(standardize(el.src)).href) || el.matches(selector.reload.trim() || '_')
         : true);
-  const { ss, as } = scripts.reduce((o, script) => {
-    switch (true) {
-      case script.matches('[src][async], [src][defer]'):
-        o.as.push(script);
-        break;
-      default:
-        o.ss.push(script);
-    }
-    return o;
-  }, {
-    ss: [] as HTMLScriptElement[],
-    as: [] as HTMLScriptElement[],
-  });
-  return AtomicPromise.all([
-    AtomicPromise.all(request(ss)).then(run),
-    AtomicPromise.all(request(as)).then(run),
-  ])
-    .then(async ([sm, am]) =>
-      sm.fmap(async p => (await p)
-        .fmap(([ss1, ap1]) =>
-          [
-            ss1,
-            ap1.then(async as1 =>
-              am.fmap(async p => (await p)
-                .fmap(([ss2, ap2]) =>
-                  AtomicPromise.all([as1, Right<Error, HTMLScriptElement[]>(ss2), ap2])
-                    .then(sst =>
-                      sst.reduce((m1, m2) =>
-                        m1.bind(s1 =>
-                          m2.fmap(s2 =>
-                            push(s1, s2))))))
-                .extract<Either<Error, HTMLScriptElement[]>>(Left))
-                .extract<Either<Error, HTMLScriptElement[]>>(Left)),
-          ] as const))
-        .extract<Result>(Left));
+  const { ss, as } = scripts.reduce((o, script) =>
+    script.matches('[src][async], [src][defer]')
+      ? void o.as.push(script) || o
+      : void o.ss.push(script) || o,
+    {
+      ss: [] as HTMLScriptElement[],
+      as: [] as HTMLScriptElement[],
+    });
+  const p1 = AtomicPromise.all(request(ss)).then(run);
+  const p2 = AtomicPromise.all(request(as)).then(run);
+  return p1.then(() => [
+    AtomicPromise.all([p1, p2])
+      .then(async ([sm, am]) =>
+        sm.fmap(async p => (await p)
+          .fmap(([ss1, ap1]) =>
+            [
+              ss1,
+              ap1.then(async as1 =>
+                am.fmap(async p => (await p)
+                  .fmap(([ss2, ap2]) =>
+                    AtomicPromise.all([as1, as1.fmap(() => ss2), ap2])
+                      .then(sst =>
+                        Either.sequence(sst)
+                          .fmap(sss => sss.reduce(push))))
+                  .extract<Either<Error, HTMLScriptElement[]>>(Left))
+                  .extract<Either<Error, HTMLScriptElement[]>>(Left)),
+            ] as const))
+          .extract<Result>(Left))
+  ]);
 
   function request(scripts: HTMLScriptElement[]): Promise<Either<Error, FetchData>>[] {
     return scripts
@@ -79,30 +73,21 @@ export function script(
   }
 
   function run(responses: Either<Error, FetchData>[]): Either<Error, AtomicPromise<Result>> {
-    return responses
-      .reduce(
-        (results, m) => m.bind(() => results),
-        responses
-          .reduce((results, m) =>
-            results
-              .bind(cancellation.either)
-              .bind(([sp, ap]) => m
-                .fmap(([script, code]) =>
-                  io.evaluate(script, code, selector.logger, skip, AtomicPromise.all(sp), cancellation))
-                .bind(m =>
-                  m.extract(
-                    p => Right(tuple(push(sp, [p]), ap)),
-                    p => Right(tuple(sp, push(ap, [p]))))))
-        , Right<Error, [AtomicPromise<Either<Error, HTMLScriptElement>>[], AtomicPromise<Either<Error, HTMLScriptElement>>[]]>([[], []])))
+    return Either.sequence(responses)
+      .bind(results => results.reduce(
+        (results, [script, code]) =>
+          results
+            .bind(cancellation.either)
+            .bind(([sp, ap]) =>
+              io.evaluate(script, code, selector.logger, skip, AtomicPromise.all(sp), cancellation)
+                .extract(
+                  p => Right(tuple(push(sp, [p]), ap)),
+                  p => Right(tuple(sp, push(ap, [p]))))),
+        Right<Error, [AtomicPromise<Either<Error, HTMLScriptElement>>[], AtomicPromise<Either<Error, HTMLScriptElement>>[]]>([[], []])))
       .fmap(([sp, ap]) =>
         AtomicPromise.all(sp)
           .then(m => Either.sequence(m))
-          .then(sm =>
-            sm.fmap(ss =>
-              tuple(
-                ss,
-                Promise.all(ap)
-                  .then(m => Either.sequence(m))))));
+          .then(m => m.fmap(ss => tuple(ss, Promise.all(ap).then(ms => Either.sequence(ms))))));
   }
 }
 

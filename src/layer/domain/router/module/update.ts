@@ -108,22 +108,21 @@ export function update(
               config.update.css && css(documents, config.update.ignore);
               const seqC = await config.sequence.content(seqB, areas);
               io.document.dispatchEvent(new Event('pjax:content'));
-              const ssm = config.update.script
-                ? await script(documents, state.scripts, config.update, Math.max(config.fetch.timeout, 1000) * 10, process)
-                : await process.either<[HTMLScriptElement[], AtomicPromise<Either<Error, HTMLScriptElement[]>>]>([[], AtomicPromise.resolve(process.either([]))]);
+              const [p] = config.update.script
+                ? await script(documents, state.scripts, config.update, config.fetch.timeout * 10, process)
+                : [AtomicPromise.resolve(process.either<[HTMLScriptElement[], AtomicPromise<Either<Error, HTMLScriptElement[]>>]>([[], AtomicPromise.resolve(process.either([]))]))] as const;
               focus(event.type, documents.dst);
               scroll(event.type, documents.dst, {
                 hash: event.location.dest.fragment,
                 position: io.position,
               });
               savePosition();
-              return [
-                ssm
-                  .fmap(([ss, ap]) =>
-                    [ss, ap.then(m => m.extract())] as const),
+              return p.then(async ssm => [
+                ssm.fmap(([ss, ap]) =>
+                  [ss, ap.then(m => m.extract())] as const),
                 await config.sequence.ready(seqC),
                 io.document.dispatchEvent(new Event('pjax:ready')),
-              ] as const;
+              ] as const);
             })
             .fmap(p =>
               p.then(([m, seqD]) =>
@@ -134,12 +133,12 @@ export function update(
     .then(process.promise)
     // ready -> load
     .then(m => m
-      .fmap(([p1, p2]) => (
-        AtomicPromise.all([p1, p2])
+      .fmap(([p1, p2]) => {
+        // Asynchronously wait for load completion of elements and scripts.
+        void AtomicPromise.all([p1, p2])
           .then<void>(([m1, m2]) =>
             m1.bind(([, cp]) =>
               m2.fmap(([[, sp], seqD]) =>
-                // Asynchronously wait for load completion of elements and scripts.
                 AtomicPromise.all([cp, sp])
                   .then(process.either)
                   .then(m => m
@@ -147,9 +146,9 @@ export function update(
                       await config.sequence.load(seqD, events),
                       void window.dispatchEvent(new Event('pjax:load'))))
                     .extract(() => undefined))))
-              .extract(() => undefined)),
-        p2)))
+              .extract(() => undefined));
+        return p2;
+      }))
     .then(m => Either.sequence(m).then(m => m.join()))
-    .then(m => m
-      .fmap(([sst]) => sst));
+    .then(m => m.fmap(([sst]) => sst));
 }

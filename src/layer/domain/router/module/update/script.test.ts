@@ -26,8 +26,8 @@ describe('Unit: layer/domain/router/module/update/script', () => {
           fetch: async script => Right(tuple(script, script.text)),
           evaluate: script => Left(AtomicPromise.resolve(Right(script))),
         })
-        .then(m => {
-          return m.extract();
+        .then(([p]) => {
+          return p.then(m => m.extract());
         })
         .then(([ss, p]) => {
           assert.deepStrictEqual(ss, []);
@@ -67,9 +67,9 @@ describe('Unit: layer/domain/router/module/update/script', () => {
             return Left(AtomicPromise.resolve(Right(script)));
           },
         })
-        .then(m => {
+        .then(([p]) => {
           assert(cnt === 2 && ++cnt);
-          return m.extract();
+          return p.then(m => m.extract());
         })
         .then(([ss, p]) => {
           assert.deepStrictEqual(ss.map(s => s instanceof HTMLScriptElement), [true]);
@@ -96,8 +96,8 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         },
         1e3,
         new Cancellation<Error>())
-        .then(m => {
-          return m.extract();
+        .then(([p]) => {
+          return p.then(m => m.extract());
         })
         .then(([ss, p]) => {
           assert.deepStrictEqual(ss, []);
@@ -136,9 +136,9 @@ describe('Unit: layer/domain/router/module/update/script', () => {
             return Left(AtomicPromise.resolve(Right(script)));
           },
         })
-        .then(m => {
+        .then(async ([p]) => {
           assert(cnt === 2 && ++cnt);
-          assert(m.extract(e => e) instanceof Error);
+          assert((await p).extract(e => e) instanceof Error);
           done();
         });
     });
@@ -169,9 +169,9 @@ describe('Unit: layer/domain/router/module/update/script', () => {
             return Left(AtomicPromise.resolve(Left(new Error())));
           },
         })
-        .then(m => {
+        .then(async ([p]) => {
           assert(cnt === 2 && ++cnt);
-          assert(m.extract(e => e) instanceof Error);
+          assert((await p).extract(e => e) instanceof Error);
           done();
         });
     });
@@ -203,9 +203,9 @@ describe('Unit: layer/domain/router/module/update/script', () => {
             return Left(AtomicPromise.resolve(Right(script)));
           },
         })
-        .then(m => {
+        .then(async ([p]) => {
           assert(cnt === 1 && ++cnt);
-          assert(m.extract(e => e) instanceof Error);
+          assert((await p).extract(e => e) instanceof Error);
           done();
         });
       cancellation.cancel(new Error());
@@ -232,16 +232,16 @@ describe('Unit: layer/domain/router/module/update/script', () => {
             return Right(tuple(script, script.text));
           },
           evaluate: script => {
-            assert(cnt === 3 && ++cnt);
+            assert(cnt === 2 && ++cnt);
             return Right(AtomicPromise.resolve(Right(script)));
           },
         })
-        .then(m => {
+        .then(([p]) => {
           assert(cnt === 1 && ++cnt);
-          return m.extract();
+          return p.then(m => m.extract());
         })
         .then(([ss, p]) => {
-          assert(cnt === 2 && ++cnt);
+          assert(cnt === 3 && ++cnt);
           assert.deepStrictEqual(ss, []);
           return p;
         })
@@ -273,16 +273,16 @@ describe('Unit: layer/domain/router/module/update/script', () => {
             return Right(tuple(script, ''));
           },
           evaluate: () => {
-            assert(cnt === 3 && ++cnt);
+            assert(cnt === 2 && ++cnt);
             return Right(AtomicPromise.resolve(Left(new Error())));
           },
         })
-        .then(m => {
+        .then(([p]) => {
           assert(cnt === 1 && ++cnt);
-          return m.extract();
+          return p.then(m => m.extract());
         })
         .then(([ss, p]) => {
-          assert(cnt === 2 && ++cnt);
+          assert(cnt === 3 && ++cnt);
           assert.deepStrictEqual(ss, []);
           return p;
         })
@@ -319,9 +319,9 @@ describe('Unit: layer/domain/router/module/update/script', () => {
             return Right(AtomicPromise.resolve(Right(script)));
           },
         })
-        .then(m => {
+        .then(([p]) => {
           assert(cnt === 1 && ++cnt);
-          return m.extract();
+          return p.then(m => m.extract());
         })
         .then(([ss, p]) => {
           assert(cnt === 2 && ++cnt);
