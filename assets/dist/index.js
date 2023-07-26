@@ -6122,7 +6122,7 @@ function savePosition() {
 }
 exports.savePosition = savePosition;
 function isTransitable(state) {
-  return state?.pjax?.transition === true ?? false;
+  return state?.pjax?.transition === true;
 }
 exports.isTransitable = isTransitable;
 function savePjax() {
@@ -7380,26 +7380,22 @@ const router_1 = __webpack_require__(574);
 const process_1 = __webpack_require__(4318);
 const page_1 = __webpack_require__(9114);
 const state_1 = __webpack_require__(2090);
-const assign_1 = __webpack_require__(4401);
 const listener_1 = __webpack_require__(1051);
 class API {
   static assign(url, option, io = {
     document: window.document,
     router: router_1.route
   }) {
-    let result;
-    click(url, event => result = io.router(new router_1.Config(option), new router_1.RouterEvent(event, page_1.page.url), process_1.process, io));
-    return result;
+    return click(url, event => io.router(new router_1.Config(option), new router_1.RouterEvent(event, page_1.page.url), process_1.process, io));
   }
   static replace(url, option, io = {
     document: window.document,
     router: router_1.route
   }) {
-    let result;
-    click(url, event => result = io.router(new router_1.Config((0, assign_1.assign)({}, option, {
+    return click(url, event => io.router(new router_1.Config({
+      ...option,
       replace: '*'
-    })), new router_1.RouterEvent(event, page_1.page.url), process_1.process, io));
-    return result;
+    }), new router_1.RouterEvent(event, page_1.page.url), process_1.process, io));
   }
   static sync(isPjaxPage) {
     isPjaxPage && (0, state_1.savePjax)();
@@ -7421,9 +7417,13 @@ function click(url, callback) {
   const el = document.createElement('a');
   el.href = url;
   document.createDocumentFragment().appendChild(el);
-  (0, listener_1.once)(el, 'click', callback);
-  (0, listener_1.once)(el, 'click', ev => void ev.preventDefault());
+  let result;
+  (0, listener_1.once)(el, 'click', ev => {
+    result = callback(ev);
+    ev.preventDefault();
+  });
   el.click();
+  return result;
 }
 
 /***/ }),
