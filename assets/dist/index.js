@@ -406,13 +406,13 @@ DWCはこの最適化を行っても状態数の多さに比例して増加し�
 
 */
 class Entry {
-  constructor(key, value, size, partition, affiliation, expiration) {
+  constructor(key, value, size, expiration, partition, affiliation) {
     this.key = key;
     this.value = value;
     this.size = size;
+    this.expiration = expiration;
     this.partition = partition;
     this.affiliation = affiliation;
-    this.expiration = expiration;
     this.enode = undefined;
     this.next = undefined;
     this.prev = undefined;
@@ -642,7 +642,7 @@ class Cache {
     if (entry.partition === 'LRU') {
       if (entry.affiliation === 'LRU') {
         // For memoize.
-        // Strict checks are ineffective for OLTP.
+        // Strict checks are ineffective with OLTP.
         if (entry === LRU.head) return;
         entry.affiliation = 'LFU';
       } else {
@@ -701,7 +701,7 @@ class Cache {
       return true;
     }
     this.$size += size;
-    const entry = new Entry(key, value, size, 'LRU', 'LRU', expiration);
+    const entry = new Entry(key, value, size, expiration, 'LRU', 'LRU');
     LRU.unshift(entry);
     this.dict.set(key, entry);
     if (this.expiration && this.expirations !== undefined && expiration !== Infinity) {
@@ -853,7 +853,6 @@ class Sweeper {
   }
   isActive() {
     if (this.threshold === 0) return false;
-    if (this.prevWindowHits === 0 && this.prevWindowMisses === 0) return false;
     return this.active ??= this.ratioWindow() < (0, alias_1.max)(this.ratioRoom() * this.ratio / 100, this.threshold);
   }
   ratioWindow() {
@@ -917,6 +916,7 @@ function ratio(window, targets, remains, offset) {
   const currRatio = currTotal * 100 / window - offset;
   if (currRatio <= 0) return prevRate * 100 | 0;
   const currRate = currHits && currHits * 100 / currTotal;
+  if (prevTotal === 0) return currRate * 100 | 0;
   const prevRatio = 100 - currRatio;
   return currRate * currRatio + prevRate * prevRatio | 0;
 }
@@ -5880,9 +5880,9 @@ function standardize(url, base) {
 }
 exports.standardize = standardize;
 function encode(url) {
-  return url
+  return url.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]?|[\uDC00-\uDFFF]/g, str => str.length === 2 ? str : '')
   // Percent-encoding
-  .replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]?|[\uDC00-\uDFFF]/g, str => str.length === 2 ? str : '').replace(/%(?![0-9A-F]{2})|[^%\[\]]+/ig, encodeURI).replace(/\?[^#]+/, query => '?' + query.slice(1).replace(/%[0-9A-F]{2}|%|[^=&]+/ig, str => str[0] === '%' && str.length === 3 ? str : encodeURIComponent(str)))
+  .replace(/%(?![0-9A-F]{2})|[^%\[\]\w]+/ig, encodeURI).replace(/\?[^#]+/, query => '?' + query.slice(1).replace(/%[0-9A-F]{2}|%|[^%=&]+/ig, str => str[0] === '%' && str.length === 3 ? str : encodeURIComponent(str)))
   // Use uppercase letters within percent-encoding triplets
   .replace(/%[0-9A-F]{2}/ig, str => str.toUpperCase()).replace(/#.+/, url.slice(url.indexOf('#')));
 }
@@ -7885,7 +7885,7 @@ function test(parser) {
 /***/ 3252:
 /***/ (function(module) {
 
-/*! typed-dom v0.0.342 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
+/*! typed-dom v0.0.346 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(true)
 		module.exports = factory();
@@ -8253,7 +8253,7 @@ exports.defrag = defrag;
 /***/ 1051:
 /***/ (function(module) {
 
-/*! typed-dom v0.0.342 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
+/*! typed-dom v0.0.346 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(true)
 		module.exports = factory();
@@ -8830,7 +8830,7 @@ exports.bind = bind;
 /***/ 6120:
 /***/ (function(module) {
 
-/*! typed-dom v0.0.342 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
+/*! typed-dom v0.0.346 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(true)
 		module.exports = factory();
