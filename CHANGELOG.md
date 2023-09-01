@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.38.4
+
+- Fix percent-encoding.
+
 ## 3.38.3
 
 - Update dependencies.
