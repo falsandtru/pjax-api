@@ -33,6 +33,6 @@ export function serialize(form: HTMLFormElement): string {
     .join('&');
 
   function removeInvalidSurrogatePairs(str: string): string {
-    return str.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]?|[\uDC00-\uDFFF]/g, str => str.length === 2 ? str : '');
+    return str.replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g, '');
   }
 }
