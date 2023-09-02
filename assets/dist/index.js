@@ -5791,9 +5791,12 @@ Object.defineProperty(exports, "ReadonlyURL", ({
 }));
 class URL {
   constructor(source, base) {
+    source = source.trim();
+    base = base?.trim();
+    this.url = new format_1.ReadonlyURL(source, base);
+    this.params = undefined;
     this.source = source;
     this.base = base;
-    this.url = new format_1.ReadonlyURL(source, base);
 
     //assert(this.href.startsWith(this.resource));
   }
@@ -5808,7 +5811,7 @@ class URL {
     return this.url.origin;
   }
   get scheme() {
-    return this.url.protocol.slice(0, -1);
+    return this.url.scheme;
   }
   get protocol() {
     return this.url.protocol;
@@ -5850,10 +5853,10 @@ class URL {
     return this.params ??= new URLSearchParams(this.search);
   }
   toString() {
-    return this.href;
+    return this.url.toString();
   }
   toJSON() {
-    return this.href;
+    return this.url.toJSON();
   }
 }
 exports.URL = URL;
@@ -5874,23 +5877,32 @@ __webpack_require__(4128);
 const memoize_1 = __webpack_require__(1808);
 const cache_1 = __webpack_require__(9210);
 function standardize(url, base) {
-  const u = new ReadonlyURL(url, base);
-  url = u.origin === 'null' ? u.protocol.toLowerCase() + u.href.slice(u.protocol.length) : u.origin.toLowerCase() + u.href.slice(u.origin.length);
+  const {
+    origin,
+    protocol,
+    href
+  } = new ReadonlyURL(url, base);
+  url = origin === 'null' ? protocol.toLowerCase() + href.slice(protocol.length) : origin.toLowerCase() + href.slice(origin.length);
   return encode(url);
 }
 exports.standardize = standardize;
 function encode(url) {
-  return url.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]?|[\uDC00-\uDFFF]/g, str => str.length === 2 ? str : '')
-  // Percent-encoding
-  .replace(/%(?![0-9A-F]{2})|[^%\[\]\w]+/ig, encodeURI).replace(/\?[^#]+/, query => '?' + query.slice(1).replace(/%[0-9A-F]{2}|%|[^%=&]+/ig, str => str[0] === '%' && str.length === 3 ? str : encodeURIComponent(str)))
-  // Use uppercase letters within percent-encoding triplets
-  .replace(/%[0-9A-F]{2}/ig, str => str.toUpperCase()).replace(/#.+/, url.slice(url.indexOf('#')));
+  url = url.replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g, '');
+  const {
+    1: base,
+    2: hash
+  } = url.match(/^([^#]*)(.*)$/s);
+  const {
+    1: path,
+    2: query
+  } = base.replace(/(?:%(?:[0-9][a-f]|[a-f][0-9a-fA-F]|[A-F][0-9a-f]))+/g, str => str.toUpperCase()).match(/^([^?]*)(.*)$/s);
+  return '' + path.replace(/(?:[^%[\]]|%(?![0-9A-F]{2}))+/ig, encodeURI) + query.replace(/(?!^)(?:[^%=&]|%(?![0-9A-F]{2}))+/ig, encodeURIComponent) + hash;
 }
 exports._encode = encode;
 class ReadonlyURL {
   constructor(source, base) {
-    this.source = source;
-    this.base = base;
+    source = source.trim();
+    base = base?.trim();
     switch (source.slice(0, source.lastIndexOf('://', 9) + 1).toLowerCase()) {
       case 'http:':
       case 'https:':
@@ -5905,60 +5917,66 @@ class ReadonlyURL {
               base = base.slice(0, i);
             }
             const j = base.indexOf('?');
-            if (i > -1 && source.indexOf('#') === -1) {
+            if (j > -1 && source !== '' && source[0] !== '#') {
               base = base.slice(0, j);
             }
         }
     }
-    this.share = ReadonlyURL.get(source, base);
+    this.cache = ReadonlyURL.get(source, base);
+    this.params = undefined;
+    this.source = source;
+    this.base = base;
   }
   get href() {
-    return this.share.href ??= this.share.url.href;
+    return this.cache.href ??= this.cache.url.href;
   }
   get resource() {
-    return this.share.resource ??= this.href.slice(0, -this.fragment.length - this.query.length || this.href.length) + this.search;
+    return this.cache.resource ??= this.href.slice(0, this.href.search(/[?#]|$/)) + this.search;
   }
   get origin() {
-    return this.share.origin ??= this.share.url.origin;
+    return this.cache.origin ??= this.cache.url.origin;
+  }
+  get scheme() {
+    return this.cache.scheme ??= this.protocol.slice(0, -1);
   }
   get protocol() {
-    return this.share.protocol ??= this.share.url.protocol;
+    return this.cache.protocol ??= this.cache.url.protocol;
   }
   get username() {
-    return this.share.username ??= this.share.url.username;
+    return this.cache.username ??= this.cache.url.username;
   }
   get password() {
-    return this.share.password ??= this.share.url.password;
+    return this.cache.password ??= this.cache.url.password;
   }
   get host() {
-    return this.share.host ??= this.share.url.host;
+    return this.cache.host ??= this.cache.url.host;
   }
   get hostname() {
-    return this.share.hostname ??= this.share.url.hostname;
+    return this.cache.hostname ??= this.cache.url.hostname;
   }
   get port() {
-    return this.share.port ??= this.share.url.port;
+    return this.cache.port ??= this.cache.url.port;
   }
   get path() {
-    return this.share.path ??= `${this.pathname}${this.search}`;
+    return this.cache.path ??= `${this.pathname}${this.search}`;
   }
   get pathname() {
-    return this.share.pathname ??= this.share.url.pathname;
+    return this.cache.pathname ??= this.cache.url.pathname;
   }
   get search() {
-    return this.share.search ??= this.share.url.search;
+    return this.cache.search ??= this.cache.url.search;
   }
   get query() {
-    return this.share.query ??= this.search || this.href[this.href.length - this.fragment.length - 1] === '?' && '?' || '';
+    return this.cache.query ??= this.search || this.href[this.href.length - this.fragment.length - 1] === '?' && '?' || '';
   }
   get hash() {
-    return this.share.hash ??= this.share.url.hash;
+    return this.cache.hash ??= this.cache.url.hash;
   }
   get fragment() {
-    return this.share.fragment ??= this.hash || this.href[this.href.length - 1] === '#' && '#' || '';
+    return this.cache.fragment ??= this.hash || this.href[this.href.length - 1] === '#' && '#' || '';
   }
   get searchParams() {
-    return this.params ??= new URLSearchParams(this.search);
+    return this.params ??= new ReadonlyURLSearchParams(this.search);
   }
   toString() {
     return this.href;
@@ -5975,6 +5993,26 @@ exports.ReadonlyURL = ReadonlyURL;
 ReadonlyURL.get = (0, memoize_1.memoize)((url, base) => ({
   url: new __webpack_require__.g.URL(url, base)
 }), (url, base = '') => `${base.indexOf('\n') > -1 ? base.replace(/\n+/g, '') : base}\n${url}`, new cache_1.Cache(10000));
+class ReadonlyURLSearchParams extends URLSearchParams {
+  append(name, value) {
+    this.sort();
+    name;
+    value;
+  }
+  delete(name, value) {
+    this.sort();
+    name;
+    value;
+  }
+  set(name, value) {
+    this.sort();
+    name;
+    value;
+  }
+  sort() {
+    throw new Error('Spica: URL: Cannot use mutable methods with ReadonlyURLSearchParams');
+  }
+}
 
 /***/ }),
 
@@ -7780,7 +7818,7 @@ function serialize(form) {
     }
   }).map(el => [encodeURIComponent(removeInvalidSurrogatePairs(el.name)), encodeURIComponent(removeInvalidSurrogatePairs(el.value))].join('=')).join('&');
   function removeInvalidSurrogatePairs(str) {
-    return str.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]?|[\uDC00-\uDFFF]/g, str => str.length === 2 ? str : '');
+    return str.replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g, '');
   }
 }
 exports.serialize = serialize;
