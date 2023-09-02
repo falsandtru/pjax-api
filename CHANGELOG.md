@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.38.5
+
+- Fix URL processing.
+
 ## 3.38.4
 
 - Fix percent-encoding.
