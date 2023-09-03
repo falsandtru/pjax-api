@@ -961,32 +961,35 @@ const exception_1 = __webpack_require__(7822);
 class Cancellation {
   constructor(cancellees) {
     this[_a] = 'Cancellation';
-    this.state = [];
-    this.listeners = [];
+    this.state = 0 /* State.alive */;
+    this.reason = undefined;
+    this.handlers = [];
     this[_b] = new promise_1.Internal();
     if (cancellees) for (const cancellee of cancellees) {
       cancellee.register(this.cancel);
     }
   }
   isAlive() {
-    return this.state.length === 0;
+    return this.state === 0 /* State.alive */;
   }
+
   isCancelled() {
-    return this.state.length === 1;
+    return this.state === 1 /* State.cancelled */;
   }
+
   isClosed() {
-    return this.state.length === 2;
+    return this.state === 2 /* State.closed */;
   }
+
   register$(listener) {
     const {
-      listeners,
-      state
+      handlers
     } = this;
-    if (!this.isAlive() && listeners.length === 0) {
-      state.length === 1 && handler(state[0]);
+    if (!this.isAlive() && handlers.length === 0) {
+      this.isCancelled() && handler(this.reason);
       return function_1.noop;
     }
-    listeners.push(handler);
+    handlers.push(handler);
     return () => void (listener = function_1.noop);
     function handler(reason) {
       try {
@@ -1001,13 +1004,14 @@ class Cancellation {
   }
   cancel$(reason) {
     if (!this.isAlive()) return;
-    this.state = [reason];
+    this.state = 1 /* State.cancelled */;
+    this.reason = reason;
     for (let {
-        listeners
-      } = this, i = 0; i < listeners.length; ++i) {
-      listeners[i](reason);
+        handlers
+      } = this, i = 0; i < handlers.length; ++i) {
+      handlers[i](reason);
     }
-    this.listeners = [];
+    this.handlers = [];
     this[promise_1.internal].resolve(reason);
   }
   get cancel() {
@@ -1015,21 +1019,22 @@ class Cancellation {
   }
   close$(reason) {
     if (!this.isAlive()) return;
-    this.state = [undefined, reason];
-    this.listeners = [];
+    this.state = 2 /* State.closed */;
+    this.reason = reason;
+    this.handlers = [];
     this[promise_1.internal].resolve(promise_1.AtomicPromise.reject(reason));
   }
   get close() {
     return reason => this.close$(reason);
   }
   get promise() {
-    return value => this.isCancelled() ? promise_1.AtomicPromise.reject(this.state[0]) : promise_1.AtomicPromise.resolve(value);
+    return value => this.isCancelled() ? promise_1.AtomicPromise.reject(this.reason) : promise_1.AtomicPromise.resolve(value);
   }
   get maybe() {
     return value => (0, maybe_1.Just)(value).bind(value => this.isCancelled() ? maybe_1.Nothing : (0, maybe_1.Just)(value));
   }
   get either() {
-    return value => (0, either_1.Right)(value).bind(value => this.isCancelled() ? (0, either_1.Left)(this.state[0]) : (0, either_1.Right)(value));
+    return value => (0, either_1.Right)(value).bind(value => this.isCancelled() ? (0, either_1.Left)(this.reason) : (0, either_1.Right)(value));
   }
 }
 exports.Cancellation = Cancellation;
@@ -5774,26 +5779,26 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.URL = exports.ReadonlyURL = exports.standardize = void 0;
-const format_1 = __webpack_require__(137);
-var format_2 = __webpack_require__(137);
+const internal_1 = __webpack_require__(2560);
+var internal_2 = __webpack_require__(2560);
 Object.defineProperty(exports, "standardize", ({
   enumerable: true,
   get: function () {
-    return format_2.standardize;
+    return internal_2.standardize;
   }
 }));
-var format_3 = __webpack_require__(137);
+var internal_3 = __webpack_require__(2560);
 Object.defineProperty(exports, "ReadonlyURL", ({
   enumerable: true,
   get: function () {
-    return format_3.ReadonlyURL;
+    return internal_3.ReadonlyURL;
   }
 }));
 class URL {
   constructor(source, base) {
     source = source.trim();
     base = base?.trim();
-    this.url = new format_1.ReadonlyURL(source, base);
+    this.url = new internal_1.ReadonlyURL(source, base);
     this.params = undefined;
     this.source = source;
     this.base = base;
@@ -5863,7 +5868,7 @@ exports.URL = URL;
 
 /***/ }),
 
-/***/ 137:
+/***/ 2560:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -5872,7 +5877,7 @@ exports.URL = URL;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.ReadonlyURL = exports._encode = exports.standardize = void 0;
+exports.ReadonlyURL = exports.encode = exports.standardize = void 0;
 __webpack_require__(4128);
 const memoize_1 = __webpack_require__(1808);
 const cache_1 = __webpack_require__(9210);
@@ -5898,7 +5903,7 @@ function encode(url) {
   } = base.replace(/(?:%(?:[0-9][a-f]|[a-f][0-9a-fA-F]|[A-F][0-9a-f]))+/g, str => str.toUpperCase()).match(/^([^?]*)(.*)$/s);
   return '' + path.replace(/(?:[^%[\]]|%(?![0-9A-F]{2}))+/ig, encodeURI) + query.replace(/(?!^)(?:[^%=&]|%(?![0-9A-F]{2}))+/ig, encodeURIComponent) + hash;
 }
-exports._encode = encode;
+exports.encode = encode;
 class ReadonlyURL {
   constructor(source, base) {
     source = source.trim();
@@ -7926,7 +7931,7 @@ function test(parser) {
 /***/ 3252:
 /***/ (function(module) {
 
-/*! typed-dom v0.0.346 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
+/*! typed-dom v0.0.347 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(true)
 		module.exports = factory();
@@ -8098,7 +8103,7 @@ function element(context, ns) {
 }
 exports.element = element;
 function elem(context, ns, tag, attrs) {
-  if (!('createElement' in context)) throw new Error(`TypedDOM: Scoped custom elements are not supported on this browser`);
+  if (!('createElement' in context)) throw new Error(`Typed-DOM: Scoped custom elements are not supported on this browser`);
   const opts = 'is' in attrs ? {
     is: attrs['is']
   } : undefined;
@@ -8149,10 +8154,10 @@ function defineAttrs(el, attrs) {
         }
         continue;
       case 'function':
-        if (name.length < 3) throw new Error(`TypedDOM: Attribute names for event listeners must have an event name but got "${name}"`);
+        if (name.length < 3) throw new Error(`Typed-DOM: Attribute names for event listeners must have an event name but got "${name}"`);
         const names = name.split(/\s+/);
         for (const name of names) {
-          if (!name.startsWith('on')) throw new Error(`TypedDOM: Attribute names for event listeners must start with "on" but got "${name}"`);
+          if (!name.startsWith('on')) throw new Error(`Typed-DOM: Attribute names for event listeners must start with "on" but got "${name}"`);
           const type = name.slice(2).toLowerCase();
           el.addEventListener(type, value, {
             passive: ['wheel', 'mousewheel', 'touchstart', 'touchmove', 'touchend', 'touchcancel'].includes(type)
@@ -8257,7 +8262,7 @@ exports.defrag = defrag;
 /******/ 	var __webpack_module_cache__ = {};
 /******/ 	
 /******/ 	// The require function
-/******/ 	function __nested_webpack_require_12531__(moduleId) {
+/******/ 	function __nested_webpack_require_12534__(moduleId) {
 /******/ 		// Check if module is in cache
 /******/ 		var cachedModule = __webpack_module_cache__[moduleId];
 /******/ 		if (cachedModule !== undefined) {
@@ -8271,7 +8276,7 @@ exports.defrag = defrag;
 /******/ 		};
 /******/ 	
 /******/ 		// Execute the module function
-/******/ 		__webpack_modules__[moduleId](module, module.exports, __nested_webpack_require_12531__);
+/******/ 		__webpack_modules__[moduleId](module, module.exports, __nested_webpack_require_12534__);
 /******/ 	
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
@@ -8282,7 +8287,7 @@ exports.defrag = defrag;
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __nested_webpack_exports__ = __nested_webpack_require_12531__(7521);
+/******/ 	var __nested_webpack_exports__ = __nested_webpack_require_12534__(7521);
 /******/ 	
 /******/ 	return __nested_webpack_exports__;
 /******/ })()
@@ -8294,7 +8299,7 @@ exports.defrag = defrag;
 /***/ 1051:
 /***/ (function(module) {
 
-/*! typed-dom v0.0.346 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
+/*! typed-dom v0.0.347 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(true)
 		module.exports = factory();
@@ -8871,7 +8876,7 @@ exports.bind = bind;
 /***/ 6120:
 /***/ (function(module) {
 
-/*! typed-dom v0.0.346 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
+/*! typed-dom v0.0.347 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(true)
 		module.exports = factory();
