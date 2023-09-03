@@ -48,7 +48,7 @@ export async function fetch(
       headers,
       body,
     }),
-    xhr(method, url, location.orig, headers, body, timeout, rewrite, cache, process),
+    xhr(method, url, location.orig, headers, body, timeout, cache, process, rewrite),
     delay(wait),
     window.dispatchEvent(new Event('pjax:fetch')),
   ]);

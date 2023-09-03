@@ -13,28 +13,21 @@ export function xhr(
   headers: Headers,
   body: FormData | null,
   timeout: number,
-  rewrite: (path: URL.Path<StandardURL>) => string,
   cache: Dict<URL.Path<StandardURL>, { etag: string; expiry: number; xhr: XMLHttpRequest; }>,
-  cancellation: Cancellee<Error>
+  cancellation: Cancellee<Error>,
+  rewrite = request,
 ): AtomicPromise<Either<Error, Response>> {
   headers = new Headers(headers);
   headers.set('Accept', headers.get('Accept') || 'text/html');
-  const requestURL = new URL(standardize(rewrite(displayURL.path), base.href));
   if (method === 'GET' &&
       !headers.has('If-None-Match') &&
-      Date.now() > (cache.get(requestURL.path)?.expiry ?? Infinity)) {
-    headers.set('If-None-Match', cache.get(requestURL.path)!.etag);
+      Date.now() > (cache.get(displayURL.path)?.expiry ?? Infinity)) {
+    headers.set('If-None-Match', cache.get(displayURL.path)!.etag);
   }
   return new AtomicPromise<Either<Error, Response>>(resolve => {
-    const xhr = new XMLHttpRequest();
-    xhr.open(method, requestURL.path, true);
-    for (const [name, value] of headers) {
-      xhr.setRequestHeader(name, value);
-    }
+    const xhr = rewrite(displayURL.path, method, headers, timeout, body);
 
-    xhr.responseType = 'document';
-    xhr.timeout = timeout;
-    xhr.send(body);
+    if (xhr.responseType !== 'document') throw new Error(`Response type must be 'document'`);
 
     xhr.addEventListener("abort", () =>
       void resolve(Left(new Error(`Failed to request a page by abort`))));
@@ -58,7 +51,7 @@ export function xhr(
                     .filter(v => v.length > 0)
                     .map(v => v.split('=').concat('') as [string, string])
                 : []);
-            for (const path of new Set([requestURL.path, responseURL.path])) {
+            for (const path of new Set([displayURL.path, responseURL.path])) {
               if (xhr.getResponseHeader('ETag') && !cc.has('no-store')) {
                 cache.set(path, {
                   etag: xhr.getResponseHeader('ETag')!,
@@ -73,13 +66,7 @@ export function xhr(
               }
             }
           }
-          return new Response(
-            responseURL.path === requestURL.path
-              ? displayURL
-              : requestURL.path === requestURL.path
-                ? responseURL
-                : displayURL,
-            xhr);
+          return new Response(responseURL, xhr);
         })
         .extract(
           err => void resolve(Left(err)),
@@ -87,6 +74,25 @@ export function xhr(
 
     cancellation.register(() => void xhr.abort());
   });
+}
+
+function request(
+  path: URL.Path<StandardURL>,
+  method: RouterEventMethod,
+  headers: Headers,
+  timeout: number,
+  body: FormData | null,
+): XMLHttpRequest {
+  const xhr = new XMLHttpRequest();
+  xhr.open(method, path, true);
+  for (const [name, value] of headers) {
+    xhr.setRequestHeader(name, value);
+  }
+
+  xhr.responseType = 'document';
+  xhr.timeout = timeout;
+  xhr.send(body);
+  return xhr;
 }
 
 function verify(

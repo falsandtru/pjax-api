@@ -10,11 +10,32 @@ describe('Integration: Config', function () {
 
   describe('fetch.rewrite', function () {
     it('', function (done) {
+      const FakeXMLHttpRequest = XMLHttpRequest;
       const url = '/base/test/integration/fixture/basic/1.html';
       const document = parse('').extract();
       new Pjax({
         fetch: {
-          rewrite: path => path.replace('/1.html', '/2.html')
+          rewrite: (path, method, headers, timeout, body) => {
+            const xhr = new FakeXMLHttpRequest();
+            xhr.open(method, path.replace('1', '2'), true);
+            for (const [name, value] of headers) {
+              xhr.setRequestHeader(name, value);
+            }
+
+            xhr.responseType = 'document';
+            xhr.timeout = timeout;
+            xhr.send(body);
+
+            Object.defineProperties(xhr, {
+              responseURL: {
+                value: url,
+              },
+              responseXML: {
+                value: parse('<title>Title 2</title><div id="primary">Primary 2</div>').extract(),
+              },
+            });
+            return xhr;
+          },
         }
       }, { document, router })
         .assign(url);

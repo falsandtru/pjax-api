@@ -48,7 +48,7 @@ export class Config implements Option {
   public readonly cache: Dict<URL.Path<StandardURL>, { etag: string; expiry: number; xhr: XMLHttpRequest; }> = new Cache(100, { sweep: { threshold: 0 } });
   public readonly memory?: Dict<URL.Path<StandardURL>, Document>;
   public readonly fetch = {
-    rewrite: (path: URL.Path<StandardURL>): string => path,
+    rewrite: undefined,
     headers: new Headers(),
     timeout: 3000,
     wait: 0,

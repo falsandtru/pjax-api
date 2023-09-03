@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.39.0
+
+- Refine `fetch.rewrite` option.
+
 ## 3.38.5
 
 - Fix URL processing.
