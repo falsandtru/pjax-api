@@ -22,8 +22,7 @@ export function xhr(
   const requestURL = new URL(standardize(rewrite(displayURL.path), base.href));
   if (method === 'GET' &&
       !headers.has('If-None-Match') &&
-      cache.has(requestURL.path) &&
-      Date.now() > cache.get(requestURL.path)!.expiry) {
+      Date.now() > (cache.get(requestURL.path)?.expiry ?? Infinity)) {
     headers.set('If-None-Match', cache.get(requestURL.path)!.etag);
   }
   return new AtomicPromise<Either<Error, Response>>(resolve => {
