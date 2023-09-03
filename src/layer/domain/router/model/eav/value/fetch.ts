@@ -18,6 +18,7 @@ export class Response {
     });
     fix(this.document);
     assert(this.document.URL === url.href);
+    assert(!this.document.querySelector('noscript *'));
     Object.freeze(this);
   }
   public readonly header: (name: string) => string | null =

@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.39.1
+
+- Fix noscript parsing.
+
 ## 3.39.0
 
 - Refine `fetch.rewrite` option.

@@ -28,10 +28,14 @@ export function fix(doc: Document): void {
   fixNoscript(doc);
 }
 
+// Tags within noscript tags do not become elements if statically parsed from HTML.
 function fixNoscript(doc: Document): void {
-  for (const el of doc.querySelectorAll('noscript:not(:empty)')) {
+  // :empty and :has do not work.
+  for (const el of doc.querySelectorAll('noscript')) {
+    if (!el.firstElementChild) continue;
     el.textContent = el.innerHTML;
   }
+  assert(!doc.querySelector('noscript *'));
 }
 
 function test(parser: (html: string) => Document): boolean {
@@ -41,10 +45,10 @@ function test(parser: (html: string) => Document): boolean {
   <head>
     <link href="/">
     <title>&amp;</title>
-    <noscript><style>/**/</style></noscript>
+    <noscript><style><></style></noscript>
   </head>
   <body>
-    <noscript>noscript</noscript>
+    <noscript><style><></style></noscript>
     <a href="/"></a>
     <script>document.head.remove();</script>
     <img src="abc">
@@ -57,11 +61,11 @@ function test(parser: (html: string) => Document): boolean {
       case !!doc.querySelector('html.html[lang="en"]'):
       case !!doc.querySelector('head > link')!.href:
       case !!doc.querySelector('body > a')!.href:
-      case !doc.querySelector('head > noscript > *'):
+      case !doc.querySelector('noscript > *'):
       case doc.querySelector('script')!.innerHTML === 'document.head.remove();':
       case doc.querySelector('img')!.src.endsWith('abc'):
-      case doc.querySelector('head > noscript')!.textContent === '<style>/**/</style>':
-      case doc.querySelector('body > noscript')!.textContent === 'noscript':
+      case doc.querySelector('head > noscript')!.textContent === '<style><></style>':
+      case doc.querySelector('body > noscript')!.textContent === '<style><></style>':
         throw undefined;
     }
     return true;
