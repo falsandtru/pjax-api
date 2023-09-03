@@ -1,6 +1,6 @@
 {
   "name": "pjax-api",
-  "version": "3.38.5",
+  "version": "3.39.0",
   "description": "The advanced PJAX for web services.",
   "private": true,
   "homepage": "https://github.com/falsandtru/pjax-api",
