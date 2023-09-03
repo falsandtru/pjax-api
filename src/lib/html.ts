@@ -29,8 +29,7 @@ export function fix(doc: Document): void {
 }
 
 function fixNoscript(doc: Document): void {
-  for (const el of doc.querySelectorAll('noscript')) {
-    if (!el.firstElementChild) continue;
+  for (const el of doc.querySelectorAll('noscript:not(:empty)')) {
     el.textContent = el.innerHTML;
   }
 }
