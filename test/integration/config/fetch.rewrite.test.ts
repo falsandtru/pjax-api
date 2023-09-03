@@ -17,7 +17,7 @@ describe('Integration: Config', function () {
         fetch: {
           rewrite: (path, method, headers, timeout, body) => {
             const xhr = new FakeXMLHttpRequest();
-            xhr.open(method, path.replace('1', '2'), true);
+            xhr.open(method, path, true);
             for (const [name, value] of headers) {
               xhr.setRequestHeader(name, value);
             }
