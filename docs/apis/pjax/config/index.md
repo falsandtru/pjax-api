@@ -65,9 +65,9 @@ Set a dictionary object having has/get/set/delete methods of Map to pass the doc
 
 ## fetch: {...} = ...
 
-### rewrite: (path: string) => string = `path => path`
+### rewrite: (path: string, method: string, headers: Headers, timeout: number, body: FormData | null) => XMLHttpRequest
 
-Rewrite URL implicitly.
+Rewrite the XHR object, or replace it with another or fake.
 
 ### timeout: number = `3000`
 

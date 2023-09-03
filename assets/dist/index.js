@@ -6216,7 +6216,7 @@ class Config {
       }
     });
     this.fetch = {
-      rewrite: path => path,
+      rewrite: undefined,
       headers: new Headers(),
       timeout: 3000,
       wait: 0
@@ -6446,7 +6446,7 @@ Object.defineProperty(exports, "RouterEntityState", ({
   }
 }));
 async function route(entity, io) {
-  return (0, either_1.Right)(undefined).bind(entity.state.process.either).bind(() => match(io.document, entity.config.areas) ? (0, either_1.Right)(undefined) : (0, either_1.Left)(new Error(`Failed to match areas.`))).fmap(() => (0, fetch_1.fetch)(entity.event, entity.config, entity.state.process, io)).fmap(async p => (await p).fmap(([res, seq]) => (0, update_1.update)(entity, res, seq, {
+  return (0, either_1.Right)(undefined).bind(entity.state.process.either).bind(() => match(io.document, entity.config.areas) ? (0, either_1.Right)(undefined) : (0, either_1.Left)(new Error(`Failed to match areas`))).fmap(() => (0, fetch_1.fetch)(entity.event, entity.config, entity.state.process, io)).fmap(async p => (await p).fmap(([res, seq]) => (0, update_1.update)(entity, res, seq, {
     document: io.document,
     position: path_1.loadPosition
   })).extract(either_1.Left)).extract(either_1.Left);
@@ -6509,7 +6509,7 @@ class Response {
     this.xhr = xhr;
     this.header = name => this.xhr.getResponseHeader(name);
     this.document = this.xhr.responseXML.cloneNode(true);
-    if (url.origin !== new url_1.URL(xhr.responseURL, window.location.href).origin) throw new Error(`Redirected to another origin.`);
+    if (url.origin !== new url_1.URL(xhr.responseURL, window.location.href).origin) throw new Error(`Redirected to another origin`);
     Object.defineProperty(this.document, 'URL', {
       configurable: true,
       enumerable: true,
@@ -6572,7 +6572,7 @@ async function fetch({
     method,
     headers,
     body
-  }), (0, xhr_1.xhr)(method, url, location.orig, headers, body, timeout, rewrite, cache, process), (0, timer_1.wait)(wait), window.dispatchEvent(new Event('pjax:fetch'))]);
+  }), (0, xhr_1.xhr)(method, url, location.orig, headers, body, timeout, cache, process, rewrite), (0, timer_1.wait)(wait), window.dispatchEvent(new Event('pjax:fetch'))]);
   if (type === router_1.RouterEventType.Popstate) {
     style.parentNode?.removeChild(style);
     window.scrollTo(scrollX, scrollY);
@@ -6597,32 +6597,25 @@ const fetch_1 = __webpack_require__(7624);
 const promise_1 = __webpack_require__(4879);
 const either_1 = __webpack_require__(8555);
 const url_1 = __webpack_require__(2261);
-function xhr(method, displayURL, base, headers, body, timeout, rewrite, cache, cancellation) {
+function xhr(method, displayURL, base, headers, body, timeout, cache, cancellation, rewrite = request) {
   headers = new Headers(headers);
   headers.set('Accept', headers.get('Accept') || 'text/html');
-  const requestURL = new url_1.URL((0, url_1.standardize)(rewrite(displayURL.path), base.href));
-  if (method === 'GET' && !headers.has('If-None-Match') && cache.has(requestURL.path) && Date.now() > cache.get(requestURL.path).expiry) {
-    headers.set('If-None-Match', cache.get(requestURL.path).etag);
+  if (method === 'GET' && !headers.has('If-None-Match') && Date.now() > (cache.get(displayURL.path)?.expiry ?? Infinity)) {
+    headers.set('If-None-Match', cache.get(displayURL.path).etag);
   }
   return new promise_1.AtomicPromise(resolve => {
-    const xhr = new XMLHttpRequest();
-    xhr.open(method, requestURL.path, true);
-    for (const [name, value] of headers) {
-      xhr.setRequestHeader(name, value);
-    }
-    xhr.responseType = 'document';
-    xhr.timeout = timeout;
-    xhr.send(body);
-    xhr.addEventListener("abort", () => void resolve((0, either_1.Left)(new Error(`Failed to request a page by abort.`))));
-    xhr.addEventListener("error", () => void resolve((0, either_1.Left)(new Error(`Failed to request a page by error.`))));
-    xhr.addEventListener("timeout", () => void resolve((0, either_1.Left)(new Error(`Failed to request a page by timeout.`))));
+    const xhr = rewrite(displayURL.path, method, headers, timeout, body);
+    if (xhr.responseType !== 'document') throw new Error(`Response type must be 'document'`);
+    xhr.addEventListener("abort", () => void resolve((0, either_1.Left)(new Error(`Failed to request a page by abort`))));
+    xhr.addEventListener("error", () => void resolve((0, either_1.Left)(new Error(`Failed to request a page by error`))));
+    xhr.addEventListener("timeout", () => void resolve((0, either_1.Left)(new Error(`Failed to request a page by timeout`))));
     xhr.addEventListener("load", () => void verify(base, method, xhr, cache).fmap(xhr => {
       const responseURL = new url_1.URL((0, url_1.standardize)(xhr.responseURL, base.href));
       if (method === 'GET') {
         const cc = new Map(xhr.getResponseHeader('Cache-Control')
         // eslint-disable-next-line redos/no-vulnerable
         ? xhr.getResponseHeader('Cache-Control').trim().split(/\s*,\s*/).filter(v => v.length > 0).map(v => v.split('=').concat('')) : []);
-        for (const path of new Set([requestURL.path, responseURL.path])) {
+        for (const path of new Set([displayURL.path, responseURL.path])) {
           if (xhr.getResponseHeader('ETag') && !cc.has('no-store')) {
             cache.set(path, {
               etag: xhr.getResponseHeader('ETag'),
@@ -6634,26 +6627,37 @@ function xhr(method, displayURL, base, headers, body, timeout, rewrite, cache, c
           }
         }
       }
-      return new fetch_1.Response(responseURL.path === requestURL.path ? displayURL : requestURL.path === requestURL.path ? responseURL : displayURL, xhr);
+      return new fetch_1.Response(responseURL, xhr);
     }).extract(err => void resolve((0, either_1.Left)(err)), res => void resolve((0, either_1.Right)(res))));
     cancellation.register(() => void xhr.abort());
   });
 }
 exports.xhr = xhr;
+function request(path, method, headers, timeout, body) {
+  const xhr = new XMLHttpRequest();
+  xhr.open(method, path, true);
+  for (const [name, value] of headers) {
+    xhr.setRequestHeader(name, value);
+  }
+  xhr.responseType = 'document';
+  xhr.timeout = timeout;
+  xhr.send(body);
+  return xhr;
+}
 function verify(base, method, xhr, cache) {
   return (0, either_1.Right)(xhr).bind(xhr => {
     const url = new url_1.URL((0, url_1.standardize)(xhr.responseURL, base.href));
     switch (true) {
       case !xhr.responseURL:
-        return (0, either_1.Left)(new Error(`Failed to get the response URL.`));
+        return (0, either_1.Left)(new Error(`Failed to get the response URL`));
       case url.origin !== new url_1.URL('', window.location.origin).origin:
-        return (0, either_1.Left)(new Error(`Redirected to another origin.`));
+        return (0, either_1.Left)(new Error(`Redirected to another origin`));
       case !/2..|304/.test(`${xhr.status}`):
-        return (0, either_1.Left)(new Error(`Failed to validate the status of response.`));
+        return (0, either_1.Left)(new Error(`Failed to validate the status of response`));
       case !xhr.response:
-        return method === 'GET' && xhr.status === 304 && cache.has(url.path) ? (0, either_1.Right)(cache.get(url.path).xhr) : (0, either_1.Left)(new Error(`Failed to get the response body.`));
+        return method === 'GET' && xhr.status === 304 && cache.has(url.path) ? (0, either_1.Right)(cache.get(url.path).xhr) : (0, either_1.Left)(new Error(`Failed to get the response body`));
       case !match(xhr.getResponseHeader('Content-Type'), 'text/html'):
-        return (0, either_1.Left)(new Error(`Failed to validate the content type of response.`));
+        return (0, either_1.Left)(new Error(`Failed to validate the content type of response`));
       default:
         return (0, either_1.Right)(xhr);
     }
@@ -6722,16 +6726,16 @@ function update({
     src: response.document,
     dst: io.document
   };
-  return promise_1.AtomicPromise.resolve(seq).then(process.either).then(m => m.bind(() => (0, content_1.separate)(documents, config.areas).extract(() => (0, either_1.Left)(new Error(`Failed to separate the areas.`)), () => m))).then(m => m.bind(seqA => (0, content_1.separate)(documents, config.areas).fmap(([area]) => [seqA, area]).extract(() => (0, either_1.Left)(new Error(`Failed to separate the areas.`)), process.either)).fmap(([seqB, area]) => {
+  return promise_1.AtomicPromise.resolve(seq).then(process.either).then(m => m.bind(() => (0, content_1.separate)(documents, config.areas).extract(() => (0, either_1.Left)(new Error(`Failed to separate the areas`)), () => m))).then(m => m.bind(seqA => (0, content_1.separate)(documents, config.areas).fmap(([area]) => [seqA, area]).extract(() => (0, either_1.Left)(new Error(`Failed to separate the areas`)), process.either)).fmap(([seqB, area]) => {
     const memory = event.type === router_1.RouterEventType.Popstate ? config.memory?.get(event.location.dest.path) : undefined;
     config.update.rewrite(event.location.dest.path, documents.src, area, memory && (0, content_1.separate)({
       src: memory,
       dst: documents.dst
     }, [area]).extract(() => false) ? memory : undefined);
     return seqB;
-  }).bind(seqB => (0, content_1.separate)(documents, config.areas).fmap(([, areas]) => [seqB, areas]).extract(() => (0, either_1.Left)(new Error(`Failed to separate the areas.`)), process.either)))
+  }).bind(seqB => (0, content_1.separate)(documents, config.areas).fmap(([, areas]) => [seqB, areas]).extract(() => (0, either_1.Left)(new Error(`Failed to separate the areas`)), process.either)))
   // fetch -> unload
-  .then(m => m.bind(() => (0, content_1.separate)(documents, config.areas).extract(() => (0, either_1.Left)(new Error(`Failed to separate the areas.`)), () => m)).fmap(async ([seqA, areas]) => {
+  .then(m => m.bind(() => (0, content_1.separate)(documents, config.areas).extract(() => (0, either_1.Left)(new Error(`Failed to separate the areas`)), () => m)).fmap(async ([seqA, areas]) => {
     const seqB = await config.sequence.unload(seqA, {
       ...response,
       url: response.url.href
@@ -7027,7 +7031,7 @@ async function fetch(script, timeout) {
       Accept: 'application/javascript'
     },
     integrity: script.integrity
-  }), (0, timer_1.wait)(timeout).then(() => promise_1.AtomicPromise.reject(new Error(`${script.src}: Timeout.`)))]).then(async res => res.ok ? (0, either_1.Right)([script, await res.text()]) : script.matches('[src][async]') ? retry(script).then(() => (0, either_1.Right)([script, '']), () => (0, either_1.Left)(new Error(`${script.src}: ${res.statusText}`))) : (0, either_1.Left)(new Error(res.statusText)), error => (0, either_1.Left)(error));
+  }), (0, timer_1.wait)(timeout).then(() => promise_1.AtomicPromise.reject(new Error(`${script.src}: Timeout`)))]).then(async res => res.ok ? (0, either_1.Right)([script, await res.text()]) : script.matches('[src][async]') ? retry(script).then(() => (0, either_1.Right)([script, '']), () => (0, either_1.Left)(new Error(`${script.src}: ${res.statusText}`))) : (0, either_1.Left)(new Error(res.statusText)), error => (0, either_1.Left)(error));
 }
 exports._fetch = fetch;
 function evaluate(script, code, logger, skip, wait, cancellation) {
@@ -7042,12 +7046,12 @@ function evaluate(script, code, logger, skip, wait, cancellation) {
   const result = promise_1.AtomicPromise.resolve(wait).then(evaluate);
   return script.matches('[src][async]') ? (0, either_1.Right)(result) : (0, either_1.Left)(result);
   function evaluate() {
-    if (!cancellation.isAlive()) throw new error_1.FatalError('Expired.');
+    if (!cancellation.isAlive()) throw new error_1.FatalError('Expired');
     if (script.matches('[type="module"][src]')) {
       return promise_1.AtomicPromise.resolve(Promise.resolve(`${script.src}`).then(s => __importStar(__webpack_require__(8442)(s)))).catch(reason => reason.message.startsWith('Failed to load ') && script.matches('[src][async]') ? retry(script).catch(() => promise_1.AtomicPromise.reject(reason)) : promise_1.AtomicPromise.reject(reason)).then(() => (script.dispatchEvent(new Event('load')), (0, either_1.Right)(script)), reason => (script.dispatchEvent(new Event('error')), (0, either_1.Left)(new error_1.FatalError(reason instanceof Error ? reason.message : reason + ''))));
     } else {
       try {
-        if (skip.has(new url_1.URL((0, url_1.standardize)(window.location.href)).href)) throw new error_1.FatalError('Expired.');
+        if (skip.has(new url_1.URL((0, url_1.standardize)(window.location.href)).href)) throw new error_1.FatalError('Expired');
         (0, eval)(code);
         script.hasAttribute('src') && script.dispatchEvent(new Event('load'));
         return promise_1.AtomicPromise.resolve((0, either_1.Right)(script));
@@ -7437,7 +7441,7 @@ class API {
   }
   static sync(isPjaxPage) {
     isPjaxPage && (0, state_1.savePjax)();
-    process_1.process.cast('', new Error(`Canceled.`));
+    process_1.process.cast('', new Error(`Canceled`));
     page_1.page.sync();
   }
   static pushURL(url, title, state = null) {
@@ -7580,7 +7584,7 @@ function route(config, event, process, io) {
     dest: dest.pathname
   }))(event.location))).fmap(async config => {
     event.original.preventDefault();
-    process.cast('', new Error(`Canceled.`));
+    process.cast('', new Error(`Canceled`));
     const cancellation = new cancellation_1.Cancellation();
     const kill = process.register('', err => {
       kill();
@@ -7615,20 +7619,20 @@ function route(config, event, process, io) {
   }).extract(() => {
     switch (event.type) {
       case router_1.RouterEventType.Click:
-        event.source.matches('[href]') && process.cast('', new Error(`Canceled.`));
+        event.source.matches('[href]') && process.cast('', new Error(`Canceled`));
         page_1.page.sync();
         return false;
       case router_1.RouterEventType.Submit:
-        process.cast('', new Error(`Canceled.`));
+        process.cast('', new Error(`Canceled`));
         page_1.page.sync();
         return false;
       case router_1.RouterEventType.Popstate:
         if (isHashChange(event.location.dest)) {
-          process.cast('', new Error(`Canceled.`));
+          process.cast('', new Error(`Canceled`));
           page_1.page.sync();
           return false;
         }
-        config.fallback(event.source, new Error(`Disabled.`));
+        config.fallback(event.source, new Error(`Disabled`));
         page_1.page.sync();
         return true;
     }
@@ -7877,8 +7881,7 @@ function fix(doc) {
 }
 exports.fix = fix;
 function fixNoscript(doc) {
-  for (const el of doc.querySelectorAll('noscript')) {
-    if (!el.firstElementChild) continue;
+  for (const el of doc.querySelectorAll('noscript:not(:empty)')) {
     el.textContent = el.innerHTML;
   }
 }
