@@ -104,7 +104,7 @@ async function fetch(
       },
       integrity: script.integrity,
     }),
-    wait(timeout).then(() => AtomicPromise.reject(new Error(`${script.src}: Timeout.`))),
+    wait(timeout).then(() => AtomicPromise.reject(new Error(`${script.src}: Timeout`))),
   ])
     .then(
       async res =>
@@ -152,7 +152,7 @@ function evaluate(
     : Left(result);
 
   function evaluate(): AtomicPromise<Either<Error, HTMLScriptElement>> {
-    if (!cancellation.isAlive()) throw new FatalError('Expired.');
+    if (!cancellation.isAlive()) throw new FatalError('Expired');
     if (script.matches('[type="module"][src]')) {
       return AtomicPromise.resolve(import(script.src))
         .catch((reason: Error) =>
@@ -169,7 +169,7 @@ function evaluate(
     }
     else {
       try {
-        if (skip.has(new URL(standardize(window.location.href)).href)) throw new FatalError('Expired.');
+        if (skip.has(new URL(standardize(window.location.href)).href)) throw new FatalError('Expired');
         (0, eval)(code);
         script.hasAttribute('src') && script.dispatchEvent(new Event('load'));
         return AtomicPromise.resolve(Right(script));

@@ -43,7 +43,7 @@ export function route(
       scope(config, (({ orig, dest }) => ({ orig: orig.pathname, dest: dest.pathname }))(event.location)))
     .fmap(async config => {
       event.original.preventDefault();
-      process.cast('', new Error(`Canceled.`));
+      process.cast('', new Error(`Canceled`));
       const cancellation = new Cancellation<Error>();
       const kill = process.register('', err => {
         kill();
@@ -82,20 +82,20 @@ export function route(
         assert(!event.original.defaultPrevented);
         switch (event.type) {
           case RouterEventType.Click:
-            (event.source as RouterEventSource.Link).matches('[href]') && process.cast('', new Error(`Canceled.`));
+            (event.source as RouterEventSource.Link).matches('[href]') && process.cast('', new Error(`Canceled`));
             page.sync();
             return false;
           case RouterEventType.Submit:
-            process.cast('', new Error(`Canceled.`));
+            process.cast('', new Error(`Canceled`));
             page.sync();
             return false;
           case RouterEventType.Popstate:
             if (isHashChange(event.location.dest)) {
-              process.cast('', new Error(`Canceled.`));
+              process.cast('', new Error(`Canceled`));
               page.sync();
               return false;
             }
-            config.fallback(event.source, new Error(`Disabled.`));
+            config.fallback(event.source, new Error(`Disabled`));
             page.sync();
             return true;
         }

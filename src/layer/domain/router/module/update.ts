@@ -39,7 +39,7 @@ export function update(
       .bind(() =>
         separate(documents, config.areas)
           .extract(
-            () => Left(new Error(`Failed to separate the areas.`)),
+            () => Left(new Error(`Failed to separate the areas`)),
             () => m)))
     .then(m => m
       .bind(seqA =>
@@ -47,7 +47,7 @@ export function update(
           .fmap(([area]) =>
             [seqA, area] as const)
           .extract(
-            () => Left(new Error(`Failed to separate the areas.`)),
+            () => Left(new Error(`Failed to separate the areas`)),
             process.either))
       .fmap(([seqB, area]) => {
         const memory = event.type === RouterEventType.Popstate
@@ -67,14 +67,14 @@ export function update(
           .fmap(([, areas]) =>
             [seqB, areas] as const)
           .extract(
-            () => Left(new Error(`Failed to separate the areas.`)),
+            () => Left(new Error(`Failed to separate the areas`)),
             process.either)))
     // fetch -> unload
     .then(m => m
       .bind(() =>
         separate(documents, config.areas)
           .extract(
-            () => Left(new Error(`Failed to separate the areas.`)),
+            () => Left(new Error(`Failed to separate the areas`)),
             () => m))
       .fmap(async ([seqA, areas]) => {
         const seqB = await config.sequence.unload(seqA, { ...response, url: response.url.href });

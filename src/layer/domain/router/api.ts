@@ -19,7 +19,7 @@ export async function route(
     .bind(() =>
       match(io.document, entity.config.areas)
         ? Right(undefined)
-        : Left(new Error(`Failed to match areas.`)))
+        : Left(new Error(`Failed to match areas`)))
     .fmap(() =>
       fetch(entity.event, entity.config, entity.state.process, io))
     .fmap(async p => (await p)

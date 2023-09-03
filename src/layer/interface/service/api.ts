@@ -16,7 +16,7 @@ export class API {
   }
   public static sync(isPjaxPage?: boolean): void {
     isPjaxPage && savePjax();
-    process.cast('', new Error(`Canceled.`));
+    process.cast('', new Error(`Canceled`));
     page.sync();
   }
   public static pushURL(url: string, title: string, state: unknown = null): void {

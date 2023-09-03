@@ -38,13 +38,13 @@ export function xhr(
     xhr.send(body);
 
     xhr.addEventListener("abort", () =>
-      void resolve(Left(new Error(`Failed to request a page by abort.`))));
+      void resolve(Left(new Error(`Failed to request a page by abort`))));
 
     xhr.addEventListener("error", () =>
-      void resolve(Left(new Error(`Failed to request a page by error.`))));
+      void resolve(Left(new Error(`Failed to request a page by error`))));
 
     xhr.addEventListener("timeout", () =>
-      void resolve(Left(new Error(`Failed to request a page by timeout.`))));
+      void resolve(Left(new Error(`Failed to request a page by timeout`))));
 
     xhr.addEventListener("load", () =>
       void verify(base, method, xhr, cache)
@@ -101,17 +101,17 @@ function verify(
       const url = new URL(standardize(xhr.responseURL, base.href));
       switch (true) {
         case !xhr.responseURL:
-          return Left(new Error(`Failed to get the response URL.`));
+          return Left(new Error(`Failed to get the response URL`));
         case url.origin !== new URL('', window.location.origin).origin:
-          return Left(new Error(`Redirected to another origin.`));
+          return Left(new Error(`Redirected to another origin`));
         case !/2..|304/.test(`${xhr.status}`):
-          return Left(new Error(`Failed to validate the status of response.`));
+          return Left(new Error(`Failed to validate the status of response`));
         case !xhr.response:
           return method === 'GET' && xhr.status === 304 && cache.has(url.path)
             ? Right(cache.get(url.path)!.xhr)
-            : Left(new Error(`Failed to get the response body.`));
+            : Left(new Error(`Failed to get the response body`));
         case !match(xhr.getResponseHeader('Content-Type'), 'text/html'):
-          return Left(new Error(`Failed to validate the content type of response.`));
+          return Left(new Error(`Failed to validate the content type of response`));
         default:
           return Right(xhr);
       }
