@@ -24,18 +24,18 @@ function parseByDoc(html: string): Document {
   return document;
 }
 
-export function fix(doc: Document): void {
-  fixNoscript(doc);
+export function fix(document: Document): void {
+  fixNoscript(document);
 }
 
 // Tags within noscript tags do not become elements if statically parsed from HTML.
-function fixNoscript(doc: Document): void {
+function fixNoscript(document: Document): void {
   // :empty and :has do not work.
-  for (const el of doc.querySelectorAll('noscript')) {
+  for (const el of document.querySelectorAll('noscript')) {
     if (!el.firstElementChild) continue;
     el.textContent = el.innerHTML;
   }
-  assert(!doc.querySelector('noscript *'));
+  assert(!document.querySelector('noscript *'));
 }
 
 function test(parser: (html: string) => Document): boolean {
@@ -55,17 +55,17 @@ function test(parser: (html: string) => Document): boolean {
   </body>
 </html>
 `;
-    const doc = parser(html);
+    const document = parser(html);
     switch (false) {
-      case doc.title === '&':
-      case !!doc.querySelector('html.html[lang="en"]'):
-      case !!doc.querySelector('head > link')!.href:
-      case !!doc.querySelector('body > a')!.href:
-      case !doc.querySelector('noscript > *'):
-      case doc.querySelector('script')!.innerHTML === 'document.head.remove();':
-      case doc.querySelector('img')!.src.endsWith('abc'):
-      case doc.querySelector('head > noscript')!.textContent === '<style><></style>':
-      case doc.querySelector('body > noscript')!.textContent === '<style><></style>':
+      case document.title === '&':
+      case !!document.querySelector('html.html[lang="en"]'):
+      case !!document.querySelector('head > link')!.href:
+      case !!document.querySelector('body > a')!.href:
+      case !document.querySelector('noscript > *'):
+      case document.querySelector('script')!.innerHTML === 'document.head.remove();':
+      case document.querySelector('img')!.src.endsWith('abc'):
+      case document.querySelector('head > noscript')!.textContent === '<style><></style>':
+      case document.querySelector('body > noscript')!.textContent === '<style><></style>':
         throw undefined;
     }
     return true;
