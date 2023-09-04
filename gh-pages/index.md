@@ -29,7 +29,9 @@ This site is also powered by PJAX as a demo. Try page transitions.
 
 - [APIs]({{ site.basepath }}docs/apis/)
   - [Pjax]({{ site.basepath }}docs/apis/pjax/)
+    - [Config]({{ site.basepath }}docs/apis/pjax/config/)
   - [Events]({{ site.basepath }}docs/apis/events/)
+  - [Util]({{ site.basepath }}docs/apis/util/)
 </div>
 
 <div class="col-md-4">

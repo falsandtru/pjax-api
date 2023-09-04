@@ -54,7 +54,7 @@ export class Config implements Option {
     wait: 0,
   };
   public readonly update = {
-    rewrite: (_path: string, _doc: Document, _area: string, _memory: Document | undefined): void => undefined,
+    rewrite: (_url: string, _document: Document, _area: string, _cache: Document | undefined): void => undefined,
     head: 'base, meta, link',
     css: true,
     script: true,

@@ -1,6 +1,7 @@
-import { Pjax } from '../../../index';
+import { Pjax, FakeXMLHttpRequest } from '../../../index';
 import { route as router } from '../../../src/layer/interface/service/router';
 import { parse } from '../../../src/lib/html';
+import { wait } from 'spica/timer';
 import { once } from 'typed-dom';
 
 describe('Integration: Config', function () {
@@ -10,33 +11,18 @@ describe('Integration: Config', function () {
 
   describe('fetch.rewrite', function () {
     it('', function (done) {
-      const FakeXMLHttpRequest = XMLHttpRequest;
       const url = '/base/test/integration/fixture/basic/1.html';
       const document = parse('').extract();
       new Pjax({
         fetch: {
-          rewrite: (path, method, headers, timeout, body) => {
-            const xhr = new FakeXMLHttpRequest();
-            xhr.open(method, path, true);
-            for (const [name, value] of headers) {
-              xhr.setRequestHeader(name, value);
-            }
-
-            xhr.responseType = 'document';
-            xhr.timeout = timeout;
-            xhr.send(body);
-
-            Object.defineProperties(xhr, {
-              responseURL: {
-                value: url,
-              },
-              responseXML: {
-                value: parse('<title>Title 2</title><div id="primary">Primary 2</div>').extract(),
-              },
-            });
-            return xhr;
-          },
-        }
+          rewrite: url =>
+            FakeXMLHttpRequest.create(
+              url,
+              wait(100).then(() =>
+                new DOMParser().parseFromString(
+                  '<title>Title 2</title><div id="primary">Primary 2</div>',
+                  'text/html'))),
+        },
       }, { document, router })
         .assign(url);
       once(document, 'pjax:ready', () => {

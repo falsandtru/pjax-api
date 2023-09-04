@@ -35,7 +35,8 @@ Most SPA frameworks and pjax libraries lack many essential functions to keep the
 |Execution sequence keeping| | |✓| |
 |Non-blocking script load|✓|✓|✓| |
 |**Subresource integrity verification**| | |✓<sup>\*1</sup>| |
-|Lightweight source rewrite| |✓|✓| |
+|**Rewrite request and response (XHR)**| | |✓| |
+|Rewrite source document| |✓|✓| |
 |ETag support| | |✓| |
 |Cache|✓|✓|✓|✓|
 |URL scope| | |✓|✓|
@@ -43,7 +44,7 @@ Most SPA frameworks and pjax libraries lack many essential functions to keep the
 |**Browser history fix**| | |✓| |
 |**Scroll position restoration**| | |✓| |
 |**Unexpected scroll prevention**| | |✓| |
-|NOSCRIPT tag restoration| | |✓| |
+|NOSCRIPT tag fix| | |✓| |
 |History API support<sup>\*2</sup>| | |✓| |
 |No jQuery dependency| | |✓|✓|
 

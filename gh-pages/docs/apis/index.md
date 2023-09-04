@@ -15,3 +15,7 @@ Pjax APIs.
 ## [Events]({{ site.basepath }}docs/apis/events/)
 
 Global events.
+
+## [Util]({{ site.basepath }}docs/apis/util/)
+
+Utilities.

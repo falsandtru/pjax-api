@@ -16,13 +16,13 @@ describe('Integration: Config', function () {
       new Pjax({
         memory: new Cache(100),
         update: {
-          rewrite(path, doc, area, memory) {
-            switch (path) {
-              case url:
-                memory && doc.querySelector(area)?.replaceWith(memory.querySelector(area)!.cloneNode(true));
+          rewrite(url, doc, area, cache) {
+            switch (url.split('/').at(-1)) {
+              case '2.html':
+                cache && doc.querySelector(area)?.replaceWith(cache.querySelector(area)!.cloneNode(true));
             }
           },
-        }
+        },
       }, { document, router })
         .assign(url);
       once(document, 'pjax:ready', () => {
@@ -32,7 +32,8 @@ describe('Integration: Config', function () {
         document.querySelector('#primary')!.textContent = 'PRIMARY 2';
         once(document, 'pjax:ready', () => {
           assert(window.location.pathname !== url);
-          assert(document.title !== 'Title 2');
+          assert(document.title === 'Title 1');
+          assert(document.querySelector('#primary')!.textContent === 'Primary 1');
           once(document, 'pjax:ready', () => {
             assert(window.location.pathname === url);
             assert(document.title === 'Title 2');

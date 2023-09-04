@@ -54,7 +54,7 @@ export function update(
           ? config.memory?.get(event.location.dest.path)
           : undefined;
         config.update.rewrite(
-          event.location.dest.path,
+          event.location.dest.href,
           documents.src,
           area,
           memory && separate({ src: memory, dst: documents.dst }, [area]).extract(() => false)

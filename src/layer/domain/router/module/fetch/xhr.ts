@@ -25,7 +25,8 @@ export function xhr(
     headers.set('If-None-Match', cache.get(displayURL.path)!.etag);
   }
   return new AtomicPromise<Either<Error, Response>>(resolve => {
-    const xhr = rewrite(displayURL.path, method, headers, timeout, body);
+    const xhr = rewrite(displayURL.href, method, headers, timeout, body) ??
+                request(displayURL.href, method, headers, timeout, body);
 
     if (xhr.responseType !== 'document') throw new Error(`Response type must be 'document'`);
 
@@ -77,14 +78,14 @@ export function xhr(
 }
 
 function request(
-  path: URL.Path<StandardURL>,
+  url: URL.Href<StandardURL>,
   method: RouterEventMethod,
   headers: Headers,
   timeout: number,
   body: FormData | null,
 ): XMLHttpRequest {
   const xhr = new XMLHttpRequest();
-  xhr.open(method, path, true);
+  xhr.open(method, url, true);
   for (const [name, value] of headers) {
     xhr.setRequestHeader(name, value);
   }

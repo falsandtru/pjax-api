@@ -23,13 +23,13 @@ export interface Config {
   readonly cache?: Dict<string, unknown>;
   readonly memory?: Dict<string, Document>;
   readonly fetch?: {
-    readonly rewrite?: (path: string, method: string, headers: Headers, timeout: number, body: FormData | null) => XMLHttpRequest;
+    readonly rewrite?: (url: string, method: string, headers: Headers, timeout: number, body: FormData | null) => XMLHttpRequest | undefined;
     readonly headers?: Headers;
     readonly timeout?: number;
     readonly wait?: number;
   };
   readonly update?: {
-    readonly rewrite?: (path: string, doc: Document, area: string, memory: Document | undefined) => void;
+    readonly rewrite?: (url: string, document: Document, area: string, cache: Document | undefined) => void;
     readonly head?: string;
     readonly css?: boolean;
     readonly script?: boolean;
@@ -62,4 +62,8 @@ declare global {
     'pjax:ready': Event;
   }
 
+}
+
+export class FakeXMLHttpRequest extends XMLHttpRequest {
+  public static create(url: string, response: Document | PromiseLike<Document>): FakeXMLHttpRequest;
 }

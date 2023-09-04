@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.40.0
+
+- Add FakeXMLHttpRequest.
+- Change `fetch.rewrite` option.
+- Change `update.rewrite` option.
+
 ## 3.39.1
 
 - Fix noscript parsing.

@@ -1,9 +1,9 @@
-import _Pjax, { Pjax } from '../../index';
+import Pjax$, { Pjax, FakeXMLHttpRequest } from '../../index';
 
 describe('Interface: Package', function () {
   describe('default', function () {
     it('default', function () {
-      assert(_Pjax === Pjax);
+      assert(Pjax$ === Pjax);
     });
 
   });
@@ -17,6 +17,10 @@ describe('Interface: Package', function () {
       assert(typeof Pjax.replace === 'function');
     });
 
+  });
+
+  describe('FakeXMLHttpRequest', function () {
+    assert(typeof FakeXMLHttpRequest === 'function');
   });
 
 });
