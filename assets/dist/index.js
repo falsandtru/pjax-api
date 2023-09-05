@@ -6030,7 +6030,7 @@ class ReadonlyURLSearchParams extends URLSearchParams {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = exports.Pjax = void 0;
+exports.FakeXMLHttpRequest = exports["default"] = exports.Pjax = void 0;
 var gui_1 = __webpack_require__(524);
 Object.defineProperty(exports, "Pjax", ({
   enumerable: true,
@@ -6042,6 +6042,13 @@ Object.defineProperty(exports, "default", ({
   enumerable: true,
   get: function () {
     return gui_1.GUI;
+  }
+}));
+var xhr_1 = __webpack_require__(5061);
+Object.defineProperty(exports, "FakeXMLHttpRequest", ({
+  enumerable: true,
+  get: function () {
+    return xhr_1.FakeXMLHttpRequest;
   }
 }));
 
@@ -6227,7 +6234,7 @@ class Config {
       wait: 0
     };
     this.update = {
-      rewrite: (_path, _doc, _area, _memory) => undefined,
+      rewrite: (_url, _document, _area, _cache) => undefined,
       head: 'base, meta, link',
       css: true,
       script: true,
@@ -6609,7 +6616,7 @@ function xhr(method, displayURL, base, headers, body, timeout, cache, cancellati
     headers.set('If-None-Match', cache.get(displayURL.path).etag);
   }
   return new promise_1.AtomicPromise(resolve => {
-    const xhr = rewrite(displayURL.path, method, headers, timeout, body);
+    const xhr = rewrite(displayURL.href, method, headers, timeout, body) ?? request(displayURL.href, method, headers, timeout, body);
     if (xhr.responseType !== 'document') throw new Error(`Response type must be 'document'`);
     xhr.addEventListener("abort", () => void resolve((0, either_1.Left)(new Error(`Failed to request a page by abort`))));
     xhr.addEventListener("error", () => void resolve((0, either_1.Left)(new Error(`Failed to request a page by error`))));
@@ -6638,9 +6645,9 @@ function xhr(method, displayURL, base, headers, body, timeout, cache, cancellati
   });
 }
 exports.xhr = xhr;
-function request(path, method, headers, timeout, body) {
+function request(url, method, headers, timeout, body) {
   const xhr = new XMLHttpRequest();
-  xhr.open(method, path, true);
+  xhr.open(method, url, true);
   for (const [name, value] of headers) {
     xhr.setRequestHeader(name, value);
   }
@@ -6650,23 +6657,21 @@ function request(path, method, headers, timeout, body) {
   return xhr;
 }
 function verify(base, method, xhr, cache) {
-  return (0, either_1.Right)(xhr).bind(xhr => {
-    const url = new url_1.URL((0, url_1.standardize)(xhr.responseURL, base.href));
-    switch (true) {
-      case !xhr.responseURL:
-        return (0, either_1.Left)(new Error(`Failed to get the response URL`));
-      case url.origin !== new url_1.URL('', window.location.origin).origin:
-        return (0, either_1.Left)(new Error(`Redirected to another origin`));
-      case !/2..|304/.test(`${xhr.status}`):
-        return (0, either_1.Left)(new Error(`Failed to validate the status of response`));
-      case !xhr.response:
-        return method === 'GET' && xhr.status === 304 && cache.has(url.path) ? (0, either_1.Right)(cache.get(url.path).xhr) : (0, either_1.Left)(new Error(`Failed to get the response body`));
-      case !match(xhr.getResponseHeader('Content-Type'), 'text/html'):
-        return (0, either_1.Left)(new Error(`Failed to validate the content type of response`));
-      default:
-        return (0, either_1.Right)(xhr);
-    }
-  });
+  const url = new url_1.URL((0, url_1.standardize)(xhr.responseURL, base.href));
+  switch (true) {
+    case !xhr.responseURL:
+      return (0, either_1.Left)(new Error(`Failed to get the response URL`));
+    case url.origin !== new url_1.URL('', window.location.origin).origin:
+      return (0, either_1.Left)(new Error(`Redirected to another origin`));
+    case !/2..|304/.test(`${xhr.status}`):
+      return (0, either_1.Left)(new Error(`Failed to validate the status of response`));
+    case !xhr.response:
+      return method === 'GET' && xhr.status === 304 && cache.has(url.path) ? (0, either_1.Right)(cache.get(url.path).xhr) : (0, either_1.Left)(new Error(`Failed to get the response body`));
+    case !match(xhr.getResponseHeader('Content-Type'), 'text/html'):
+      return (0, either_1.Left)(new Error(`Failed to validate the content type of response`));
+    default:
+      return (0, either_1.Right)(xhr);
+  }
 }
 function match(actualContentType, expectedContentType) {
   const as = parse(actualContentType || '').sort();
@@ -6733,7 +6738,7 @@ function update({
   };
   return promise_1.AtomicPromise.resolve(seq).then(process.either).then(m => m.bind(() => (0, content_1.separate)(documents, config.areas).extract(() => (0, either_1.Left)(new Error(`Failed to separate the areas`)), () => m))).then(m => m.bind(seqA => (0, content_1.separate)(documents, config.areas).fmap(([area]) => [seqA, area]).extract(() => (0, either_1.Left)(new Error(`Failed to separate the areas`)), process.either)).fmap(([seqB, area]) => {
     const memory = event.type === router_1.RouterEventType.Popstate ? config.memory?.get(event.location.dest.path) : undefined;
-    config.update.rewrite(event.location.dest.path, documents.src, area, memory && (0, content_1.separate)({
+    config.update.rewrite(event.location.dest.href, documents.src, area, memory && (0, content_1.separate)({
       src: memory,
       dst: documents.dst
     }, [area]).extract(() => false) ? memory : undefined);
@@ -7928,6 +7933,73 @@ function test(parser) {
     return false;
   }
 }
+
+/***/ }),
+
+/***/ 5061:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.FakeXMLHttpRequest = void 0;
+const promise_1 = __webpack_require__(4879);
+class FakeXMLHttpRequest extends XMLHttpRequest {
+  static create(url, response) {
+    const xhr = new FakeXMLHttpRequest();
+    promise_1.AtomicPromise.resolve(response).then(response => {
+      Object.defineProperties(xhr, {
+        responseURL: {
+          value: url
+        },
+        responseXML: {
+          value: response
+        }
+      });
+      xhr.send();
+    });
+    return xhr;
+  }
+  constructor() {
+    super();
+    this.responseType = 'document';
+  }
+  send(_) {
+    let state = 3;
+    Object.defineProperties(this, {
+      readyState: {
+        get: () => state
+      },
+      status: {
+        value: 200
+      },
+      statusText: {
+        value: 'OK'
+      },
+      response: {
+        get: () => this.responseType === 'document' ? this.responseXML : this.responseText
+      }
+    });
+    setTimeout(() => {
+      this.dispatchEvent(new ProgressEvent('loadstart'));
+      state = 4;
+      this.dispatchEvent(new ProgressEvent('loadend'));
+      this.dispatchEvent(new ProgressEvent('load'));
+    });
+  }
+  getResponseHeader(name) {
+    switch (name.toLowerCase()) {
+      case 'content-type':
+        return 'text/html';
+      default:
+        return null;
+    }
+  }
+}
+exports.FakeXMLHttpRequest = FakeXMLHttpRequest;
 
 /***/ }),
 

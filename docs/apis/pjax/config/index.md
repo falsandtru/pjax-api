@@ -65,7 +65,7 @@ Set a dictionary object having has/get/set/delete methods of Map to pass the doc
 
 ## fetch: {...} = ...
 
-### rewrite: (path: string, method: string, headers: Headers, timeout: number, body: FormData | null) => XMLHttpRequest
+### rewrite: (url: string, method: string, headers: Headers, timeout: number, body: FormData | null) => XMLHttpRequest | undefined
 
 Rewrite the XHR object, or replace it with another or fake.
 
@@ -79,7 +79,7 @@ Wait for the specified milliseconds after sending a request.
 
 ## update: {...} = ...
 
-### rewrite: (doc: Document, area: string, memory?: Document) => void = `() => undefined`
+### rewrite: (url: string, document: Document, area: string, cache?: Document) => void = `() => undefined`
 
 Rewrite the source document object.
 If you use the sequence option, you should use only it instead of this.
