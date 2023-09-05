@@ -27,20 +27,22 @@ export class FakeXMLHttpRequest extends XMLHttpRequest {
       readyState: {
         get: () => state,
       },
-      status: {
-        value: 200,
-      },
-      statusText: {
-        value: 'OK',
-      },
-      response: {
-        get: () =>
-          this.responseType === 'document'
-            ? this.responseXML
-            : this.responseText,
-      },
-    })
+    });
     setTimeout(() => {
+      Object.defineProperties(this, {
+        status: {
+          value: 200,
+        },
+        statusText: {
+          value: 'OK',
+        },
+        response: {
+          get: () =>
+            this.responseType === 'document'
+              ? this.responseXML
+              : this.responseText,
+        },
+      });
       this.dispatchEvent(new ProgressEvent('loadstart'));
       state = 4;
       this.dispatchEvent(new ProgressEvent('loadend'));
