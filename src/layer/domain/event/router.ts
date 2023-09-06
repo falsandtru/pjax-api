@@ -68,7 +68,7 @@ export class RouterEventRequest {
     if (this.source instanceof RouterEventSource.Window) {
       return RouterEventMethod.GET;
     }
-    throw new TypeError();
+    throw new Error(`Invalid event source`);
   })();
   public readonly url: URL<StandardURL> = (() => {
     if (this.source instanceof RouterEventSource.Anchor || this.source instanceof RouterEventSource.Area) {
@@ -82,7 +82,7 @@ export class RouterEventRequest {
     if (this.source instanceof RouterEventSource.Window) {
       return new URL(standardize(window.location.href));
     }
-    throw new TypeError();
+    throw new Error(`Invalid event source`);
   })();
   public readonly body: FormData | null = (() =>
     this.source instanceof RouterEventSource.Form && this.method === RouterEventMethod.POST
