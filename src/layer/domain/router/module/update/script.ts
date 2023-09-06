@@ -184,14 +184,14 @@ function evaluate(
 export { evaluate as _evaluate }
 
 export function escape(script: HTMLScriptElement): () => void {
-  const src: string | null = script.hasAttribute('src') ? script.getAttribute('src') : null;
+  const src = script.getAttribute('src');
   const code = script.text;
   script.removeAttribute('src');
   script.text = '';
   return () => {
     script.text = ' ';
     script.text = code;
-    typeof src === 'string' && void script.setAttribute('src', src);
+    src !== null && script.setAttribute('src', src);
   };
 }
 
