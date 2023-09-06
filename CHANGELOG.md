@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.40.1
+
+- Fix error handling.
+
 ## 3.40.0
 
 - Add FakeXMLHttpRequest.

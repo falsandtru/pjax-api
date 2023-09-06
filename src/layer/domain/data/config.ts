@@ -67,7 +67,8 @@ export class Config implements Option {
     logger: '',
   };
   public fallback(target: HTMLAnchorElement | HTMLAreaElement | HTMLFormElement | Window, reason: unknown): void {
-    if (target instanceof HTMLAnchorElement) {
+    if (target instanceof HTMLAnchorElement ||
+        target instanceof HTMLAreaElement) {
       return void window.location.assign(target.href);
     }
     if (target instanceof HTMLFormElement) {
