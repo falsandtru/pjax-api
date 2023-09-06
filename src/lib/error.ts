@@ -3,7 +3,6 @@ export class FatalError extends Error {
     super(msg);
   }
 }
-Error.prototype.name = 'Error';
 FatalError.prototype.name = 'FatalError';
 assert(new FatalError('') instanceof Error);
 assert(new FatalError('') instanceof FatalError);
