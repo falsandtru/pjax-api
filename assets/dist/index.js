@@ -1022,7 +1022,7 @@ class Cancellation {
     this.state = 2 /* State.closed */;
     this.reason = reason;
     this.handlers = [];
-    this[promise_1.internal].resolve(promise_1.AtomicPromise.reject(reason));
+    this[promise_1.internal].reject(reason);
   }
   get close() {
     return reason => this.close$(reason);
@@ -6271,7 +6271,7 @@ class Config {
     return true;
   }
   fallback(target, reason) {
-    if (target instanceof HTMLAnchorElement) {
+    if (target instanceof HTMLAnchorElement || target instanceof HTMLAreaElement) {
       return void window.location.assign(target.href);
     }
     if (target instanceof HTMLFormElement) {
@@ -6399,7 +6399,7 @@ class RouterEventRequest {
       if (this.source instanceof RouterEventSource.Window) {
         return RouterEventMethod.GET;
       }
-      throw new TypeError();
+      throw new Error(`Invalid event source`);
     })();
     this.url = (() => {
       if (this.source instanceof RouterEventSource.Anchor || this.source instanceof RouterEventSource.Area) {
@@ -6411,7 +6411,7 @@ class RouterEventRequest {
       if (this.source instanceof RouterEventSource.Window) {
         return new url_1.URL((0, url_1.standardize)(window.location.href));
       }
-      throw new TypeError();
+      throw new Error(`Invalid event source`);
     })();
     this.body = (() => this.source instanceof RouterEventSource.Form && this.method === RouterEventMethod.POST ? new FormData(this.source) : null)();
     Object.freeze(this);
@@ -6458,7 +6458,7 @@ Object.defineProperty(exports, "RouterEntityState", ({
   }
 }));
 async function route(entity, io) {
-  return (0, either_1.Right)(undefined).bind(entity.state.process.either).bind(() => match(io.document, entity.config.areas) ? (0, either_1.Right)(undefined) : (0, either_1.Left)(new Error(`Failed to match areas`))).fmap(() => (0, fetch_1.fetch)(entity.event, entity.config, entity.state.process, io)).fmap(async p => (await p).fmap(([res, seq]) => (0, update_1.update)(entity, res, seq, {
+  return (0, either_1.Right)(undefined).bind(entity.state.process.either).bind(() => match(io.document, entity.config.areas) ? (0, either_1.Right)(undefined) : (0, either_1.Left)(new Error(`Failed to match the areas`))).fmap(() => (0, fetch_1.fetch)(entity.event, entity.config, entity.state.process, io)).fmap(async p => (await p).fmap(([res, seq]) => (0, update_1.update)(entity, res, seq, {
     document: io.document,
     position: path_1.loadPosition
   })).extract(either_1.Left)).extract(either_1.Left);
@@ -7074,14 +7074,14 @@ function evaluate(script, code, logger, skip, wait, cancellation) {
 }
 exports._evaluate = evaluate;
 function escape(script) {
-  const src = script.hasAttribute('src') ? script.getAttribute('src') : null;
+  const src = script.getAttribute('src');
   const code = script.text;
   script.removeAttribute('src');
   script.text = '';
   return () => {
     script.text = ' ';
     script.text = code;
-    typeof src === 'string' && void script.setAttribute('src', src);
+    src !== null && script.setAttribute('src', src);
   };
 }
 exports.escape = escape;
@@ -7451,7 +7451,7 @@ class API {
   }
   static sync(isPjaxPage) {
     isPjaxPage && (0, state_1.savePjax)();
-    process_1.process.cast('', new Error(`Canceled`));
+    process_1.process.cast('', new Error('Canceled'));
     page_1.page.sync();
   }
   static pushURL(url, title, state = null) {
@@ -7594,7 +7594,7 @@ function route(config, event, process, io) {
     dest: dest.pathname
   }))(event.location))).fmap(async config => {
     event.original.preventDefault();
-    process.cast('', new Error(`Canceled`));
+    process.cast('', new Error('Canceled'));
     const cancellation = new cancellation_1.Cancellation();
     const kill = process.register('', err => {
       kill();
@@ -7629,20 +7629,20 @@ function route(config, event, process, io) {
   }).extract(() => {
     switch (event.type) {
       case router_1.RouterEventType.Click:
-        event.source.matches('[href]') && process.cast('', new Error(`Canceled`));
+        event.source.matches('[href]') && process.cast('', new Error('Canceled'));
         page_1.page.sync();
         return false;
       case router_1.RouterEventType.Submit:
-        process.cast('', new Error(`Canceled`));
+        process.cast('', new Error('Canceled'));
         page_1.page.sync();
         return false;
       case router_1.RouterEventType.Popstate:
         if (isHashChange(event.location.dest)) {
-          process.cast('', new Error(`Canceled`));
+          process.cast('', new Error('Canceled'));
           page_1.page.sync();
           return false;
         }
-        config.fallback(event.source, new Error(`Disabled`));
+        config.fallback(event.source, new Error('Disabled'));
         page_1.page.sync();
         return true;
     }
@@ -7855,7 +7855,6 @@ class FatalError extends Error {
   }
 }
 exports.FatalError = FatalError;
-Error.prototype.name = 'Error';
 FatalError.prototype.name = 'FatalError';
 
 /***/ }),
@@ -7972,18 +7971,20 @@ class FakeXMLHttpRequest extends XMLHttpRequest {
     Object.defineProperties(this, {
       readyState: {
         get: () => state
-      },
-      status: {
-        value: 200
-      },
-      statusText: {
-        value: 'OK'
-      },
-      response: {
-        get: () => this.responseType === 'document' ? this.responseXML : this.responseText
       }
     });
     setTimeout(() => {
+      Object.defineProperties(this, {
+        status: {
+          value: 200
+        },
+        statusText: {
+          value: 'OK'
+        },
+        response: {
+          get: () => this.responseType === 'document' ? this.responseXML : this.responseText
+        }
+      });
       this.dispatchEvent(new ProgressEvent('loadstart'));
       state = 4;
       this.dispatchEvent(new ProgressEvent('loadend'));
