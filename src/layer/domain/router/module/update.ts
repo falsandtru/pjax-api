@@ -53,7 +53,7 @@ export function update(
         const memory = event.type === RouterEventType.Popstate
           ? config.memory?.get(event.location.dest.path)
           : undefined;
-        config.update.rewrite(
+        config.update.rewrite?.(
           event.location.dest.href,
           documents.src,
           area,

@@ -8,26 +8,16 @@ export { scope } from './config/scope';
 
 export class Config implements Option {
   constructor(option: Option) {
-    Object.defineProperties(this.update, {
-      ignore: {
-        enumerable: false,
-        set(this: Config['update'], value: string) {
-          this.ignores['_'] = value;
-        },
-        get(this: Config['update']): string {
-          return Object.keys(this.ignores)
-            .map(i => this.ignores[i])
-            .filter(s => s.trim().length > 0)
-            .join(',');
-        },
-      },
-    });
     extend<Option>(this, option);
+    this.update.ignores.$ ??= option.update?.ignore ?? '';
+    this.update.ignore = Object.values(this.update.ignores).filter(s => s).join(',');
     overwrite(this.scope, option?.scope ?? {});
     this.fetch.headers = new Headers(this.fetch.headers);
-    Object.freeze(this);
     this.fetch.headers.set('X-Requested-With', 'XMLHttpRequest');
     this.fetch.headers.set('X-Pjax', '1');
+    Object.freeze(this);
+    Object.freeze(this.fetch);
+    Object.freeze(this.update);
   }
   public readonly areas = ['body'];
   public readonly link = ':is(a, area)[href]:not([target])';
@@ -54,12 +44,13 @@ export class Config implements Option {
     wait: 0,
   };
   public readonly update = {
-    rewrite: (_url: string, _document: Document, _area: string, _cache: Document | undefined): void => undefined,
+    rewrite: undefined as NonNullable<Option['update']>['rewrite'],
     head: 'base, meta, link',
     css: true,
     script: true,
     ignore: '',
     ignores: {
+      $: undefined as string | undefined,
       extension: '[href^="chrome-extension://"]',
       security: '[src*=".scr.kaspersky-labs.com/"]',
     },
