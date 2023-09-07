@@ -6234,12 +6234,13 @@ class Config {
       wait: 0
     };
     this.update = {
-      rewrite: (_url, _document, _area, _cache) => undefined,
+      rewrite: undefined,
       head: 'base, meta, link',
       css: true,
       script: true,
       ignore: '',
       ignores: {
+        $: undefined,
         extension: '[href^="chrome-extension://"]',
         security: '[src*=".scr.kaspersky-labs.com/"]'
       },
@@ -6249,23 +6250,16 @@ class Config {
     this.sequence = new Sequence();
     this.progressbar = 'display:none;position:absolute;bottom:0;left:0;width:0;height:2px;background:rgb(40, 105, 255);';
     this.scope = {};
-    Object.defineProperties(this.update, {
-      ignore: {
-        enumerable: false,
-        set(value) {
-          this.ignores['_'] = value;
-        },
-        get() {
-          return Object.keys(this.ignores).map(i => this.ignores[i]).filter(s => s.trim().length > 0).join(',');
-        }
-      }
-    });
     (0, assign_1.extend)(this, option);
+    this.update.ignores.$ ??= option.update?.ignore ?? '';
+    this.update.ignore = Object.values(this.update.ignores).filter(s => s).join(',');
     (0, assign_1.overwrite)(this.scope, option?.scope ?? {});
     this.fetch.headers = new Headers(this.fetch.headers);
-    Object.freeze(this);
     this.fetch.headers.set('X-Requested-With', 'XMLHttpRequest');
     this.fetch.headers.set('X-Pjax', '1');
+    Object.freeze(this);
+    Object.freeze(this.fetch);
+    Object.freeze(this.update);
   }
   filter(_el) {
     return true;
@@ -6738,7 +6732,7 @@ function update({
   };
   return promise_1.AtomicPromise.resolve(seq).then(process.either).then(m => m.bind(() => (0, content_1.separate)(documents, config.areas).extract(() => (0, either_1.Left)(new Error(`Failed to separate the areas`)), () => m))).then(m => m.bind(seqA => (0, content_1.separate)(documents, config.areas).fmap(([area]) => [seqA, area]).extract(() => (0, either_1.Left)(new Error(`Failed to separate the areas`)), process.either)).fmap(([seqB, area]) => {
     const memory = event.type === router_1.RouterEventType.Popstate ? config.memory?.get(event.location.dest.path) : undefined;
-    config.update.rewrite(event.location.dest.href, documents.src, area, memory && (0, content_1.separate)({
+    config.update.rewrite?.(event.location.dest.href, documents.src, area, memory && (0, content_1.separate)({
       src: memory,
       dst: documents.dst
     }, [area]).extract(() => false) ? memory : undefined);

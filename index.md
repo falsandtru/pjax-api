@@ -18,7 +18,7 @@ class: style-top
 - Scroll position restoration
 - Unexpected scroll prevention
 - Scroll behaviors around hash links
-- Concurrent sequence integration
+- [**SPA mode (Use JSON instead of HTML)**]({{ site.basepath }}docs/apis/util/)
 - [More](https://github.com/falsandtru/pjax-api#features)
 </div>
 
