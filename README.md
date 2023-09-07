@@ -22,10 +22,10 @@ Most SPA frameworks and pjax libraries lack many essential functions to keep the
 
 |Feature|defunkt|Turbolinks|falsandtru|Barba|
 |:------|:-----:|:--------:|:--------:|:---:|
-|**Concurrent sequence integration**| | |✓| |
-|Shadow DOM support| | |✓| |
+|**SPA mode (Use JSON instead of HTML)**| | |✓| |
 |*Multiple area update*| |✓|✓| |
 |Fallback area matching| | |✓| |
+|Shadow DOM support| | |✓| |
 |Content type verification| |✓|✓| |
 |*HEAD contents markless auto sync*| | |✓| |
 |*CSS markless auto sync*| | |✓| |
@@ -37,6 +37,7 @@ Most SPA frameworks and pjax libraries lack many essential functions to keep the
 |**Subresource integrity verification**| | |✓<sup>\*1</sup>| |
 |**Rewrite request and response (XHR)**| | |✓| |
 |Rewrite source document| |✓|✓| |
+|Concurrent sequence integration| | |✓| |
 |ETag support| | |✓| |
 |Cache|✓|✓|✓|✓|
 |URL scope| | |✓|✓|
