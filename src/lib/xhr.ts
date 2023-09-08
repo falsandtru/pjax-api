@@ -4,17 +4,38 @@ export class FakeXMLHttpRequest extends XMLHttpRequest {
   public static create(url: string, response: Document | PromiseLike<Document>): FakeXMLHttpRequest {
     const xhr = new FakeXMLHttpRequest();
     AtomicPromise.resolve(response)
-      .then(response => {
-        Object.defineProperties(xhr, {
-          responseURL: {
-            value: url,
-          },
-          responseXML: {
-            value: response,
-          },
+      .then(
+        response => {
+          Object.defineProperties(xhr, {
+            responseURL: {
+              value: url,
+            },
+            responseXML: {
+              value: response,
+            },
+          });
+          xhr.send();
+        },
+        reason => {
+          const response = reason instanceof Response
+            ? reason
+            : new Response(null, xhr);
+          Object.defineProperties(this, {
+            responseURL: {
+              value: url,
+            },
+            readyState: {
+              value: 4,
+            },
+            status: {
+              value: response.status,
+            },
+            statusText: {
+              value: response.statusText,
+            },
+          });
+          xhr.dispatchEvent(new ProgressEvent('error'));
         });
-        xhr.send();
-      });
     return xhr;
   }
   constructor() {
@@ -47,6 +68,22 @@ export class FakeXMLHttpRequest extends XMLHttpRequest {
       state = 4;
       this.dispatchEvent(new ProgressEvent('loadend'));
       this.dispatchEvent(new ProgressEvent('load'));
+    });
+  }
+  public override abort(): void {
+    setTimeout(() => {
+      Object.defineProperties(this, {
+        readyState: {
+          value: 4,
+        },
+        status: {
+          value: 400,
+        },
+        statusText: {
+          value: 'Bad Request',
+        },
+      });
+      this.dispatchEvent(new ProgressEvent('abort'));
     });
   }
   public override getResponseHeader(name: string): string | null {
