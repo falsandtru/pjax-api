@@ -42,7 +42,8 @@ export function xhr(
     xhr.addEventListener("load", () =>
       void verify(base, method, xhr, cache)
         .fmap(xhr => {
-          const responseURL: URL<StandardURL> = new URL(standardize(xhr.responseURL, base.href));
+          const responseURL: URL<StandardURL> = new URL(
+            standardize(fix(xhr.responseURL, displayURL.href), base.href));
           assert(responseURL.origin === new URL('', window.location.origin).origin);
           if (method === 'GET') {
             const cc = new Map<string, string>(
@@ -94,6 +95,12 @@ function request(
   xhr.timeout = timeout;
   xhr.send(body);
   return xhr;
+}
+
+function fix(res: string, req: string): string {
+  return !res.includes('#') && req.includes('#')
+    ? res + req.slice(req.indexOf('#'))
+    : res;
 }
 
 function verify(

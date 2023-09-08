@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.40.2
+
+- Fix URL processing.
+
 ## 3.40.1
 
 - Fix error handling.

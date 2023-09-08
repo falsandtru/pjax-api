@@ -9,7 +9,7 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
     it('success', done => {
       xhr(
         RouterEventMethod.GET,
-        new URL(standardize('', window.location.href)),
+        new URL(standardize('#', window.location.href)),
         new URL(standardize(window.location.href)),
         new Headers(),
         null,
@@ -17,7 +17,7 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
         new Map(),
         new Cancellation<Error>())
         .then(m => m.fmap(res => {
-          assert(res.url.href === standardize('', window.location.href));
+          assert(res.url.href === standardize('#', window.location.href));
           assert(res.header('Content-Type') === 'text/html');
           assert(res.document instanceof Document);
           done();
