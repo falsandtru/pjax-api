@@ -1,7 +1,6 @@
 import { Pjax, FakeXMLHttpRequest } from '../../../index';
 import { route as router } from '../../../src/layer/interface/service/router';
 import { parse } from '../../../src/lib/html';
-import { wait } from 'spica/timer';
 import { once } from 'typed-dom';
 
 describe('Integration: Config', function () {
@@ -18,10 +17,12 @@ describe('Integration: Config', function () {
           rewrite: url =>
             FakeXMLHttpRequest.create(
               url,
-              wait(100).then(() =>
-                new DOMParser().parseFromString(
-                  '<title>Title 2</title><div id="primary">Primary 2</div>',
-                  'text/html'))),
+              fetch(url)
+                .then(res => res.text())
+                .then(data =>
+                  new DOMParser().parseFromString(
+                    data.replace(/>(\w+) 1</g, '>$1 2<'),
+                    'text/html'))),
         },
       }, { document, router })
         .assign(url);
