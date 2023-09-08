@@ -6616,7 +6616,7 @@ function xhr(method, displayURL, base, headers, body, timeout, cache, cancellati
     xhr.addEventListener("error", () => void resolve((0, either_1.Left)(new Error(`Failed to request a page by error`))));
     xhr.addEventListener("timeout", () => void resolve((0, either_1.Left)(new Error(`Failed to request a page by timeout`))));
     xhr.addEventListener("load", () => void verify(base, method, xhr, cache).fmap(xhr => {
-      const responseURL = new url_1.URL((0, url_1.standardize)(xhr.responseURL, base.href));
+      const responseURL = new url_1.URL((0, url_1.standardize)(fix(xhr.responseURL, displayURL.href), base.href));
       if (method === 'GET') {
         const cc = new Map(xhr.getResponseHeader('Cache-Control')
         // eslint-disable-next-line redos/no-vulnerable
@@ -6649,6 +6649,9 @@ function request(url, method, headers, timeout, body) {
   xhr.timeout = timeout;
   xhr.send(body);
   return xhr;
+}
+function fix(res, req) {
+  return !res.includes('#') && req.includes('#') ? res + req.slice(req.indexOf('#')) : res;
 }
 function verify(base, method, xhr, cache) {
   const url = new url_1.URL((0, url_1.standardize)(xhr.responseURL, base.href));
@@ -7953,6 +7956,23 @@ class FakeXMLHttpRequest extends XMLHttpRequest {
         }
       });
       xhr.send();
+    }, reason => {
+      const response = reason instanceof Response ? reason : new Response(null, xhr);
+      Object.defineProperties(this, {
+        responseURL: {
+          value: url
+        },
+        readyState: {
+          value: 4
+        },
+        status: {
+          value: response.status
+        },
+        statusText: {
+          value: response.statusText
+        }
+      });
+      xhr.dispatchEvent(new ProgressEvent('error'));
     });
     return xhr;
   }
@@ -7983,6 +8003,22 @@ class FakeXMLHttpRequest extends XMLHttpRequest {
       state = 4;
       this.dispatchEvent(new ProgressEvent('loadend'));
       this.dispatchEvent(new ProgressEvent('load'));
+    });
+  }
+  abort() {
+    setTimeout(() => {
+      Object.defineProperties(this, {
+        readyState: {
+          value: 4
+        },
+        status: {
+          value: 400
+        },
+        statusText: {
+          value: 'Bad Request'
+        }
+      });
+      this.dispatchEvent(new ProgressEvent('abort'));
     });
   }
   getResponseHeader(name) {
