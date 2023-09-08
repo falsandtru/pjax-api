@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.40.4
+
+- Fix FakeXMLHttpRequest.
+
 ## 3.40.3
 
 - Fix FakeXMLHttpRequest.

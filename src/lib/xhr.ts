@@ -30,10 +30,10 @@ export class FakeXMLHttpRequest extends XMLHttpRequest {
               value: 4,
             },
             status: {
-              value: response.status,
+              value: response.status || 400,
             },
             statusText: {
-              value: response.statusText,
+              value: response.statusText || 'Bad Request',
             },
           });
           xhr.dispatchEvent(new ProgressEvent('error'));
