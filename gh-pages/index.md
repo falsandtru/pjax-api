@@ -12,26 +12,31 @@ class: style-top
 <div class="col-md-4">
 ## Features
 
-**The pjax-api provides almost complete original web experience.**
+The pjax-api provides almost complete original web experience.
 
 - Browser history fix
 - Scroll position restoration
 - Unexpected scroll prevention
 - Scroll behaviors around hash links
-- [**SPA mode (Use JSON instead of HTML)**]({{ site.basepath }}docs/apis/util/)
+- [**SPA mode (Use JSON instead of HTML)**]({{ site.basepath }}docs/modes/#json-spa)
 - [More](https://github.com/falsandtru/pjax-api#features)
 </div>
 
 <div class="col-md-4">
-## APIs
+## Modes
 
-This site is also powered by PJAX as a demo. Try page transitions.
+**JSON(SPA) mode is statically and dynamically configurable per URL scope on browsers.**
 
-- [APIs]({{ site.basepath }}docs/apis/)
-  - [Pjax]({{ site.basepath }}docs/apis/pjax/)
-    - [Config]({{ site.basepath }}docs/apis/pjax/config/)
-  - [Events]({{ site.basepath }}docs/apis/events/)
-  - [Util]({{ site.basepath }}docs/apis/util/)
+Adding JSON APIs is the only change required on servers.
+
+- [None (Offline)]({{ site.basepath }}docs/modes/#none-offline)
+  - Send no requests.
+- [HTML (Pjax)]({{ site.basepath }}docs/modes/#html-pjax)
+  - Request an HTML response.
+- [JSON (SPA)]({{ site.basepath }}docs/modes/#json-spa)
+  - Request a JSON response.
+- Any
+  - Any response types are available in the same way as JSON.
 </div>
 
 <div class="col-md-4">
@@ -65,6 +70,19 @@ new Pjax({
 </div>
 
 <div class="row">
+
+<div class="col-md-4">
+## Documents
+
+This site is also powered by PJAX as a demo. Try page transitions.
+
+- [APIs]({{ site.basepath }}docs/apis/)
+  - [Pjax]({{ site.basepath }}docs/apis/pjax/)
+    - [Config]({{ site.basepath }}docs/apis/pjax/config/)
+  - [Events]({{ site.basepath }}docs/apis/events/)
+  - [Util]({{ site.basepath }}docs/apis/util/)
+- [Modes]({{ site.basepath }}docs/modes/)
+</div>
 
 <div class="col-md-4">
 ## Browsers
