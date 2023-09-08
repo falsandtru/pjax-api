@@ -7947,6 +7947,7 @@ class FakeXMLHttpRequest extends XMLHttpRequest {
   static create(url, response) {
     const xhr = new FakeXMLHttpRequest();
     promise_1.AtomicPromise.resolve(response).then(response => {
+      if (xhr.readyState === 4) return;
       Object.defineProperties(xhr, {
         responseURL: {
           value: url
@@ -7957,8 +7958,9 @@ class FakeXMLHttpRequest extends XMLHttpRequest {
       });
       xhr.send();
     }, reason => {
+      if (xhr.readyState === 4) return;
       const response = reason instanceof Response ? reason : new Response(null, xhr);
-      Object.defineProperties(this, {
+      Object.defineProperties(xhr, {
         responseURL: {
           value: url
         },
@@ -7981,45 +7983,48 @@ class FakeXMLHttpRequest extends XMLHttpRequest {
     this.responseType = 'document';
   }
   send(_) {
-    let state = 3;
+    if (this.readyState === 4) return;
     Object.defineProperties(this, {
       readyState: {
-        get: () => state
+        configurable: true,
+        value: 3
       }
     });
+    this.dispatchEvent(new ProgressEvent('loadstart'));
     setTimeout(() => {
+      if (this.readyState === 4) return;
       Object.defineProperties(this, {
+        response: {
+          get: () => this.responseType === 'document' ? this.responseXML : this.responseText
+        },
+        readyState: {
+          value: 4
+        },
         status: {
           value: 200
         },
         statusText: {
           value: 'OK'
-        },
-        response: {
-          get: () => this.responseType === 'document' ? this.responseXML : this.responseText
         }
       });
-      this.dispatchEvent(new ProgressEvent('loadstart'));
-      state = 4;
       this.dispatchEvent(new ProgressEvent('loadend'));
       this.dispatchEvent(new ProgressEvent('load'));
     });
   }
   abort() {
-    setTimeout(() => {
-      Object.defineProperties(this, {
-        readyState: {
-          value: 4
-        },
-        status: {
-          value: 400
-        },
-        statusText: {
-          value: 'Bad Request'
-        }
-      });
-      this.dispatchEvent(new ProgressEvent('abort'));
+    if (this.readyState === 4) return;
+    Object.defineProperties(this, {
+      readyState: {
+        value: 4
+      },
+      status: {
+        value: 400
+      },
+      statusText: {
+        value: 'Bad Request'
+      }
     });
+    this.dispatchEvent(new ProgressEvent('abort'));
   }
   getResponseHeader(name) {
     switch (name.toLowerCase()) {
