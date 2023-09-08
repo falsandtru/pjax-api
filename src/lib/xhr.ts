@@ -6,6 +6,7 @@ export class FakeXMLHttpRequest extends XMLHttpRequest {
     AtomicPromise.resolve(response)
       .then(
         response => {
+          if (xhr.readyState === 4) return;
           Object.defineProperties(xhr, {
             responseURL: {
               value: url,
@@ -17,10 +18,11 @@ export class FakeXMLHttpRequest extends XMLHttpRequest {
           xhr.send();
         },
         reason => {
+          if (xhr.readyState === 4) return;
           const response = reason instanceof Response
             ? reason
             : new Response(null, xhr);
-          Object.defineProperties(this, {
+          Object.defineProperties(xhr, {
             responseURL: {
               value: url,
             },
@@ -43,48 +45,51 @@ export class FakeXMLHttpRequest extends XMLHttpRequest {
     this.responseType = 'document';
   }
   public override send(_?: Document | XMLHttpRequestBodyInit | null | undefined): void {
-    let state = 3;
+    if (this.readyState === 4) return;
     Object.defineProperties(this, {
       readyState: {
-        get: () => state,
+        configurable: true,
+        value: 3,
       },
     });
+    this.dispatchEvent(new ProgressEvent('loadstart'));
     setTimeout(() => {
+      if (this.readyState === 4) return;
       Object.defineProperties(this, {
-        status: {
-          value: 200,
-        },
-        statusText: {
-          value: 'OK',
-        },
         response: {
           get: () =>
             this.responseType === 'document'
               ? this.responseXML
               : this.responseText,
         },
+        readyState: {
+          value: 4,
+        },
+        status: {
+          value: 200,
+        },
+        statusText: {
+          value: 'OK',
+        },
       });
-      this.dispatchEvent(new ProgressEvent('loadstart'));
-      state = 4;
       this.dispatchEvent(new ProgressEvent('loadend'));
       this.dispatchEvent(new ProgressEvent('load'));
     });
   }
   public override abort(): void {
-    setTimeout(() => {
-      Object.defineProperties(this, {
-        readyState: {
-          value: 4,
-        },
-        status: {
-          value: 400,
-        },
-        statusText: {
-          value: 'Bad Request',
-        },
-      });
-      this.dispatchEvent(new ProgressEvent('abort'));
+    if (this.readyState === 4) return;
+    Object.defineProperties(this, {
+      readyState: {
+        value: 4,
+      },
+      status: {
+        value: 400,
+      },
+      statusText: {
+        value: 'Bad Request',
+      },
     });
+    this.dispatchEvent(new ProgressEvent('abort'));
   }
   public override getResponseHeader(name: string): string | null {
     switch (name.toLowerCase()) {
