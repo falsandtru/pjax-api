@@ -6612,6 +6612,8 @@ function xhr(method, displayURL, base, headers, body, timeout, cache, cancellati
   return new promise_1.AtomicPromise(resolve => {
     const xhr = rewrite(displayURL.href, method, headers, timeout, body) ?? request(displayURL.href, method, headers, timeout, body);
     if (xhr.responseType !== 'document') throw new Error(`Response type must be 'document'`);
+    cancellation.register(() => void xhr.abort());
+    setTimeout(() => xhr.readyState < 3 && xhr.abort(), timeout + 100);
     xhr.addEventListener("abort", () => void resolve((0, either_1.Left)(new Error(`Failed to request a page by abort`))));
     xhr.addEventListener("error", () => void resolve((0, either_1.Left)(new Error(`Failed to request a page by error`))));
     xhr.addEventListener("timeout", () => void resolve((0, either_1.Left)(new Error(`Failed to request a page by timeout`))));
@@ -6635,7 +6637,6 @@ function xhr(method, displayURL, base, headers, body, timeout, cache, cancellati
       }
       return new fetch_1.Response(responseURL, xhr);
     }).extract(err => void resolve((0, either_1.Left)(err)), res => void resolve((0, either_1.Right)(res))));
-    cancellation.register(() => void xhr.abort());
   });
 }
 exports.xhr = xhr;
