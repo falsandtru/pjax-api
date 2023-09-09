@@ -1,4 +1,5 @@
 import { AtomicPromise } from 'spica/promise';
+import { clock } from 'spica/chrono';
 
 export class FakeXMLHttpRequest extends XMLHttpRequest {
   public static create(url: string, response: Document | PromiseLike<Document>): FakeXMLHttpRequest {
@@ -53,7 +54,7 @@ export class FakeXMLHttpRequest extends XMLHttpRequest {
       },
     });
     this.dispatchEvent(new ProgressEvent('loadstart'));
-    setTimeout(() => {
+    clock.now(() => {
       if (this.readyState === 4) return;
       Object.defineProperties(this, {
         response: {
