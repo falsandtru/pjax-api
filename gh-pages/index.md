@@ -25,9 +25,9 @@ The pjax-api provides almost complete original web experience.
 <div class="col-md-4">
 ## Modes
 
-**JSON(SPA) mode is statically and dynamically configurable per URL scope on browsers.**
+**Adding JSON APIs is the only change required on servers to enable *SPA on Pjax*.**
 
-Adding JSON APIs is the only change required on servers.
+JSON(SPA) mode is statically and dynamically configurable per URL scope on browsers.
 
 - [None (Offline)]({{ site.basepath }}docs/modes/#none-offline)
   - Send no requests.
