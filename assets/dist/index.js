@@ -6616,7 +6616,7 @@ function xhr(method, displayURL, base, headers, body, timeout, cache, cancellati
     xhr.addEventListener("error", () => void resolve((0, either_1.Left)(new Error(`Failed to request a page by error`))));
     xhr.addEventListener("timeout", () => void resolve((0, either_1.Left)(new Error(`Failed to request a page by timeout`))));
     xhr.addEventListener("load", () => void verify(base, method, xhr, cache).fmap(xhr => {
-      const responseURL = new url_1.URL((0, url_1.standardize)(fix(xhr.responseURL, displayURL.href), base.href));
+      const responseURL = new url_1.URL((0, url_1.standardize)(restore(xhr.responseURL, displayURL.href), base.href));
       if (method === 'GET') {
         const cc = new Map(xhr.getResponseHeader('Cache-Control')
         // eslint-disable-next-line redos/no-vulnerable
@@ -6650,7 +6650,7 @@ function request(url, method, headers, timeout, body) {
   xhr.send(body);
   return xhr;
 }
-function fix(res, req) {
+function restore(res, req) {
   return !res.includes('#') && req.includes('#') ? res + req.slice(req.indexOf('#')) : res;
 }
 function verify(base, method, xhr, cache) {
@@ -7943,6 +7943,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.FakeXMLHttpRequest = void 0;
 const promise_1 = __webpack_require__(4879);
+const chrono_1 = __webpack_require__(4393);
 class FakeXMLHttpRequest extends XMLHttpRequest {
   static create(url, response) {
     const xhr = new FakeXMLHttpRequest();
@@ -7968,10 +7969,10 @@ class FakeXMLHttpRequest extends XMLHttpRequest {
           value: 4
         },
         status: {
-          value: response.status
+          value: response.status || 400
         },
         statusText: {
-          value: response.statusText
+          value: response.statusText || 'Bad Request'
         }
       });
       xhr.dispatchEvent(new ProgressEvent('error'));
@@ -7991,7 +7992,7 @@ class FakeXMLHttpRequest extends XMLHttpRequest {
       }
     });
     this.dispatchEvent(new ProgressEvent('loadstart'));
-    setTimeout(() => {
+    chrono_1.clock.now(() => {
       if (this.readyState === 4) return;
       Object.defineProperties(this, {
         response: {
