@@ -2,9 +2,10 @@
 
 ![CI](https://github.com/falsandtru/pjax-api/workflows/CI/badge.svg)
 
-The advanced PJAX for web services.
+The advanced PJAX superior to SPA.
 
-The pjax-api provides almost complete original web experience.
+The pjax-api can implement SPA on Pjax less expensive than SPA frameworks.
+And provides almost complete original web experience.
 Most SPA frameworks and pjax libraries lack many essential functions to keep the original web experience such as follows.
 
 - **Browser history fix (Fix for browsers)**
@@ -18,11 +19,47 @@ Most SPA frameworks and pjax libraries lack many essential functions to keep the
 - Scroll position after reloading
   - Most frameworks break the current scroll position after reloading.
 
+## Properties
+
+Pjax is a low-level API easier, simpler, and less expensive than high-level APIs of SPA frameworks.
+
+||SPA on frameworks<sup>\*1</sup>|SPA on Pjax|
+|:-----|:---------------:|:---------:|
+|Type|Framework|Library|
+|Abstraction level|High|Low|
+|Original template language|Yes|**No**|
+|Intermediate layer|Yes|**No**|
+|Data format|JSON|JSON and anything|
+|UX integrity<sup>\*2</sup>|Low|**High**|
+|Location|Servers and Clients|Clients|
+|Server constraints|Strong|**Nothing**|
+|Dependence|High|Low|
+|Learning costs|High|Low|
+|Development costs|High|Low|
+|Operation costs|High|Low|
+|Running costs|High|Low|
+|Removal costs|High|Low|
+|Renewal costs|High|Low|
+|Technical property|**Exclusive**|Coexistence|
+|Ecosystem|**Dedicated**|Common|
+|Old servers|**Dispose**|**Keep**|
+|New servers|Required|Optional|
+|Partial introduction|Coarse|Fine|
+|Work on servers|**Redevelop all**|Add JSON APIs<sup>\*3</sup>|
+|Work on clients|**Redevelop all**|Reconstruct scripts<sup>\*4</sup>|
+
+<small>*1 Such as React.</small><br>
+<small>*2 Between MPA(standard web sites) and SPA.</small><br>
+<small>*3 Just do it.</small><br>
+<small>*4 To manage the lifetime of existing scripts. Since such management doesn't depend on SPA, these scripts are sharable and reusable with MPA and other SPA libraries.</small><br>
+
+*SPA frameworks are cancer of the web.*
+
 ## Features
 
 |Feature|defunkt|Turbolinks|falsandtru|Barba|
 |:------|:-----:|:--------:|:--------:|:---:|
-|**SPA mode (Use JSON instead of HTML)**| | |✓| |
+|**SPA on Pjax (Use JSON instead of HTML)**| | |✓| |
 |*Multiple area update*| |✓|✓| |
 |Fallback area matching| | |✓| |
 |Shadow DOM support| | |✓| |
@@ -49,8 +86,8 @@ Most SPA frameworks and pjax libraries lack many essential functions to keep the
 |History API support<sup>\*2</sup>| | |✓| |
 |No jQuery dependency| | |✓|✓|
 
-\*1 Excludes ES modules.\
-\*2 Ability to use pjax APIs and history APIs in combination.
+<small>*1 Excludes ES modules.</small><br>
+<small>*2 Ability to use pjax APIs and history APIs in combination.</small><br>
 
 ## Documents
 
