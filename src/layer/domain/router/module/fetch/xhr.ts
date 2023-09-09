@@ -31,7 +31,7 @@ export function xhr(
     if (xhr.responseType !== 'document') throw new Error(`Response type must be 'document'`);
 
     cancellation.register(() => void xhr.abort());
-    setTimeout(() => xhr.readyState < 3 && xhr.abort(), timeout + 100);
+    timeout && setTimeout(() => xhr.readyState < 3 && xhr.abort(), timeout + 100);
 
     xhr.addEventListener("abort", () =>
       void resolve(Left(new Error(`Failed to request a page by abort`))));
