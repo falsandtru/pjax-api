@@ -43,7 +43,7 @@ export function xhr(
       void verify(base, method, xhr, cache)
         .fmap(xhr => {
           const responseURL: URL<StandardURL> = new URL(
-            standardize(fix(xhr.responseURL, displayURL.href), base.href));
+            standardize(restore(xhr.responseURL, displayURL.href), base.href));
           assert(responseURL.origin === new URL('', window.location.origin).origin);
           if (method === 'GET') {
             const cc = new Map<string, string>(
@@ -97,7 +97,7 @@ function request(
   return xhr;
 }
 
-function fix(res: string, req: string): string {
+function restore(res: string, req: string): string {
   return !res.includes('#') && req.includes('#')
     ? res + req.slice(req.indexOf('#'))
     : res;
