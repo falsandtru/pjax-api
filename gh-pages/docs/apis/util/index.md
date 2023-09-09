@@ -13,6 +13,7 @@ class: style-api style-api-detail
 ### .create(url: string, response: Document | PromiseLike\<Document>): FakeXMLHttpRequest
 
 Create a fake XHR object that doesn't send a request.
+You can also define and use another fake XMLHttpRequest.
 
 ```ts
 import Pjax, { FakeXMLHttpRequest } from 'pjax-api';
