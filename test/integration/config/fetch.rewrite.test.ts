@@ -19,9 +19,9 @@ describe('Integration: Config', function () {
               url,
               fetch(url)
                 .then(res => res.text())
-                .then(data =>
+                .then(html =>
                   new DOMParser().parseFromString(
-                    data.replace(/>(\w+) 1</g, '>$1 2<'),
+                    html.replace(/>(\w+) 1</g, '>$1 2<'),
                     'text/html'))),
         },
       }, { document, router })

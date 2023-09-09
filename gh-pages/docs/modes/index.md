@@ -41,9 +41,9 @@ new Pjax({
         url,
         fetch(url)
           .then(res => res.text())
-          .then(data =>
+          .then(html =>
             new DOMParser().parseFromString(
-              data,
+              html,
               'text/html'))),
   },
 });
