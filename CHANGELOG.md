@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.40.5
+
+- Micro refactoring.
+
 ## 3.40.4
 
 - Fix FakeXMLHttpRequest.
