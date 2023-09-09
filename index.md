@@ -1,6 +1,6 @@
 ---
 layout: layout
-title: PJAX - The advanced PJAX for web services.
+title: PJAX - The advanced PJAX superior to SPA.
 type: index
 class: style-top
 ---
@@ -18,7 +18,7 @@ The pjax-api provides almost complete original web experience.
 - Scroll position restoration
 - Unexpected scroll prevention
 - Scroll behaviors around hash links
-- [**SPA mode (Use JSON instead of HTML)**]({{ site.basepath }}docs/modes/#json-spa)
+- [**SPA on Pjax (Use JSON instead of HTML)**]({{ site.basepath }}docs/modes/#json-spa)
 - [More](https://github.com/falsandtru/pjax-api#features)
 </div>
 
@@ -37,6 +37,7 @@ JSON(SPA) mode is statically and dynamically configurable per URL scope on brows
   - Request a JSON response.
 - Any
   - Any response types are available in the same way as JSON.
+- [More](https://github.com/falsandtru/pjax-api#properties)
 </div>
 
 <div class="col-md-4">
