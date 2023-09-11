@@ -38,23 +38,6 @@ Set target forms.
 
 Set target links that replace the current URL.
 
-## lock: () => string = ...
-
-Give CSS to lock and protect the scroll position from unexpected scrolls caused by a browser bug.
-
-```ts
-  // Default
-  public readonly lock = () => `
-    :root {
-      position: fixed;
-      top: ${-window.scrollY}px;
-      left: ${-window.scrollX}px;
-      right: 0;
-      ${window.innerWidth - document.body.clientWidth ? 'overflow-y: scroll;' : ''}
-      ${window.innerHeight - document.body.clientHeight ? 'overflow-x: scroll;' : ''}
-    }`;
-```
-
 ## cache: Dict<string, unknown> = `new Cache(100)`
 
 Set a dictionary object having has/get/set/delete methods of Map to cache the requests.

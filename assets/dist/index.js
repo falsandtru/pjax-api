@@ -6213,15 +6213,6 @@ class Config {
     this.link = ':is(a, area)[href]:not([target])';
     this.form = 'form:not([method])';
     this.replace = '';
-    this.lock = () => `
-    :root {
-      position: fixed;
-      top: ${-window.scrollY}px;
-      left: ${-window.scrollX}px;
-      right: 0;
-      ${window.innerWidth - document.body.clientWidth ? 'overflow-y: scroll;' : ''}
-      ${window.innerHeight - document.body.clientHeight ? 'overflow-x: scroll;' : ''}
-    }`;
     this.cache = new cache_1.Cache(100, {
       sweep: {
         threshold: 0
@@ -6554,7 +6545,6 @@ async function fetch({
     body
   }
 }, {
-  lock,
   cache,
   fetch: {
     rewrite,
@@ -6569,8 +6559,6 @@ async function fetch({
     scrollY
   } = window;
   if (type === router_1.RouterEventType.Popstate) {
-    // 小さな画面でもチラつかない
-    style.textContent = lock();
     io.document.documentElement.appendChild(style);
   }
   const [seq, res] = await Promise.all([sequence.fetch(undefined, {
@@ -7569,8 +7557,6 @@ const url_1 = __webpack_require__(2261);
 const cancellation_1 = __webpack_require__(412);
 const maybe_1 = __webpack_require__(6512);
 const promise_1 = __webpack_require__(4879);
-const listener_1 = __webpack_require__(1051);
-(0, listener_1.bind)(window, 'pjax:unload', () => window.history.scrollRestoration = 'auto', true);
 function route(config, event, process, io) {
   switch (event.type) {
     case router_1.RouterEventType.Click:
@@ -7579,9 +7565,6 @@ function route(config, event, process, io) {
       break;
     case router_1.RouterEventType.Popstate:
       io.document.title = (0, store_1.loadTitle)();
-      // 小さな画面ではチラつく
-      //const { scrollX, scrollY } = window;
-      //requestAnimationFrame(() => void window.scrollTo(scrollX, scrollY));
       break;
   }
   return (0, maybe_1.Just)(0).guard(validate(event.request.url, config, event)).bind(() => (0, router_1.scope)(config, (({
@@ -7602,7 +7585,6 @@ function route(config, event, process, io) {
     page_1.page.isAvailable() && config.memory?.set(event.location.orig.path, io.document.cloneNode(true));
     page_1.page.process(event.location.dest);
     const [scripts] = await env_1.env;
-    window.history.scrollRestoration = 'manual';
     //progressbar(config.progressbar);
     return (0, router_1.route)(config, event, {
       process: cancellation,
@@ -7619,7 +7601,6 @@ function route(config, event, process, io) {
     }).extract()).catch(reason => {
       kill();
       page_1.page.complete();
-      window.history.scrollRestoration = 'auto';
       if (cancellation.isAlive() || reason instanceof error_1.FatalError) {
         config.fallback(event.source, reason);
       }
@@ -7788,8 +7769,18 @@ exports.scripts = new Set();
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
+const state_1 = __webpack_require__(2090);
 const listener_1 = __webpack_require__(1051);
-(0, listener_1.bind)(window, 'unload', () => window.history.scrollRestoration = 'auto', false);
+// popstateイベントは事前に検知できないため事前設定
+if ((0, state_1.isTransitable)(window.history.state)) {
+  window.history.scrollRestoration = 'manual';
+}
+// 遷移前ページの設定
+(0, listener_1.bind)(window, 'pjax:fetch', () => window.history.scrollRestoration = 'manual', true);
+// 遷移後ページの設定
+(0, listener_1.bind)(document, 'pjax:ready', () => window.history.scrollRestoration = 'manual', true);
+// 通常ページへの遷移または離脱では戻しておく
+(0, listener_1.bind)(window, 'unload', () => window.history.scrollRestoration = 'auto', true);
 
 /***/ }),
 
