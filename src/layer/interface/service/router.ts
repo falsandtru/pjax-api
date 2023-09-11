@@ -9,10 +9,6 @@ import { Supervisor } from 'spica/supervisor';
 import { Cancellation } from 'spica/cancellation';
 import { Just } from 'spica/maybe';
 import { never } from 'spica/promise';
-import { bind } from 'typed-dom/listener';
-
-bind(window, 'pjax:unload', () =>
-  window.history.scrollRestoration = 'auto', true);
 
 export { Config, RouterEvent, RouterEventSource }
 
@@ -32,9 +28,6 @@ export function route(
       break;
     case RouterEventType.Popstate:
       io.document.title = loadTitle();
-      // 小さな画面ではチラつく
-      //const { scrollX, scrollY } = window;
-      //requestAnimationFrame(() => void window.scrollTo(scrollX, scrollY));
       break;
   }
   return Just(0)
@@ -53,7 +46,6 @@ export function route(
       page.isAvailable() && config.memory?.set(event.location.orig.path, io.document.cloneNode(true));
       page.process(event.location.dest);
       const [scripts] = await env;
-      window.history.scrollRestoration = 'manual';
       //progressbar(config.progressbar);
       return router(config, event, { process: cancellation, scripts }, io)
         .then(m => m
@@ -71,7 +63,6 @@ export function route(
         .catch(reason => {
           kill();
           page.complete();
-          window.history.scrollRestoration = 'auto';
           if (cancellation.isAlive() || reason instanceof FatalError) {
             config.fallback(event.source, reason);
           }

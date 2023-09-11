@@ -96,7 +96,7 @@ describe('Integration: Usecase', function () {
       new Pjax({
         fallback(target) {
           assert(target === a);
-          assert(window.history.scrollRestoration === 'auto');
+          assert(window.history.scrollRestoration === 'manual');
           done();
         }
       }, { document, router });

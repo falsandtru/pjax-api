@@ -20,7 +20,6 @@ export async function fetch(
     },
   }: RouterEvent,
   {
-    lock,
     cache,
     fetch: {
       rewrite,
@@ -37,8 +36,6 @@ export async function fetch(
 ): Promise<Either<Error, readonly [Response, 'seq:fetch']>> {
   const { scrollX, scrollY } = window;
   if (type === RouterEventType.Popstate) {
-    // 小さな画面でもチラつかない
-    style.textContent = lock();
     io.document.documentElement.appendChild(style);
   }
   const [seq, res] = await Promise.all([

@@ -26,15 +26,6 @@ export class Config implements Option {
   }
   public readonly form = 'form:not([method])';
   public readonly replace = '';
-  public readonly lock = () => `
-    :root {
-      position: fixed;
-      top: ${-window.scrollY}px;
-      left: ${-window.scrollX}px;
-      right: 0;
-      ${window.innerWidth - document.body.clientWidth ? 'overflow-y: scroll;' : ''}
-      ${window.innerHeight - document.body.clientHeight ? 'overflow-x: scroll;' : ''}
-    }`;
   public readonly cache: Dict<URL.Path<StandardURL>, { etag: string; expiry: number; xhr: XMLHttpRequest; }> = new Cache(100, { sweep: { threshold: 0 } });
   public readonly memory?: Dict<URL.Path<StandardURL>, Document>;
   public readonly fetch = {

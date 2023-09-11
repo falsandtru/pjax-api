@@ -30,7 +30,7 @@ describe('Integration: Usecase', function () {
         fallback(target) {
           form.remove();
           assert(target === form);
-          assert(window.history.scrollRestoration === 'auto');
+          assert(window.history.scrollRestoration === 'manual');
           done();
         }
       }, { document, router });

@@ -8,13 +8,6 @@ describe('Integration: Package', function () {
     Pjax['resources'].clear();
   });
 
-  describe('state', function () {
-    it('scrollRestoration', function () {
-      assert(window.history.scrollRestoration === 'auto' || window.history.scrollRestoration === undefined);
-    });
-
-  });
-
   describe('event', function () {
     it('sequence', function (done) {
       const path = '/base/test/integration/fixture/basic/1.html';
@@ -31,13 +24,13 @@ describe('Integration: Package', function () {
       });
       once(window, 'pjax:unload', ev => {
         assert(ev instanceof Event);
-        assert(window.history.scrollRestoration === 'auto');
+        assert(window.history.scrollRestoration === 'manual');
         assert(window.location.pathname !== path);
         assert(cnt === 1 && ++cnt);
       });
       once(document, 'pjax:content', ev => {
         assert(ev instanceof Event);
-        assert(window.history.scrollRestoration === 'auto');
+        assert(window.history.scrollRestoration === 'manual');
         assert(window.location.pathname === path);
         assert(document.title === 'Title 1');
         assert(document.querySelector('header')!.innerHTML === 'Header 1');
@@ -45,12 +38,12 @@ describe('Integration: Package', function () {
       });
       once(document, 'pjax:ready', ev => {
         assert(ev instanceof Event);
-        assert(window.history.scrollRestoration === 'auto');
+        assert(window.history.scrollRestoration === 'manual');
         assert(cnt === 3 && ++cnt);
       });
       once(window, 'pjax:load', ev => {
         assert(ev instanceof Event);
-        assert(window.history.scrollRestoration === 'auto');
+        assert(window.history.scrollRestoration === 'manual');
         assert(cnt === 4 && ++cnt);
         done();
       });
@@ -89,7 +82,7 @@ describe('Integration: Package', function () {
           assert(cnt === 4 && ++cnt);
           assert(r === 2);
           assert.deepStrictEqual(areas, [document.body]);
-          assert(window.history.scrollRestoration === 'auto');
+          assert(window.history.scrollRestoration === 'manual');
           assert(window.location.pathname === path);
           assert(document.title === 'Title 2');
           assert(document.querySelector('header')!.innerHTML === 'Header 2');
@@ -98,14 +91,14 @@ describe('Integration: Package', function () {
         async ready(r) {
           assert(cnt === 6 && ++cnt);
           assert(r === 3);
-          assert(window.history.scrollRestoration === 'auto');
+          assert(window.history.scrollRestoration === 'manual');
           return 4;
         },
         async load(r, events) {
           assert(cnt === 8 && ++cnt);
           assert(r === 4);
           assert.deepStrictEqual(events, []);
-          assert(window.history.scrollRestoration === 'auto');
+          assert(window.history.scrollRestoration === 'manual');
           done();
         }
       };
