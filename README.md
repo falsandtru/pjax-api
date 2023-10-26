@@ -21,7 +21,26 @@ Most SPA frameworks and pjax libraries lack many essential functions to keep the
 
 ## Properties
 
-Pjax is a low-level API easier, simpler, and less expensive than high-level APIs of SPA frameworks.
+Pjax is a low-level API for SPA easier, simpler, and less expensive than high-level APIs of SPA frameworks.
+
+```ts
+// SPA on Pjax
+import Pjax, { FakeXMLHttpRequest } from 'pjax-api';
+
+new Pjax({
+  fetch: {
+    rewrite: url =>
+      FakeXMLHttpRequest.create(
+        url,
+        fetch(url, { headers: { 'Content-Type': 'application/json' } })
+          .then(res => res.json())
+          .then(data =>
+            new DOMParser().parseFromString(
+              `<title>${data.title}</title><body>${data.body}</body>`,
+              'text/html'))),
+  },
+});
+```
 
 ||SPA on frameworks<sup>\*1</sup>|SPA on Pjax|
 |:-----|:---------------:|:---------:|
@@ -31,6 +50,13 @@ Pjax is a low-level API easier, simpler, and less expensive than high-level APIs
 |Intermediate layer|Yes|**No**|
 |Data format|JSON|JSON and anything|
 |UX integrity<sup>\*2</sup>|Low|**High**|
+|Technical property|**Exclusive**|Coexistence|
+|Ecosystem|**Dedicated**|Common|
+|Old servers|**Dispose**|**Keep**|
+|New servers|Required|Optional|
+|Work on servers|**Redevelop all**|Add JSON APIs<sup>\*3</sup>|
+|Work on clients|**Redevelop all**|Reconstruct scripts<sup>\*4</sup>|
+|Partial introduction|Coarse|Fine|
 |Location|Servers and Clients|Clients|
 |Server constraints|Strong|**Nothing**|
 |Dependence|High|Low|
@@ -40,13 +66,6 @@ Pjax is a low-level API easier, simpler, and less expensive than high-level APIs
 |Running costs|High|Low|
 |Removal costs|High|Low|
 |Renewal costs|High|Low|
-|Technical property|**Exclusive**|Coexistence|
-|Ecosystem|**Dedicated**|Common|
-|Old servers|**Dispose**|**Keep**|
-|New servers|Required|Optional|
-|Partial introduction|Coarse|Fine|
-|Work on servers|**Redevelop all**|Add JSON APIs<sup>\*3</sup>|
-|Work on clients|**Redevelop all**|Reconstruct scripts<sup>\*4</sup>|
 
 <small>*1 Such as React.</small><br>
 <small>*2 Between MPA(standard web sites) and SPA.</small><br>
