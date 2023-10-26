@@ -7331,6 +7331,7 @@ class NavigationView extends coroutine_1.Coroutine {
     super(async function* () {
       return this.finally((0, listener_1.bind)(window, 'popstate', ev => {
         if (!(0, state_1.isTransitable)(page_1.page.state) || !(0, state_1.isTransitable)(window.history.state)) return;
+        // Prevent updates by frames.
         if ((0, url_1.standardize)(window.location.href) === page_1.page.url.href) return;
         listener(ev);
       }));
