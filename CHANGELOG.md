@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.41.1
+
+- Fix dependencies.
+
 ## 3.41.0
 
 - Remove `lock` option.
