@@ -972,15 +972,12 @@ class Cancellation {
   isAlive() {
     return this.state === 0 /* State.alive */;
   }
-
   isCancelled() {
     return this.state === 1 /* State.cancelled */;
   }
-
   isClosed() {
     return this.state === 2 /* State.closed */;
   }
-
   register$(listener) {
     const {
       handlers
@@ -4268,7 +4265,6 @@ class Internal {
   isPending() {
     return this.status.state === 0 /* State.pending */;
   }
-
   resolve(value) {
     if (!this.isPending()) return;
     if (!isPromiseLike(value)) {
@@ -5805,7 +5801,6 @@ class URL {
 
     //assert(this.href.startsWith(this.resource));
   }
-
   get href() {
     return this.params?.toString().replace(/^(?=.)/, `${this.url.href.slice(0, -this.url.query.length - this.url.fragment.length || this.url.href.length)}?`).concat(this.fragment) ?? this.url.href;
   }
