@@ -48,14 +48,14 @@ new Pjax({
 |Abstraction level|High|Low|
 |Original template language|Yes|**No**|
 |Intermediate layer|Yes|**No**|
-|Data format|JSON|JSON and anything|
-|UX integrity<sup>\*2</sup>|Low|**High**|
+|Data format|JSON|JSON or anything<sup>\*2</sup>|
+|UX integrity<sup>\*3</sup>|Low|**High**|
 |Technical property|**Exclusive**|Coexistence|
 |Ecosystem|**Dedicated**|Common|
 |Old servers|**Dispose**|**Keep**|
 |New servers|Required|Optional|
-|Work on servers|**Redevelop all**|Add JSON APIs<sup>\*3</sup>|
-|Work on clients|**Redevelop all**|Reconstruct scripts<sup>\*4</sup>|
+|Work on servers|**Redevelop all**|Add JSON APIs<sup>\*4</sup>|
+|Work on clients|**Redevelop all**|Reconstruct scripts<sup>\*5</sup>|
 |Partial introduction|Coarse|Fine|
 |Location|Servers and Clients|Clients|
 |Server constraints|Strong|**Nothing**|
@@ -68,9 +68,10 @@ new Pjax({
 |Renewal costs|High|Low|
 
 <small>*1 Such as React.</small><br>
-<small>*2 Between MPA(standard web sites) and SPA.</small><br>
-<small>*3 Just do it.</small><br>
-<small>*4 To manage the lifetime of existing scripts. Since such management doesn't depend on SPA, these scripts are sharable and reusable with MPA and other SPA libraries.</small><br>
+<small>*2 You can send any efficient format instead of JSON and parse it on clients.</small><br>
+<small>*3 Between MPA(standard web sites) and SPA.</small><br>
+<small>*4 Just do it.</small><br>
+<small>*5 To manage the lifetime of existing scripts. Since such management doesn't depend on SPA, these scripts are sharable and reusable with MPA and other SPA libraries.</small><br>
 
 *SPA frameworks are cancer of the web.*
 
