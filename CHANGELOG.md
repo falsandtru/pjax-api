@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.42.0
+
+- Enhance `link` option to be strict.
+
 ## 3.41.1
 
 - Fix dependencies.
