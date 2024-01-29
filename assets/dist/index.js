@@ -338,12 +338,17 @@ LRU汚染対策。
 /*
 比較検討
 
-LRU/CLOCK:
-性能が低い。
+LRU:
+低性能。
+
+CLOCK:
+非常に高速かつLRUよりややヒット率が高い。
+容量制限付きマップなどヒット率より速度を優先する場合に最適。
+ただし最悪時間計算量O(n)。
 
 CAR/CDW(CLOCK+DWC)/CLOCK-Pro:
-最悪計算量がO(n)であるため汎用的でない。
-CLOCK-ProはCAR同様合計2倍の履歴を持つ。
+最悪時間計算量O(n)。
+CARとCLOCK-Proは合計2倍の履歴を持つ。
 
 ARC:
 キャッシュサイズの2倍のキーを保持する。
@@ -354,7 +359,7 @@ Loop耐性が欠如しておりGLIやDS1などLoop耐性を要するワークロ
 DWC:
 時間空間ともに定数計算量かつすべての基本的耐性を持つ。
 情報量(履歴)の不足を補うため全体的に統計精度への依存度が上がっており標本サイズが小さくなるほど
-情報量(標本がシグナルとなる確率)と統計精度の低下により性能低下しやすくなる。
+情報量(標本に含まれるシグナルの比率)の加速的減少と統計精度の低下により性能低下しやすくなる。
 
 LIRS:
 キャッシュサイズの3倍以上のキーを保持する。
@@ -368,14 +373,13 @@ LIRS論文全著者を共著者とするLIRS2論文筆頭著者の実装によ�
 TinyLFU:
 TinyLFUはキーのポインタのアドレスでブルームフィルタを生成するためJavaScriptでは
 文字列やオブジェクトなどからアドレスを取得または代替値を高速に割り当てる方法がなく汎用的に使用できない。
-乱数を代用する方法は強引で低速だがリモートアクセスなど低速な処理では償却可能と思われる。
+乱数で代用する方法は強引で低速だがリモートアクセスなど低速な処理では償却可能と思われる。
 オーバーヘッドが大きくメモ化など同期処理に耐える速度を要件とする用途には適さないと思われる。
 ブルームフィルタが削除操作不可であるため一定期間内のキャッシュの任意または有効期限超過による
 削除数に比例して性能が低下する。
 キャッシュサイズ分の挿入ごとにブルームフィルタがリセットのため全走査されるため
 キャッシュサイズに比例した大きさの遅延が入る。
-W-TinyLFUの性能は非常に高いがTinyLFUの性能は大幅に低くDWCと一長一短かより悪いうえ
-バーストアクセスに脆弱となるためあらかじめワークロードが検証されている場合以外はDWCのほうが優れている。
+TinyLFUはバーストアクセスに脆弱であるため基本的にW-TinyLFU以外選択肢に入れるべきではない。
 メインキャッシュにLRUを使用しているためこれをDWCに置換できる可能性がある。
 
 https://github.com/ben-manes/caffeine/wiki/Efficiency
@@ -406,26 +410,26 @@ DWCはこの最適化を行っても状態数の多さに比例して増加し�
 
 */
 class Entry {
-  constructor(key, value, size, expiration, partition, affiliation) {
+  constructor(key, value, size, expiration) {
     this.key = key;
     this.value = value;
     this.size = size;
     this.expiration = expiration;
-    this.partition = partition;
-    this.affiliation = affiliation;
+    this.partition = 'LRU';
+    this.affiliation = 'LRU';
     this.enode = undefined;
     this.next = undefined;
     this.prev = undefined;
   }
 }
 function segment(expiration) {
-  return (0, alias_1.floor)(expiration / 16);
+  return expiration >>> 4;
 }
 class Cache {
   constructor(capacity, opts = {}) {
     this.settings = {
       capacity: 0,
-      window: 2,
+      window: 1,
       sample: 1,
       age: Infinity,
       eagerExpiration: false,
@@ -434,9 +438,9 @@ class Cache {
         clear: true
       },
       sweep: {
-        threshold: 10,
+        threshold: 20,
         ratio: 50,
-        window: 2,
+        window: 1,
         room: 50,
         range: 1,
         shift: 2
@@ -447,7 +451,9 @@ class Cache {
     this.LFU = new list_1.List();
     this.overlapLRU = 0;
     this.overlapLFU = 0;
+    this.expiration = false;
     this.$size = 0;
+    this.injection = 100;
     this.declination = 1;
     if (typeof capacity === 'object') {
       opts = capacity;
@@ -461,10 +467,8 @@ class Cache {
     if (capacity >= 1 === false) throw new Error(`Spica: Cache: Capacity must be 1 or more.`);
     this.window = capacity * settings.window / 100 >>> 0 || 1;
     this.partition = capacity - this.window;
-    this.injection = 100 * this.declination;
     this.sample = settings.sample;
     this.resource = settings.resource ?? capacity;
-    this.expiration = opts.age !== undefined;
     this.age = settings.age;
     if (settings.eagerExpiration) {
       this.expirations = new heap_1.Heap(heap_1.Heap.min, {
@@ -504,12 +508,14 @@ class Cache {
     } = this;
     this.$size = 0;
     this.partition = this.capacity - this.window;
-    this.injection = 100 * this.declination;
+    this.injection = 100;
+    this.declination = 1;
     this.dict = new Map();
     this.LRU = new list_1.List();
     this.LFU = new list_1.List();
     this.overlapLRU = 0;
     this.overlapLFU = 0;
+    this.expiration = false;
     this.expirations?.clear();
     this.sweeper.clear();
     this.sweeper.replace(this.LRU);
@@ -541,6 +547,9 @@ class Cache {
     this.$size -= entry.size;
     callback && this.disposer?.(entry.value, entry.key);
   }
+  get overflow() {
+    return this.overlapLRU * 100 > this.LFU.length * this.sample;
+  }
   overlap(entry, eviction = false) {
     if (entry.partition === 'LRU') {
       if (entry.affiliation === 'LRU') {
@@ -555,7 +564,7 @@ class Cache {
         ++this.overlapLFU;
       } else {
         --this.overlapLRU;
-        if (this.declination !== 1 && this.overlapLRU * 100 < this.LFU.length * this.sample) {
+        if (this.declination !== 1 && !this.overflow) {
           this.declination = 1;
         }
       }
@@ -576,6 +585,19 @@ class Cache {
         victim = LFU.head.prev;
         victim = victim !== target ? victim : victim.prev;
       } else {
+        if (LRU.length >= this.window && this.injection === 100 * this.declination) {
+          const entry = LRU.head.prev;
+          if (entry.affiliation === 'LRU') {
+            LRU.delete(entry);
+            LFU.unshift(this.overlap(entry));
+            entry.partition = 'LFU';
+            this.injection = 0;
+            this.declination = !this.overflow ? 1 : (0, alias_1.min)(this.declination << 1, this.capacity / LFU.length << 3, 8);
+          }
+        }
+        if (this.sweeper.isActive()) {
+          this.sweeper.sweep();
+        }
         if (LFU.length > this.partition) {
           let entry = LFU.head.prev;
           entry = entry !== target ? entry : LFU.length !== 1 ? entry.prev : undefined;
@@ -584,19 +606,6 @@ class Cache {
             LRU.unshift(this.overlap(entry));
             entry.partition = 'LRU';
           }
-        }
-        if (LRU.length >= this.window && this.injection === 100 * this.declination) {
-          const entry = LRU.head.prev;
-          if (entry.affiliation === 'LRU') {
-            LRU.delete(entry);
-            LFU.unshift(this.overlap(entry));
-            entry.partition = 'LFU';
-            this.injection = 0;
-            this.declination = this.overlapLRU * 100 < LFU.length * this.sample ? 1 : (0, alias_1.min)(this.declination * 1.5, 5);
-          }
-        }
-        if (this.sweeper.isActive()) {
-          this.sweeper.sweep();
         }
         if (LRU.length !== 0) {
           victim = LRU.head.prev;
@@ -646,7 +655,7 @@ class Cache {
         if (entry === LRU.head) return;
         entry.affiliation = 'LFU';
       } else {
-        const delta = LRU.length >= this.capacity - this.partition ? (0, alias_1.max)(LRU.length / (LFU.length || 1) * (0, alias_1.max)(this.overlapLRU / this.overlapLFU, 1) | 0, 1) : 0;
+        const delta = LFU.length <= this.partition ? (0, alias_1.max)(LRU.length / (LFU.length || 1) * (0, alias_1.max)(this.overlapLRU / this.overlapLFU, 1) | 0, 1) : 0;
         this.partition = (0, alias_1.min)(this.partition + delta, this.capacity - this.window);
         --this.overlapLFU;
       }
@@ -655,11 +664,11 @@ class Cache {
       entry.partition = 'LFU';
     } else {
       if (entry.affiliation === 'LFU') {} else {
-        const delta = LFU.length >= this.partition ? (0, alias_1.max)(LFU.length / (LRU.length || 1) * (0, alias_1.max)(this.overlapLFU / this.overlapLRU, 1) | 0, 1) : 0;
+        const delta = LRU.length <= this.capacity - this.partition ? (0, alias_1.max)(LFU.length / (LRU.length || 1) * (0, alias_1.max)(this.overlapLFU / this.overlapLRU, 1) | 0, 1) : 0;
         this.partition = (0, alias_1.max)(this.partition - delta, 0);
         entry.affiliation = 'LFU';
         --this.overlapLRU;
-        if (this.declination !== 1 && this.overlapLRU * 100 < this.LFU.length * this.sample) {
+        if (this.declination !== 1 && !this.overflow) {
           this.declination = 1;
         }
       }
@@ -669,7 +678,12 @@ class Cache {
     }
   }
   validate(size, age) {
-    return 1 <= size && size <= this.resource && 1 <= age;
+    if (1 <= age) {
+      this.expiration ||= age !== Infinity;
+    } else {
+      return false;
+    }
+    return 1 <= size && size <= this.resource;
   }
   evict() {
     const victim = this.LRU.last ?? this.LFU.last;
@@ -677,11 +691,12 @@ class Cache {
     this.evict$(victim, true);
     return [victim.key, victim.value];
   }
-  add(key, value, {
-    size = 1,
-    age = this.age
-  } = {}, victim) {
-    if (!this.validate(size, age)) {
+  add(key, value, opts, victim) {
+    const {
+      size = 1,
+      age = this.age
+    } = opts ?? {};
+    if (opts !== undefined && !this.validate(size, age)) {
       this.disposer?.(value, key);
       return false;
     }
@@ -701,7 +716,7 @@ class Cache {
       return true;
     }
     this.$size += size;
-    const entry = new Entry(key, value, size, expiration, 'LRU', 'LRU');
+    const entry = new Entry(key, value, size, expiration);
     LRU.unshift(entry);
     this.dict.set(key, entry);
     if (this.expiration && this.expirations !== undefined && expiration !== Infinity) {
@@ -709,11 +724,12 @@ class Cache {
     }
     return true;
   }
-  put(key, value, {
-    size = 1,
-    age = this.age
-  } = {}) {
-    if (!this.validate(size, age)) {
+  put(key, value, opts) {
+    const {
+      size = 1,
+      age = this.age
+    } = opts ?? {};
+    if (opts !== undefined && !this.validate(size, age)) {
       this.disposer?.(value, key);
       return false;
     }
@@ -784,13 +800,13 @@ class Cache {
 exports.Cache = Cache;
 // Transitive Wide MRU with Cyclic Replacement
 class Sweeper {
-  constructor(target, capacity, window, room, threshold, ratio, range, shift) {
+  constructor(target, capacity, $window, room, threshold, ratio, $range, shift) {
     this.target = target;
-    this.window = window;
+    this.$window = $window;
     this.room = room;
     this.threshold = threshold;
     this.ratio = ratio;
-    this.range = range;
+    this.$range = $range;
     this.shift = shift;
     this.currWindowHits = 0;
     this.currWindowMisses = 0;
@@ -800,27 +816,35 @@ class Sweeper {
     this.currRoomMisses = 0;
     this.prevRoomHits = 0;
     this.prevRoomMisses = 0;
+    this.active = false;
     this.processing = false;
     this.direction = true;
     this.initial = true;
     this.back = 0;
     this.advance = 0;
     this.threshold *= 100;
-    this.resize(capacity, window, room, range);
+    this.resize(capacity, $window, room, $range);
   }
   replace(target) {
     this.target = target;
   }
+  get window() {
+    const n = this.target.length > this.$window << 1 ? 2 : 1;
+    return (0, alias_1.max)(this.$window, (0, alias_1.min)(this.target.length >>> n, this.$window << n + 1));
+  }
+  get range() {
+    return (0, alias_1.max)(this.$range, (0, alias_1.min)(this.window >>> 1, this.target.length >>> 2));
+  }
   resize(capacity, window, room, range) {
-    this.window = (0, alias_1.round)(capacity * window / 100) || 1;
+    this.$window = (0, alias_1.round)(capacity * window / 100) || 1;
     this.room = (0, alias_1.round)(capacity * room / 100) || 1;
-    this.range = capacity * range / 100;
+    this.$range = capacity * range / 100;
     this.currWindowHits + this.currWindowMisses >= this.window && this.slideWindow();
     this.currRoomHits + this.currRoomMisses >= this.room && this.slideRoom();
-    this.active = undefined;
+    this.update();
   }
   clear() {
-    this.active = undefined;
+    this.active = false;
     this.processing = true;
     this.reset();
     this.slideWindow();
@@ -841,19 +865,23 @@ class Sweeper {
     this.currRoomMisses = 0;
   }
   hit() {
-    this.active = undefined;
-    ++this.currWindowHits + this.currWindowMisses === this.window && this.slideWindow();
-    ++this.currRoomHits + this.currRoomMisses === this.room && this.slideRoom();
-    this.processing && !this.isActive() && this.reset();
+    ++this.currWindowHits + this.currWindowMisses >= this.window && this.slideWindow();
+    ++this.currRoomHits + this.currRoomMisses >= this.room && this.slideRoom();
+    this.update();
+    this.processing && !this.active && this.reset();
   }
   miss() {
-    this.active = undefined;
-    this.currWindowHits + ++this.currWindowMisses === this.window && this.slideWindow();
-    this.currRoomHits + ++this.currRoomMisses === this.room && this.slideRoom();
+    this.currWindowHits + ++this.currWindowMisses >= this.window && this.slideWindow();
+    this.currRoomHits + ++this.currRoomMisses >= this.room && this.slideRoom();
+    this.update();
+  }
+  update() {
+    if (this.threshold === 0) return;
+    const ratio = this.ratioWindow();
+    this.active = ratio < this.threshold || ratio < this.ratioRoom() * this.ratio / 100;
   }
   isActive() {
-    if (this.threshold === 0) return false;
-    return this.active ??= this.ratioWindow() < (0, alias_1.max)(this.ratioRoom() * this.ratio / 100, this.threshold);
+    return this.active;
   }
   ratioWindow() {
     return ratio(this.window, [this.currWindowHits, this.prevWindowHits], [this.currWindowMisses, this.prevWindowMisses], 0);
@@ -899,7 +927,6 @@ class Sweeper {
     return lap;
   }
   reset() {
-    if (!this.processing) return;
     this.processing = false;
     this.direction = true;
     this.initial = true;
@@ -938,6 +965,135 @@ function ratio2(window, targets, remains, offset) {
     if (ratio <= 0) break;
   }
   return hits * 10000 / total | 0;
+}
+// OLTPのような流出の多いワークロードで1%未満上がる効果しかない。
+// 流出軽減以外の効果はないと思われる。
+// 速度も落ちるので不採用。
+// @ts-ignore
+class TLRU {
+  constructor(step = 1, window = 100) {
+    this.step = step;
+    this.window = window;
+    this.list = new list_1.List();
+    this.handM = undefined;
+    this.handG = undefined;
+    this.count = 0;
+  }
+  get head() {
+    return this.list.head;
+  }
+  set head(entry) {
+    this.list.head = entry;
+  }
+  get last() {
+    return this.list.last;
+  }
+  get length() {
+    return this.list.length;
+  }
+  get size() {
+    return this.list.length;
+  }
+  return() {
+    const {
+      list
+    } = this;
+    if (this.count !== -1 && this.handM === list.last && this.handG !== list.last && this.handG !== undefined && this.count <= list.length * (this.window - this.step) / 100) {
+      if (this.count >= 0) {
+        //this.count = -max(max(list.length - this.count, 0) * this.step / 100 | 0, 1) - 1;
+        this.count = -(0, alias_1.max)(list.length * this.step / 100 | 0, 1) - 1;
+      }
+    } else {
+      if (this.handM === list.head) {
+        this.handG = undefined;
+      }
+      if (this.handG === list.last) {
+        this.handG = this.handG.prev;
+      }
+      this.handM = this.handG?.next;
+      this.count = 0;
+    }
+  }
+  unshift(entry) {
+    const {
+      list
+    } = this;
+    if (this.handM === list.last && this.handM !== undefined) {
+      this.return();
+    }
+    list.unshift(entry);
+    this.hit(entry);
+  }
+  hit(entry) {
+    if (this.handG === undefined) {
+      this.handM = entry.next;
+      this.handG = entry;
+      this.count = 1;
+    }
+  }
+  add(entry) {
+    const {
+      list
+    } = this;
+    if (this.handM === list.last && this.handM !== undefined) {
+      this.return();
+    }
+    if (this.handM === this.handG && this.handM !== list.last && this.handM !== undefined) {
+      this.handM = this.handM.next;
+    }
+    if (this.count < 0 && this.handG !== undefined) {
+      if (this.handG !== list.head) {
+        list.insert(entry, this.handG.next);
+        this.handG = this.handG.prev;
+      } else {
+        list.unshift(entry);
+        this.handM = undefined;
+        this.handG = undefined;
+        this.count = 0;
+      }
+    } else if (this.handG !== undefined) {
+      list.insert(entry, this.handG.next);
+    } else {
+      list.unshift(entry);
+    }
+    return true;
+  }
+  escape(entry) {
+    const {
+      list
+    } = this;
+    if (list.length <= 1) {
+      this.handM = undefined;
+      this.handG = undefined;
+      this.count = 0;
+      return;
+    }
+    if (entry === this.handM) {
+      this.handM = this.handM !== list.last ? this.handM.next : this.handM.prev;
+    }
+    if (entry === this.handG) {
+      this.handG = this.handG !== list.head ? this.handG.prev : this.handG.next;
+    }
+  }
+  delete(entry) {
+    const {
+      list
+    } = this;
+    if (entry === undefined) return;
+    this.escape(entry);
+    list.delete(entry);
+  }
+  clear() {
+    this.list.clear();
+    this.handM = undefined;
+    this.handG = undefined;
+    this.count = 0;
+  }
+  *[Symbol.iterator]() {
+    for (const entry of this.list) {
+      yield entry;
+    }
+  }
 }
 
 /***/ }),
@@ -2329,16 +2485,15 @@ class List {
     this.head = undefined;
   }
   *[Symbol.iterator]() {
-    let head = this.head;
-    for (let node = head; node !== undefined;) {
+    for (let node = this.head; node !== undefined;) {
       yield node;
       node = node.next;
-      if (node === head) return;
+      if (node === this.head) break;
     }
   }
   flatMap(f) {
     const acc = [];
-    for (let head = this.head, node = head; node;) {
+    for (let node = this.head; node !== undefined;) {
       const as = f(node);
       switch (as.length) {
         case 0:
@@ -2352,15 +2507,15 @@ class List {
           }
       }
       node = node.next;
-      if (node === head) break;
+      if (node === this.head) break;
     }
     return acc;
   }
   find(f) {
-    for (let head = this.head, node = head; node;) {
+    for (let node = this.head; node !== undefined;) {
       if (f(node)) return node;
       node = node.next;
-      if (node === head) break;
+      if (node === this.head) break;
     }
   }
 }
@@ -7295,6 +7450,7 @@ class ClickView extends coroutine_1.Coroutine {
     super(async function* () {
       return this.finally((0, listener_1.delegate)(document, selector, 'click', ev => {
         if (!(ev.currentTarget instanceof HTMLAnchorElement || ev.currentTarget instanceof HTMLAreaElement)) return;
+        if (!ev.currentTarget.matches(selector)) return;
         listener(ev);
       }));
     }, {
@@ -8031,7 +8187,7 @@ exports.FakeXMLHttpRequest = FakeXMLHttpRequest;
 /***/ 3252:
 /***/ (function(module) {
 
-/*! typed-dom v0.0.347 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
+/*! typed-dom v0.0.348 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(true)
 		module.exports = factory();
@@ -8399,7 +8555,7 @@ exports.defrag = defrag;
 /***/ 1051:
 /***/ (function(module) {
 
-/*! typed-dom v0.0.347 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
+/*! typed-dom v0.0.348 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(true)
 		module.exports = factory();
@@ -8976,7 +9132,7 @@ exports.bind = bind;
 /***/ 6120:
 /***/ (function(module) {
 
-/*! typed-dom v0.0.347 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
+/*! typed-dom v0.0.348 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(true)
 		module.exports = factory();
