@@ -12,9 +12,6 @@ export class Config implements Option {
     this.update.ignores.$ ??= option.update?.ignore ?? '';
     this.update.ignore = Object.values(this.update.ignores).filter(s => s).join(',');
     overwrite(this.scope, option?.scope ?? {});
-    this.fetch.headers = new Headers(this.fetch.headers);
-    this.fetch.headers.set('X-Requested-With', 'XMLHttpRequest');
-    this.fetch.headers.set('X-Pjax', '1');
     Object.freeze(this);
     Object.freeze(this.fetch);
     Object.freeze(this.update);

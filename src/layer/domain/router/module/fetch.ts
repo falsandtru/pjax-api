@@ -38,6 +38,10 @@ export async function fetch(
   if (type === RouterEventType.Popstate) {
     io.document.documentElement.appendChild(style);
   }
+  headers = new Headers(headers);
+  headers.has('Accept') || headers.set('Accept', 'text/html');
+  headers.has('X-Requested-With') || headers.set('X-Requested-With', 'XMLHttpRequest');
+  headers.has('X-Pjax') || headers.set('X-Pjax', '1');
   const [seq, res] = await Promise.all([
     sequence.fetch(undefined, {
       path: url.path,

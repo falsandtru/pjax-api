@@ -17,8 +17,6 @@ export function xhr(
   cancellation: Cancellee<Error>,
   rewrite = request,
 ): AtomicPromise<Either<Error, Response>> {
-  headers = new Headers(headers);
-  headers.set('Accept', headers.get('Accept') || 'text/html');
   if (method === 'GET' &&
       !headers.has('If-None-Match') &&
       Date.now() > (cache.get(displayURL.path)?.expiry ?? Infinity)) {
