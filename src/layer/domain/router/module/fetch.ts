@@ -20,6 +20,7 @@ export async function fetch(
     },
   }: RouterEvent,
   {
+    areas,
     cache,
     fetch: {
       rewrite,
@@ -40,7 +41,7 @@ export async function fetch(
   }
   headers = new Headers(headers);
   headers.has('Accept') || headers.set('Accept', 'text/html');
-  headers.has('X-Pjax') || headers.set('X-Pjax', '1');
+  headers.has('X-Pjax') || headers.set('X-Pjax', JSON.stringify(areas));
   const [seq, res] = await Promise.all([
     sequence.fetch(undefined, {
       path: url.path,

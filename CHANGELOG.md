@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.43.0
+
+- Change `X-Pjax` header value to JSON string of `areas` option.
+
 ## 3.42.0
 
 - Enhance `link` option to be strict.
