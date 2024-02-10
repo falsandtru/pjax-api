@@ -28,7 +28,7 @@ export interface Config {
     readonly wait?: number;
   };
   readonly update?: {
-    readonly rewrite?: (url: string, document: Document, area: string, cache: Document | undefined) => void;
+    readonly rewrite?: (url: string, document: Document, area: string, cache?: Document) => void;
     readonly head?: string;
     readonly css?: boolean;
     readonly script?: boolean;
