@@ -33,7 +33,7 @@ export function route(
   return Just(0)
     .guard(validate(event.request.url, config, event))
     .bind(() =>
-      scope(config, (({ orig, dest }) => ({ orig: orig.pathname, dest: dest.pathname }))(event.location)))
+      scope(config, { orig: event.location.orig.pathname, dest: event.location.dest.pathname }))
     .fmap(async config => {
       event.original.preventDefault();
       process.cast('', new Error('Canceled'));
