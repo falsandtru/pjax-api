@@ -64,7 +64,7 @@ describe('Unit: layer/domain/data/config/scope', () => {
           orig: new URL(standardize('/', window.location.href)).pathname,
           dest: new URL(standardize('/', window.location.href)).pathname
         }).extract()),
-        JSON.stringify(new Config({ fetch: { wait: 100 }, scope: { '/': { fetch: { wait: 100 } } } })));
+        JSON.stringify(new Config({ fetch: { wait: 100 } })));
     });
 
     it('disable', () => {
@@ -82,7 +82,7 @@ describe('Unit: layer/domain/data/config/scope', () => {
           orig: new URL(standardize('/a', window.location.href)).pathname,
           dest: new URL(standardize('/a', window.location.href)).pathname
         }).extract()),
-        JSON.stringify(new Config({ scope: { '/': undefined, '/a': {} } })));
+        JSON.stringify(new Config({})));
     });
 
   });

@@ -24,9 +24,7 @@ export function scope(
     }
     const option: Option | undefined = scope[pattern];
     return option
-      ? Just(new Config(extend({
-        scope: option.scope && overwrite({}, config.scope, option.scope)
-      }, config, option)))
+      ? Just(new Config(overwrite(extend({}, config, option), { scope: undefined })))
       : Nothing;
   }
   return Nothing;
