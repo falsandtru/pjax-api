@@ -48,7 +48,7 @@ Set a dictionary object having has/get/set/delete methods of Map to pass the doc
 
 ## fetch: {...} = ...
 
-### rewrite?: (url: string, method: string, headers: Headers, timeout: number, body: FormData | null) => XMLHttpRequest | undefined
+### rewrite?: (url: string, method: string, headers: Headers, timeout: number, body: FormData | null, cache?: Document) => XMLHttpRequest | undefined
 
 Rewrite the XHR object, or replace it with another or fake.
 
@@ -166,17 +166,21 @@ You can use `{}`, `**`, `*`, and `?` metacharacters for path matching.
 ```ts
 new Pjax({
   areas: [
-    '#header, #primary',
     '#container',
     'body'
   ],
   scope: {
-    '/': undefined, // Disable
-    '/posts/': {}, // Enable
-    '/posts/*/': {
-      replace: '.replace' // Override
+    '/': {}, // Enable.
+    '/form': undefined, // Disable.
+    '/posts': {
+      replace: '.replace' // Override.
     },
-    '/{a,b}/': {} // Expand to '/a/' and '/b/'
+    '/search': { isolation: true }, // Disable inter-scope transitions.
+    '/{a,b}/': {} // Expand to '/a/' and '/b/'.
   }
 });
 ```
+
+## isolation: boolean = `false`
+
+Disable inter-scope transitions.

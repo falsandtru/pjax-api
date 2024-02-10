@@ -12,7 +12,7 @@
 return /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 8767:
+/***/ 8207:
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -46,19 +46,19 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports["default"] = void 0;
-__webpack_require__(4128);
-var export_1 = __webpack_require__(4279);
+__webpack_require__(8324);
+var export_1 = __webpack_require__(6959);
 Object.defineProperty(exports, "default", ({
   enumerable: true,
   get: function () {
     return __importDefault(export_1).default;
   }
 }));
-__exportStar(__webpack_require__(4279), exports);
+__exportStar(__webpack_require__(6959), exports);
 
 /***/ }),
 
-/***/ 5406:
+/***/ 5807:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -82,7 +82,7 @@ exports.ObjectSetPrototypeOf = Object.setPrototypeOf;
 
 /***/ }),
 
-/***/ 8112:
+/***/ 8980:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -178,7 +178,7 @@ exports.splice = splice;
 
 /***/ }),
 
-/***/ 4401:
+/***/ 1368:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -188,9 +188,9 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.template = exports.inherit = exports.merge = exports.extend = exports.overwrite = exports.clone = exports.assign = void 0;
-const alias_1 = __webpack_require__(5406);
-const type_1 = __webpack_require__(5177);
-const array_1 = __webpack_require__(8112);
+const alias_1 = __webpack_require__(5807);
+const type_1 = __webpack_require__(8816);
+const array_1 = __webpack_require__(8980);
 exports.assign = template((prop, target, source) => target[prop] = source[prop]);
 exports.clone = template((prop, target, source) => {
   switch ((0, type_1.type)(source[prop])) {
@@ -301,7 +301,7 @@ function empty(source) {
 
 /***/ }),
 
-/***/ 9210:
+/***/ 9408:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -311,11 +311,11 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.Cache = void 0;
-const alias_1 = __webpack_require__(5406);
-const chrono_1 = __webpack_require__(4393);
-const list_1 = __webpack_require__(3667);
-const heap_1 = __webpack_require__(818);
-const assign_1 = __webpack_require__(4401);
+const alias_1 = __webpack_require__(5807);
+const chrono_1 = __webpack_require__(7820);
+const list_1 = __webpack_require__(9756);
+const heap_1 = __webpack_require__(8487);
+const assign_1 = __webpack_require__(1368);
 // Dual Window Cache
 /*
 LFU論理寿命：
@@ -971,11 +971,12 @@ function ratio2(window, targets, remains, offset) {
 // 速度も落ちるので不採用。
 // @ts-ignore
 class TLRU {
-  constructor(step = 1, window = 100) {
+  constructor(step = 1, window = 0, retrial = true) {
     this.step = step;
     this.window = window;
+    this.retrial = retrial;
     this.list = new list_1.List();
-    this.handM = undefined;
+    this.handV = undefined;
     this.handG = undefined;
     this.count = 0;
   }
@@ -985,8 +986,8 @@ class TLRU {
   set head(entry) {
     this.list.head = entry;
   }
-  get last() {
-    return this.list.last;
+  get victim() {
+    return this.handV ?? this.list.last;
   }
   get length() {
     return this.list.length;
@@ -998,19 +999,21 @@ class TLRU {
     const {
       list
     } = this;
-    if (this.count !== -1 && this.handM === list.last && this.handG !== list.last && this.handG !== undefined && this.count <= list.length * (this.window - this.step) / 100) {
+    if (this.count !== -1 && this.handV !== undefined && this.handG !== list.last && this.handG !== undefined) {
       if (this.count >= 0) {
         //this.count = -max(max(list.length - this.count, 0) * this.step / 100 | 0, 1) - 1;
-        this.count = -(0, alias_1.max)(list.length * this.step / 100 | 0, 1) - 1;
+        this.count = -(0, alias_1.max)(list.length * this.step / 100 | 0, list.length * this.window / 100 - this.count | 0, 1) - 1;
+      } else {
+        this.handG = this.handG.prev;
       }
     } else {
-      if (this.handM === list.head) {
+      if (this.handV === list.head) {
         this.handG = undefined;
       }
       if (this.handG === list.last) {
-        this.handG = this.handG.prev;
+        this.handG = this.handG?.prev;
       }
-      this.handM = this.handG?.next;
+      this.handV = list.last;
       this.count = 0;
     }
   }
@@ -1018,58 +1021,56 @@ class TLRU {
     const {
       list
     } = this;
-    if (this.handM === list.last && this.handM !== undefined) {
+    if (this.handV === this.handG || this.handV === list.last) {
       this.return();
     }
     list.unshift(entry);
     this.hit(entry);
   }
   hit(entry) {
-    if (this.handG === undefined) {
-      this.handM = entry.next;
-      this.handG = entry;
-      this.count = 1;
-    }
+    this.handG ??= entry;
   }
   add(entry) {
     const {
       list
     } = this;
-    if (this.handM === list.last && this.handM !== undefined) {
+    if (this.handV === this.handG || this.handV === list.last) {
       this.return();
     }
-    if (this.handM === this.handG && this.handM !== list.last && this.handM !== undefined) {
-      this.handM = this.handM.next;
+    // 非延命
+    if (this.count >= 0 || !this.retrial) {
+      this.handV ??= list.last;
+      list.insert(entry, this.handV?.next);
+      this.handV ??= list.last;
     }
-    if (this.count < 0 && this.handG !== undefined) {
+    // 延命
+    else {
       if (this.handG !== list.head) {
-        list.insert(entry, this.handG.next);
-        this.handG = this.handG.prev;
+        list.insert(entry, this.handG);
       } else {
         list.unshift(entry);
-        this.handM = undefined;
-        this.handG = undefined;
-        this.count = 0;
       }
-    } else if (this.handG !== undefined) {
-      list.insert(entry, this.handG.next);
-    } else {
-      list.unshift(entry);
+      this.handV = entry;
+      this.handG = entry.prev;
     }
+    if (this.handV !== this.handG) {
+      this.handV = this.handV.prev;
+    }
+    ++this.count;
     return true;
   }
   escape(entry) {
     const {
       list
     } = this;
-    if (list.length <= 1) {
-      this.handM = undefined;
+    if (list.length === 1) {
+      this.handV = undefined;
       this.handG = undefined;
       this.count = 0;
       return;
     }
-    if (entry === this.handM) {
-      this.handM = this.handM !== list.last ? this.handM.next : this.handM.prev;
+    if (entry === this.handV) {
+      this.handV = this.handV !== list.head ? this.handV.prev : this.handV.next;
     }
     if (entry === this.handG) {
       this.handG = this.handG !== list.head ? this.handG.prev : this.handG.next;
@@ -1085,7 +1086,7 @@ class TLRU {
   }
   clear() {
     this.list.clear();
-    this.handM = undefined;
+    this.handV = undefined;
     this.handG = undefined;
     this.count = 0;
   }
@@ -1098,7 +1099,7 @@ class TLRU {
 
 /***/ }),
 
-/***/ 412:
+/***/ 6224:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -1109,11 +1110,11 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.Cancellation = void 0;
-const promise_1 = __webpack_require__(4879);
-const maybe_1 = __webpack_require__(6512);
-const either_1 = __webpack_require__(8555);
-const function_1 = __webpack_require__(6288);
-const exception_1 = __webpack_require__(7822);
+const promise_1 = __webpack_require__(1324);
+const maybe_1 = __webpack_require__(1792);
+const either_1 = __webpack_require__(652);
+const function_1 = __webpack_require__(2300);
+const exception_1 = __webpack_require__(7908);
 class Cancellation {
   constructor(cancellees) {
     this[_a] = 'Cancellation';
@@ -1198,7 +1199,7 @@ Cancellation.prototype.finally = promise_1.AtomicPromise.prototype.finally;
 
 /***/ }),
 
-/***/ 9802:
+/***/ 6712:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -1208,9 +1209,9 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.Channel = void 0;
-const promise_1 = __webpack_require__(4879);
-const future_1 = __webpack_require__(3387);
-const queue_1 = __webpack_require__(4934);
+const promise_1 = __webpack_require__(1324);
+const future_1 = __webpack_require__(4508);
+const queue_1 = __webpack_require__(9556);
 const fail = () => promise_1.AtomicPromise.reject(new Error('Spica: Channel: Closed.'));
 class Channel {
   constructor(capacity = 0) {
@@ -1294,7 +1295,7 @@ exports.Channel = Channel;
 
 /***/ }),
 
-/***/ 4393:
+/***/ 7820:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -1304,8 +1305,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.clock = exports.now = void 0;
-const queue_1 = __webpack_require__(4934);
-const exception_1 = __webpack_require__(7822);
+const queue_1 = __webpack_require__(9556);
+const exception_1 = __webpack_require__(7908);
 let time;
 let count = 0;
 function now(nocache) {
@@ -1355,7 +1356,7 @@ function run() {
 
 /***/ }),
 
-/***/ 5529:
+/***/ 1928:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -1372,7 +1373,7 @@ exports.equal = equal;
 
 /***/ }),
 
-/***/ 7596:
+/***/ 3512:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -1382,9 +1383,9 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.Copropagator = void 0;
-const alias_1 = __webpack_require__(5406);
-const coroutine_1 = __webpack_require__(7983);
-const promise_1 = __webpack_require__(4879);
+const alias_1 = __webpack_require__(5807);
+const coroutine_1 = __webpack_require__(8228);
+const promise_1 = __webpack_require__(1324);
 class Copropagator extends coroutine_1.Coroutine {
   constructor(coroutines, reducer = results => results[0], opts) {
     const cs = (0, alias_1.isArray)(coroutines) ? coroutines : [...coroutines];
@@ -1411,7 +1412,7 @@ exports.Copropagator = Copropagator;
 
 /***/ }),
 
-/***/ 7983:
+/***/ 8228:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -1422,15 +1423,15 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.isCoroutine = exports.Coroutine = void 0;
-const alias_1 = __webpack_require__(5406);
-const chrono_1 = __webpack_require__(4393);
-const promise_1 = __webpack_require__(4879);
-const future_1 = __webpack_require__(3387);
-const channel_1 = __webpack_require__(9802);
-const timer_1 = __webpack_require__(8520);
-const function_1 = __webpack_require__(6288);
-const queue_1 = __webpack_require__(4934);
-const exception_1 = __webpack_require__(7822);
+const alias_1 = __webpack_require__(5807);
+const chrono_1 = __webpack_require__(7820);
+const promise_1 = __webpack_require__(1324);
+const future_1 = __webpack_require__(4508);
+const channel_1 = __webpack_require__(6712);
+const timer_1 = __webpack_require__(6968);
+const function_1 = __webpack_require__(2300);
+const queue_1 = __webpack_require__(9556);
+const exception_1 = __webpack_require__(7908);
 const alive = Symbol.for('spica/Coroutine.alive');
 const init = Symbol.for('spica/Coroutine.init');
 const exit = Symbol.for('spica/Coroutine.exit');
@@ -1761,7 +1762,7 @@ _d = internal;
 
 /***/ }),
 
-/***/ 4877:
+/***/ 5836:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -1771,7 +1772,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.uncurry = exports.curry = void 0;
-const array_1 = __webpack_require__(8112);
+const array_1 = __webpack_require__(8980);
 exports.curry = f => curry_(f, f.length);
 function curry_(f, arity, ...xs) {
   let g;
@@ -1786,7 +1787,7 @@ function uncurry_(f) {
 
 /***/ }),
 
-/***/ 8555:
+/***/ 652:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -1796,9 +1797,9 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.Either = exports.Left = exports.Right = void 0;
-const promise_1 = __webpack_require__(4879);
-const curry_1 = __webpack_require__(4877);
-const array_1 = __webpack_require__(8112);
+const promise_1 = __webpack_require__(1324);
+const curry_1 = __webpack_require__(5836);
+const array_1 = __webpack_require__(8980);
 class Right {
   constructor(value) {
     this.value = value;
@@ -1873,7 +1874,7 @@ var Either;
 
 /***/ }),
 
-/***/ 7822:
+/***/ 7908:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -1883,7 +1884,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.suppressAsyncException = exports.causeAsyncException = void 0;
-const stack_1 = __webpack_require__(5352);
+const stack_1 = __webpack_require__(528);
 const stack = new stack_1.Stack();
 function causeAsyncException(reason) {
   if (stack.isEmpty()) {
@@ -1906,7 +1907,7 @@ exports.suppressAsyncException = suppressAsyncException;
 
 /***/ }),
 
-/***/ 6288:
+/***/ 2300:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -1946,7 +1947,7 @@ exports.noop = noop;
 
 /***/ }),
 
-/***/ 3387:
+/***/ 4508:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -1957,7 +1958,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.AtomicFuture = exports.Future = void 0;
-const promise_1 = __webpack_require__(4879);
+const promise_1 = __webpack_require__(1324);
 const state = Symbol('spica/future::state');
 class Future extends Promise {
   static get [Symbol.species]() {
@@ -2012,7 +2013,7 @@ AtomicFuture.prototype.finally = promise_1.AtomicPromise.prototype.finally;
 
 /***/ }),
 
-/***/ 4128:
+/***/ 8324:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2021,14 +2022,14 @@ AtomicFuture.prototype.finally = promise_1.AtomicPromise.prototype.finally;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-__webpack_require__(6921);
+__webpack_require__(8304);
 const global = globalThis;
 global.global = global;
 exports["default"] = global;
 
 /***/ }),
 
-/***/ 6921:
+/***/ 8304:
 /***/ (() => {
 
 "use strict";
@@ -2039,7 +2040,7 @@ var global = (/* unused pure expression or super */ null && (globalThis));
 
 /***/ }),
 
-/***/ 818:
+/***/ 8487:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2049,8 +2050,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.MultiHeap = exports.Heap = void 0;
-const list_1 = __webpack_require__(3667);
-const memoize_1 = __webpack_require__(1808);
+const list_1 = __webpack_require__(9756);
+const memoize_1 = __webpack_require__(276);
 class Heap {
   constructor(cmp = Heap.max, options) {
     this.cmp = cmp;
@@ -2276,7 +2277,7 @@ MultiHeap.min = Heap.min;
 
 /***/ }),
 
-/***/ 2269:
+/***/ 5228:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -2297,7 +2298,7 @@ exports.compose = compose;
 
 /***/ }),
 
-/***/ 7536:
+/***/ 3592:
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -2325,11 +2326,11 @@ var __exportStar = this && this.__exportStar || function (m, exports) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-__exportStar(__webpack_require__(2598), exports);
+__exportStar(__webpack_require__(6428), exports);
 
 /***/ }),
 
-/***/ 3667:
+/***/ 9756:
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -2357,11 +2358,11 @@ var __exportStar = this && this.__exportStar || function (m, exports) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-__exportStar(__webpack_require__(5096), exports);
+__exportStar(__webpack_require__(6868), exports);
 
 /***/ }),
 
-/***/ 2598:
+/***/ 6428:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2371,7 +2372,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.HList = void 0;
-const array_1 = __webpack_require__(8112);
+const array_1 = __webpack_require__(8980);
 function HList(...as) {
   return as.reduceRight((node, a) => node.add(a), HNil);
 }
@@ -2418,7 +2419,7 @@ class HCons {
 
 /***/ }),
 
-/***/ 5096:
+/***/ 6868:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -2532,7 +2533,7 @@ exports.List = List;
 
 /***/ }),
 
-/***/ 6512:
+/***/ 1792:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2542,9 +2543,9 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.Maybe = exports.Nothing = exports.Just = void 0;
-const promise_1 = __webpack_require__(4879);
-const curry_1 = __webpack_require__(4877);
-const array_1 = __webpack_require__(8112);
+const promise_1 = __webpack_require__(1324);
+const curry_1 = __webpack_require__(5836);
+const array_1 = __webpack_require__(8980);
 class Just {
   constructor(value) {
     this.value = value;
@@ -2625,7 +2626,7 @@ var Maybe;
 
 /***/ }),
 
-/***/ 1808:
+/***/ 276:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2635,8 +2636,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.reduce = exports.memoize = void 0;
-const alias_1 = __webpack_require__(5406);
-const compare_1 = __webpack_require__(5529);
+const alias_1 = __webpack_require__(5807);
+const compare_1 = __webpack_require__(1928);
 function memoize(f, identify, memory) {
   if (typeof identify === 'object') {
     memory = identify;
@@ -2703,7 +2704,7 @@ exports.reduce = reduce;
 
 /***/ }),
 
-/***/ 9983:
+/***/ 7936:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2713,8 +2714,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.Applicative = void 0;
-const functor_1 = __webpack_require__(8946);
-const curry_1 = __webpack_require__(4877);
+const functor_1 = __webpack_require__(2644);
+const curry_1 = __webpack_require__(5836);
 class Applicative extends functor_1.Functor {}
 exports.Applicative = Applicative;
 (function (Applicative) {
@@ -2726,7 +2727,7 @@ exports.Applicative = Applicative;
 
 /***/ }),
 
-/***/ 8946:
+/***/ 2644:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2736,7 +2737,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.Functor = void 0;
-const lazy_1 = __webpack_require__(7395);
+const lazy_1 = __webpack_require__(9612);
 class Functor extends lazy_1.Lazy {}
 exports.Functor = Functor;
 (function (Functor) {
@@ -2748,7 +2749,7 @@ exports.Functor = Functor;
 
 /***/ }),
 
-/***/ 7395:
+/***/ 9612:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -2771,7 +2772,7 @@ exports.Lazy = Lazy;
 
 /***/ }),
 
-/***/ 7991:
+/***/ 9152:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2781,7 +2782,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.Monad = void 0;
-const applicative_1 = __webpack_require__(9983);
+const applicative_1 = __webpack_require__(7936);
 class Monad extends applicative_1.Applicative {}
 exports.Monad = Monad;
 (function (Monad) {
@@ -2794,7 +2795,7 @@ exports.Monad = Monad;
 
 /***/ }),
 
-/***/ 4716:
+/***/ 2832:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2804,14 +2805,14 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.MonadPlus = void 0;
-const monad_1 = __webpack_require__(7991);
+const monad_1 = __webpack_require__(9152);
 class MonadPlus extends monad_1.Monad {}
 exports.MonadPlus = MonadPlus;
 (function (MonadPlus) {})(MonadPlus || (exports.MonadPlus = MonadPlus = {}));
 
 /***/ }),
 
-/***/ 6144:
+/***/ 9136:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2821,52 +2822,52 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.Sequence = void 0;
-__webpack_require__(207);
-__webpack_require__(9035);
-__webpack_require__(323);
-__webpack_require__(6369);
-__webpack_require__(5976);
-__webpack_require__(2870);
-__webpack_require__(3571);
-__webpack_require__(3780);
-__webpack_require__(2414);
-__webpack_require__(2183);
-__webpack_require__(1755);
-__webpack_require__(1451);
-__webpack_require__(1191);
-__webpack_require__(4704);
-__webpack_require__(4655);
-__webpack_require__(1985);
-__webpack_require__(6067);
-__webpack_require__(7809);
-__webpack_require__(2881);
-__webpack_require__(7585);
-__webpack_require__(4420);
-__webpack_require__(3114);
-__webpack_require__(8501);
-__webpack_require__(9648);
-__webpack_require__(9663);
-__webpack_require__(144);
-__webpack_require__(679);
-__webpack_require__(2307);
-__webpack_require__(3337);
-__webpack_require__(9117);
-__webpack_require__(4595);
-__webpack_require__(4763);
-__webpack_require__(5645);
-__webpack_require__(1130);
-__webpack_require__(7303);
-__webpack_require__(1084);
-__webpack_require__(7899);
-__webpack_require__(2262);
-__webpack_require__(7057);
-__webpack_require__(3912);
-__webpack_require__(2061);
-__webpack_require__(8181);
-__webpack_require__(3530);
-__webpack_require__(4514);
-__webpack_require__(5666);
-var core_1 = __webpack_require__(402);
+__webpack_require__(7812);
+__webpack_require__(6564);
+__webpack_require__(3020);
+__webpack_require__(3480);
+__webpack_require__(6316);
+__webpack_require__(7604);
+__webpack_require__(9132);
+__webpack_require__(1448);
+__webpack_require__(1816);
+__webpack_require__(9472);
+__webpack_require__(2780);
+__webpack_require__(6848);
+__webpack_require__(0);
+__webpack_require__(5555);
+__webpack_require__(1440);
+__webpack_require__(5612);
+__webpack_require__(4448);
+__webpack_require__(1540);
+__webpack_require__(4272);
+__webpack_require__(5276);
+__webpack_require__(2331);
+__webpack_require__(8172);
+__webpack_require__(2727);
+__webpack_require__(3928);
+__webpack_require__(6780);
+__webpack_require__(1064);
+__webpack_require__(7720);
+__webpack_require__(4244);
+__webpack_require__(5972);
+__webpack_require__(9772);
+__webpack_require__(712);
+__webpack_require__(1676);
+__webpack_require__(6195);
+__webpack_require__(3076);
+__webpack_require__(6380);
+__webpack_require__(6820);
+__webpack_require__(4848);
+__webpack_require__(2044);
+__webpack_require__(1852);
+__webpack_require__(284);
+__webpack_require__(2788);
+__webpack_require__(6964);
+__webpack_require__(5888);
+__webpack_require__(6800);
+__webpack_require__(944);
+var core_1 = __webpack_require__(1280);
 Object.defineProperty(exports, "Sequence", ({
   enumerable: true,
   get: function () {
@@ -2876,7 +2877,7 @@ Object.defineProperty(exports, "Sequence", ({
 
 /***/ }),
 
-/***/ 402:
+/***/ 1280:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2886,7 +2887,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.Sequence = void 0;
-const monadplus_1 = __webpack_require__(4716);
+const monadplus_1 = __webpack_require__(2832);
 class Sequence extends monadplus_1.MonadPlus {
   constructor(cons) {
     super(throwCallError);
@@ -2977,7 +2978,7 @@ function throwCallError() {
 
 /***/ }),
 
-/***/ 4595:
+/***/ 712:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2986,8 +2987,8 @@ function throwCallError() {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(402);
-const compose_1 = __webpack_require__(2269);
+const core_1 = __webpack_require__(1280);
+const compose_1 = __webpack_require__(5228);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   ap(a) {
     return core_1.Sequence.ap(this, a);
@@ -2996,7 +2997,7 @@ const compose_1 = __webpack_require__(2269);
 
 /***/ }),
 
-/***/ 4763:
+/***/ 1676:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3005,8 +3006,8 @@ const compose_1 = __webpack_require__(2269);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(402);
-const compose_1 = __webpack_require__(2269);
+const core_1 = __webpack_require__(1280);
+const compose_1 = __webpack_require__(5228);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   bind(f) {
     return core_1.Sequence.concat(this.fmap(f));
@@ -3015,7 +3016,7 @@ const compose_1 = __webpack_require__(2269);
 
 /***/ }),
 
-/***/ 8501:
+/***/ 2727:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3024,8 +3025,8 @@ const compose_1 = __webpack_require__(2269);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(402);
-const compose_1 = __webpack_require__(2269);
+const core_1 = __webpack_require__(1280);
+const compose_1 = __webpack_require__(5228);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   drop(n) {
     return new core_1.Sequence((iter = () => this.iterate(), cons) => core_1.Sequence.Iterator.when(iter(), () => cons(), (thunk, recur) => core_1.Sequence.Thunk.index(thunk) < n ? recur() : cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk))));
@@ -3034,7 +3035,7 @@ const compose_1 = __webpack_require__(2269);
 
 /***/ }),
 
-/***/ 679:
+/***/ 7720:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3043,8 +3044,8 @@ const compose_1 = __webpack_require__(2269);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(402);
-const compose_1 = __webpack_require__(2269);
+const core_1 = __webpack_require__(1280);
+const compose_1 = __webpack_require__(5228);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   dropUntil(f) {
     return new core_1.Sequence((iter = () => this.iterate(), cons) => core_1.Sequence.Iterator.when(iter(), () => cons(), (thunk, recur) => f(core_1.Sequence.Thunk.value(thunk)) ? recur() : cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk))));
@@ -3053,7 +3054,7 @@ const compose_1 = __webpack_require__(2269);
 
 /***/ }),
 
-/***/ 9663:
+/***/ 6780:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3062,8 +3063,8 @@ const compose_1 = __webpack_require__(2269);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(402);
-const compose_1 = __webpack_require__(2269);
+const core_1 = __webpack_require__(1280);
+const compose_1 = __webpack_require__(5228);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   dropWhile(f) {
     return new core_1.Sequence((iter = () => this.iterate(), cons) => core_1.Sequence.Iterator.when(iter(), () => cons(), (thunk, recur) => f(core_1.Sequence.Thunk.value(thunk)) ? recur() : cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk))));
@@ -3072,7 +3073,7 @@ const compose_1 = __webpack_require__(2269);
 
 /***/ }),
 
-/***/ 7809:
+/***/ 1540:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3081,8 +3082,8 @@ const compose_1 = __webpack_require__(2269);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(402);
-const compose_1 = __webpack_require__(2269);
+const core_1 = __webpack_require__(1280);
+const compose_1 = __webpack_require__(5228);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   extract() {
     const acc = [];
@@ -3098,7 +3099,7 @@ const compose_1 = __webpack_require__(2269);
 
 /***/ }),
 
-/***/ 7899:
+/***/ 4848:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3107,8 +3108,8 @@ const compose_1 = __webpack_require__(2269);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(402);
-const compose_1 = __webpack_require__(2269);
+const core_1 = __webpack_require__(1280);
+const compose_1 = __webpack_require__(5228);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   filter(f) {
     return new core_1.Sequence((iter = () => this.iterate(), cons) => core_1.Sequence.Iterator.when(iter(), () => cons(), (thunk, recur) => f(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.index(thunk)) ? cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk)) : recur()));
@@ -3117,7 +3118,7 @@ const compose_1 = __webpack_require__(2269);
 
 /***/ }),
 
-/***/ 7303:
+/***/ 6380:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3126,8 +3127,8 @@ const compose_1 = __webpack_require__(2269);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(402);
-const compose_1 = __webpack_require__(2269);
+const core_1 = __webpack_require__(1280);
+const compose_1 = __webpack_require__(5228);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   filterM(f) {
     return core_1.Sequence.from([0]).bind(() => {
@@ -3147,7 +3148,7 @@ const compose_1 = __webpack_require__(2269);
 
 /***/ }),
 
-/***/ 9117:
+/***/ 9772:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3156,8 +3157,8 @@ const compose_1 = __webpack_require__(2269);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(402);
-const compose_1 = __webpack_require__(2269);
+const core_1 = __webpack_require__(1280);
+const compose_1 = __webpack_require__(5228);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   fmap(f) {
     return new core_1.Sequence((iter = () => this.iterate()) => core_1.Sequence.Iterator.when(iter(), () => core_1.Sequence.Data.cons(), thunk => core_1.Sequence.Data.cons(f(core_1.Sequence.Thunk.value(thunk)), core_1.Sequence.Thunk.iterator(thunk))));
@@ -3166,7 +3167,7 @@ const compose_1 = __webpack_require__(2269);
 
 /***/ }),
 
-/***/ 7057:
+/***/ 1852:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3175,8 +3176,8 @@ const compose_1 = __webpack_require__(2269);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(402);
-const compose_1 = __webpack_require__(2269);
+const core_1 = __webpack_require__(1280);
+const compose_1 = __webpack_require__(5228);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   foldr(f, z) {
     return new core_1.Sequence((iter = () => this.reduce().iterate()) => core_1.Sequence.Iterator.when(iter(), () => core_1.Sequence.Data.cons(z), thunk => core_1.Sequence.Data.cons(f(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.resume(core_1.Sequence.Thunk.iterator(thunk)).foldr(f, z))))).bind(s => s);
@@ -3185,7 +3186,7 @@ const compose_1 = __webpack_require__(2269);
 
 /***/ }),
 
-/***/ 3912:
+/***/ 284:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3194,8 +3195,8 @@ const compose_1 = __webpack_require__(2269);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(402);
-const compose_1 = __webpack_require__(2269);
+const core_1 = __webpack_require__(1280);
+const compose_1 = __webpack_require__(5228);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   group(f) {
     return new core_1.Sequence(([iter, acc] = [() => this.iterate(), []], cons) => core_1.Sequence.Iterator.when(iter(), () => acc.length === 0 ? cons() : cons(acc), (thunk, recur) => acc.length === 0 || f(acc[0], core_1.Sequence.Thunk.value(thunk)) ? (acc.push(core_1.Sequence.Thunk.value(thunk)), recur()) : cons(acc, [core_1.Sequence.Thunk.iterator(thunk), [core_1.Sequence.Thunk.value(thunk)]])));
@@ -3204,7 +3205,7 @@ const compose_1 = __webpack_require__(2269);
 
 /***/ }),
 
-/***/ 2061:
+/***/ 2788:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3213,8 +3214,8 @@ const compose_1 = __webpack_require__(2269);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(402);
-const compose_1 = __webpack_require__(2269);
+const core_1 = __webpack_require__(1280);
+const compose_1 = __webpack_require__(5228);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   inits() {
     return core_1.Sequence.mappend(core_1.Sequence.from([[]]), this.scanl((b, a) => [...b, a], []).dropWhile(as => as.length === 0));
@@ -3223,7 +3224,7 @@ const compose_1 = __webpack_require__(2269);
 
 /***/ }),
 
-/***/ 2881:
+/***/ 4272:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3232,8 +3233,8 @@ const compose_1 = __webpack_require__(2269);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(402);
-const compose_1 = __webpack_require__(2269);
+const core_1 = __webpack_require__(1280);
+const compose_1 = __webpack_require__(5228);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   iterate() {
     return this.iterate_();
@@ -3255,7 +3256,7 @@ const compose_1 = __webpack_require__(2269);
 
 /***/ }),
 
-/***/ 5645:
+/***/ 6195:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3264,8 +3265,8 @@ const compose_1 = __webpack_require__(2269);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(402);
-const compose_1 = __webpack_require__(2269);
+const core_1 = __webpack_require__(1280);
+const compose_1 = __webpack_require__(5228);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   join() {
     return core_1.Sequence.concat(this);
@@ -3274,7 +3275,7 @@ const compose_1 = __webpack_require__(2269);
 
 /***/ }),
 
-/***/ 1084:
+/***/ 6820:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3283,8 +3284,8 @@ const compose_1 = __webpack_require__(2269);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(402);
-const compose_1 = __webpack_require__(2269);
+const core_1 = __webpack_require__(1280);
+const compose_1 = __webpack_require__(5228);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   map(f) {
     return new core_1.Sequence((iter = () => this.iterate()) => core_1.Sequence.Iterator.when(iter(), () => core_1.Sequence.Data.cons(), thunk => core_1.Sequence.Data.cons(f(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.index(thunk)), core_1.Sequence.Thunk.iterator(thunk))));
@@ -3293,7 +3294,7 @@ const compose_1 = __webpack_require__(2269);
 
 /***/ }),
 
-/***/ 1130:
+/***/ 3076:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3302,8 +3303,8 @@ const compose_1 = __webpack_require__(2269);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(402);
-const compose_1 = __webpack_require__(2269);
+const core_1 = __webpack_require__(1280);
+const compose_1 = __webpack_require__(5228);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   mapM(f) {
     return core_1.Sequence.from([0]).bind(() => {
@@ -3323,7 +3324,7 @@ const compose_1 = __webpack_require__(2269);
 
 /***/ }),
 
-/***/ 7585:
+/***/ 5276:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3332,9 +3333,9 @@ const compose_1 = __webpack_require__(2269);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(402);
-const compose_1 = __webpack_require__(2269);
-const memoize_1 = __webpack_require__(1808);
+const core_1 = __webpack_require__(1280);
+const compose_1 = __webpack_require__(5228);
+const memoize_1 = __webpack_require__(276);
 const memory = (0, memoize_1.memoize)(_ => new Map());
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   memoize() {
@@ -3344,7 +3345,7 @@ const memory = (0, memoize_1.memoize)(_ => new Map());
 
 /***/ }),
 
-/***/ 5666:
+/***/ 944:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3353,8 +3354,8 @@ const memory = (0, memoize_1.memoize)(_ => new Map());
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(402);
-const compose_1 = __webpack_require__(2269);
+const core_1 = __webpack_require__(1280);
+const compose_1 = __webpack_require__(5228);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   permutations() {
     return core_1.Sequence.from([0]).bind(() => {
@@ -3386,7 +3387,7 @@ function perms(ts, is) {
 
 /***/ }),
 
-/***/ 4420:
+/***/ 2331:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3395,8 +3396,8 @@ function perms(ts, is) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(402);
-const compose_1 = __webpack_require__(2269);
+const core_1 = __webpack_require__(1280);
+const compose_1 = __webpack_require__(5228);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   reduce() {
     return new core_1.Sequence(([i, memo] = [0, new Map()], cons) => core_1.Sequence.Iterator.when(memo.get(i) || memo.set(i, i > 0 && memo.has(i - 1) ? core_1.Sequence.Thunk.iterator(memo.get(i - 1))() : this.iterate()).get(i), () => cons(), thunk => cons(core_1.Sequence.Thunk.value(thunk), [i + 1, memo])));
@@ -3405,7 +3406,7 @@ const compose_1 = __webpack_require__(2269);
 
 /***/ }),
 
-/***/ 2262:
+/***/ 2044:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3414,8 +3415,8 @@ const compose_1 = __webpack_require__(2269);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(402);
-const compose_1 = __webpack_require__(2269);
+const core_1 = __webpack_require__(1280);
+const compose_1 = __webpack_require__(5228);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   scanl(f, z) {
     return new core_1.Sequence(([prev, iter, i] = [z, () => this.iterate(), 0]) => core_1.Sequence.Iterator.when(iter(), () => i === 0 ? core_1.Sequence.Data.cons(z) : core_1.Sequence.Data.cons(), thunk => core_1.Sequence.Data.cons(prev = f(prev, core_1.Sequence.Thunk.value(thunk)), [prev, core_1.Sequence.Thunk.iterator(thunk), core_1.Sequence.Thunk.index(thunk) + 1])));
@@ -3424,7 +3425,7 @@ const compose_1 = __webpack_require__(2269);
 
 /***/ }),
 
-/***/ 3530:
+/***/ 5888:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3433,8 +3434,8 @@ const compose_1 = __webpack_require__(2269);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(402);
-const compose_1 = __webpack_require__(2269);
+const core_1 = __webpack_require__(1280);
+const compose_1 = __webpack_require__(5228);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   segs() {
     return core_1.Sequence.mappend(this.foldr((a, bs) => bs.take(1).bind(b => core_1.Sequence.mappend(core_1.Sequence.from([core_1.Sequence.mappend(core_1.Sequence.from([[a]]), core_1.Sequence.from(b).map(c => [a, ...c]))]), bs)), core_1.Sequence.from([core_1.Sequence.from([])])).bind(a => a), core_1.Sequence.from([[]]));
@@ -3443,7 +3444,7 @@ const compose_1 = __webpack_require__(2269);
 
 /***/ }),
 
-/***/ 2307:
+/***/ 4244:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3452,8 +3453,8 @@ const compose_1 = __webpack_require__(2269);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(402);
-const compose_1 = __webpack_require__(2269);
+const core_1 = __webpack_require__(1280);
+const compose_1 = __webpack_require__(5228);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   sort(cmp) {
     return core_1.Sequence.from(this.extract().sort(cmp));
@@ -3462,7 +3463,7 @@ const compose_1 = __webpack_require__(2269);
 
 /***/ }),
 
-/***/ 4514:
+/***/ 6800:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3471,8 +3472,8 @@ const compose_1 = __webpack_require__(2269);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(402);
-const compose_1 = __webpack_require__(2269);
+const core_1 = __webpack_require__(1280);
+const compose_1 = __webpack_require__(5228);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   subsequences() {
     return core_1.Sequence.mappend(core_1.Sequence.from([[]]), core_1.Sequence.from([0]).bind(() => nonEmptySubsequences(this)));
@@ -3484,7 +3485,7 @@ function nonEmptySubsequences(xs) {
 
 /***/ }),
 
-/***/ 8181:
+/***/ 6964:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3493,8 +3494,8 @@ function nonEmptySubsequences(xs) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(402);
-const compose_1 = __webpack_require__(2269);
+const core_1 = __webpack_require__(1280);
+const compose_1 = __webpack_require__(5228);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   tails() {
     return core_1.Sequence.mappend(core_1.Sequence.from(this.extract().map((_, i, as) => as.slice(i))), core_1.Sequence.from([[]]));
@@ -3503,7 +3504,7 @@ const compose_1 = __webpack_require__(2269);
 
 /***/ }),
 
-/***/ 3114:
+/***/ 8172:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3512,8 +3513,8 @@ const compose_1 = __webpack_require__(2269);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(402);
-const compose_1 = __webpack_require__(2269);
+const core_1 = __webpack_require__(1280);
+const compose_1 = __webpack_require__(5228);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   take(n) {
     return new core_1.Sequence((iter = () => this.iterate(), cons) => core_1.Sequence.Iterator.when(n > 0 ? iter() : core_1.Sequence.Iterator.done(), () => cons(), thunk => core_1.Sequence.Thunk.index(thunk) + 1 < n ? cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk)) : cons(core_1.Sequence.Thunk.value(thunk))));
@@ -3522,7 +3523,7 @@ const compose_1 = __webpack_require__(2269);
 
 /***/ }),
 
-/***/ 144:
+/***/ 1064:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3531,8 +3532,8 @@ const compose_1 = __webpack_require__(2269);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(402);
-const compose_1 = __webpack_require__(2269);
+const core_1 = __webpack_require__(1280);
+const compose_1 = __webpack_require__(5228);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   takeUntil(f) {
     return new core_1.Sequence((iter = () => this.iterate(), cons) => core_1.Sequence.Iterator.when(iter(), () => cons(), thunk => f(core_1.Sequence.Thunk.value(thunk)) ? cons(core_1.Sequence.Thunk.value(thunk)) : cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk))));
@@ -3541,7 +3542,7 @@ const compose_1 = __webpack_require__(2269);
 
 /***/ }),
 
-/***/ 9648:
+/***/ 3928:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3550,8 +3551,8 @@ const compose_1 = __webpack_require__(2269);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(402);
-const compose_1 = __webpack_require__(2269);
+const core_1 = __webpack_require__(1280);
+const compose_1 = __webpack_require__(5228);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   takeWhile(f) {
     return new core_1.Sequence((iter = () => this.iterate(), cons) => core_1.Sequence.Iterator.when(iter(), () => cons(), thunk => f(core_1.Sequence.Thunk.value(thunk)) ? cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk)) : cons()));
@@ -3560,7 +3561,7 @@ const compose_1 = __webpack_require__(2269);
 
 /***/ }),
 
-/***/ 3337:
+/***/ 5972:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3569,8 +3570,8 @@ const compose_1 = __webpack_require__(2269);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(402);
-const compose_1 = __webpack_require__(2269);
+const core_1 = __webpack_require__(1280);
+const compose_1 = __webpack_require__(5228);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   unique() {
     const memory = new Set();
@@ -3580,7 +3581,7 @@ const compose_1 = __webpack_require__(2269);
 
 /***/ }),
 
-/***/ 5976:
+/***/ 6316:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3589,8 +3590,8 @@ const compose_1 = __webpack_require__(2269);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(402);
-const compose_1 = __webpack_require__(2269);
+const core_1 = __webpack_require__(1280);
+const compose_1 = __webpack_require__(5228);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   static concat(as) {
     return new core_1.Sequence(([ai, bi] = [() => as.iterate(), core_1.Sequence.Iterator.done], cons) => core_1.Sequence.Iterator.when(ai(), () => cons(), (at, ar) => (bi = bi === core_1.Sequence.Iterator.done ? () => core_1.Sequence.Thunk.value(at).iterate() : bi, core_1.Sequence.Iterator.when(bi(), () => (bi = core_1.Sequence.Iterator.done, ar()), bt => cons(core_1.Sequence.Thunk.value(bt), [() => at, core_1.Sequence.Thunk.iterator(bt)])))));
@@ -3599,7 +3600,7 @@ const compose_1 = __webpack_require__(2269);
 
 /***/ }),
 
-/***/ 323:
+/***/ 3020:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3608,8 +3609,8 @@ const compose_1 = __webpack_require__(2269);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(402);
-const compose_1 = __webpack_require__(2269);
+const core_1 = __webpack_require__(1280);
+const compose_1 = __webpack_require__(5228);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   static cycle(as) {
     return new core_1.Sequence(function cycle([iter, i] = [as[Symbol.iterator](), 0], cons) {
@@ -3621,7 +3622,7 @@ const compose_1 = __webpack_require__(2269);
 
 /***/ }),
 
-/***/ 3571:
+/***/ 9132:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3630,8 +3631,8 @@ const compose_1 = __webpack_require__(2269);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(402);
-const compose_1 = __webpack_require__(2269);
+const core_1 = __webpack_require__(1280);
+const compose_1 = __webpack_require__(5228);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   static difference(a, b, cmp) {
     return new core_1.Sequence(([ai, bi] = [() => a.iterate(), () => b.iterate()], cons) => core_1.Sequence.Iterator.when(ai(), () => core_1.Sequence.Iterator.when(bi(), () => cons(), bt => cons(core_1.Sequence.Thunk.value(bt), [core_1.Sequence.Iterator.done, core_1.Sequence.Thunk.iterator(bt)])), (at, ar) => core_1.Sequence.Iterator.when(bi(), () => cons(core_1.Sequence.Thunk.value(at), [core_1.Sequence.Thunk.iterator(at), core_1.Sequence.Iterator.done]), bt => {
@@ -3645,7 +3646,7 @@ const compose_1 = __webpack_require__(2269);
 
 /***/ }),
 
-/***/ 9035:
+/***/ 6564:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3654,8 +3655,8 @@ const compose_1 = __webpack_require__(2269);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(402);
-const compose_1 = __webpack_require__(2269);
+const core_1 = __webpack_require__(1280);
+const compose_1 = __webpack_require__(5228);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   static from(as) {
     return new core_1.Sequence(([iter, i] = [as[Symbol.iterator](), 0], cons) => {
@@ -3667,7 +3668,7 @@ const compose_1 = __webpack_require__(2269);
 
 /***/ }),
 
-/***/ 2414:
+/***/ 1816:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3676,8 +3677,8 @@ const compose_1 = __webpack_require__(2269);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(402);
-const compose_1 = __webpack_require__(2269);
+const core_1 = __webpack_require__(1280);
+const compose_1 = __webpack_require__(5228);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   static intersect(a, b, cmp) {
     return new core_1.Sequence(([ai, bi] = [() => a.iterate(), () => b.iterate()], cons) => core_1.Sequence.Iterator.when(ai(), () => cons(), (at, ar) => core_1.Sequence.Iterator.when(bi(), () => cons(), (bt, br) => {
@@ -3691,7 +3692,7 @@ const compose_1 = __webpack_require__(2269);
 
 /***/ }),
 
-/***/ 4655:
+/***/ 1440:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3700,8 +3701,8 @@ const compose_1 = __webpack_require__(2269);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(402);
-const compose_1 = __webpack_require__(2269);
+const core_1 = __webpack_require__(1280);
+const compose_1 = __webpack_require__(5228);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   static mappend(l, r) {
     return core_1.Sequence.mconcat([l, r]);
@@ -3710,7 +3711,7 @@ const compose_1 = __webpack_require__(2269);
 
 /***/ }),
 
-/***/ 4704:
+/***/ 5555:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3719,8 +3720,8 @@ const compose_1 = __webpack_require__(2269);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(402);
-const compose_1 = __webpack_require__(2269);
+const core_1 = __webpack_require__(1280);
+const compose_1 = __webpack_require__(5228);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   static mconcat(as) {
     return [...as].reduce((a, b) => mconcat(a, b), core_1.Sequence.mempty);
@@ -3732,7 +3733,7 @@ function mconcat(a, b) {
 
 /***/ }),
 
-/***/ 1191:
+/***/ 0:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3742,13 +3743,13 @@ var _a;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(402);
-const compose_1 = __webpack_require__(2269);
+const core_1 = __webpack_require__(1280);
+const compose_1 = __webpack_require__(5228);
 (0, compose_1.compose)(core_1.Sequence, (_a = class extends core_1.Sequence {}, _a.mempty = new core_1.Sequence((_, cons) => cons()), _a));
 
 /***/ }),
 
-/***/ 6067:
+/***/ 4448:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3758,13 +3759,13 @@ var _a;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(402);
-const compose_1 = __webpack_require__(2269);
+const core_1 = __webpack_require__(1280);
+const compose_1 = __webpack_require__(5228);
 (0, compose_1.compose)(core_1.Sequence, (_a = class extends core_1.Sequence {}, _a.mplus = core_1.Sequence.mappend, _a));
 
 /***/ }),
 
-/***/ 1985:
+/***/ 5612:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3774,13 +3775,13 @@ var _a;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(402);
-const compose_1 = __webpack_require__(2269);
+const core_1 = __webpack_require__(1280);
+const compose_1 = __webpack_require__(5228);
 (0, compose_1.compose)(core_1.Sequence, (_a = class extends core_1.Sequence {}, _a.mzero = core_1.Sequence.mempty, _a));
 
 /***/ }),
 
-/***/ 2183:
+/***/ 9472:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3789,8 +3790,8 @@ const compose_1 = __webpack_require__(2269);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(402);
-const compose_1 = __webpack_require__(2269);
+const core_1 = __webpack_require__(1280);
+const compose_1 = __webpack_require__(5228);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   static pure(a) {
     return new core_1.Sequence((_, cons) => cons(a));
@@ -3799,7 +3800,7 @@ const compose_1 = __webpack_require__(2269);
 
 /***/ }),
 
-/***/ 6369:
+/***/ 3480:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3808,9 +3809,9 @@ const compose_1 = __webpack_require__(2269);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const alias_1 = __webpack_require__(5406);
-const core_1 = __webpack_require__(402);
-const compose_1 = __webpack_require__(2269);
+const alias_1 = __webpack_require__(5807);
+const core_1 = __webpack_require__(1280);
+const compose_1 = __webpack_require__(5228);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   static random(p = () => (0, alias_1.random)()) {
     return typeof p === 'function' ? core_1.Sequence.from(new core_1.Sequence((_, cons) => cons(p(), _))) : this.random().map(r => p[(0, alias_1.floor)(r * p.length)]);
@@ -3819,7 +3820,7 @@ const compose_1 = __webpack_require__(2269);
 
 /***/ }),
 
-/***/ 207:
+/***/ 7812:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3828,8 +3829,8 @@ const compose_1 = __webpack_require__(2269);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(402);
-const compose_1 = __webpack_require__(2269);
+const core_1 = __webpack_require__(1280);
+const compose_1 = __webpack_require__(5228);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   static resume(iterator) {
     return new core_1.Sequence((iter = iterator, cons) => core_1.Sequence.Iterator.when(iter(), () => cons(), thunk => cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk))));
@@ -3838,7 +3839,7 @@ const compose_1 = __webpack_require__(2269);
 
 /***/ }),
 
-/***/ 1755:
+/***/ 2780:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3847,8 +3848,8 @@ const compose_1 = __webpack_require__(2269);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(402);
-const compose_1 = __webpack_require__(2269);
+const core_1 = __webpack_require__(1280);
+const compose_1 = __webpack_require__(5228);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   static Return(a) {
     return new core_1.Sequence((_, cons) => cons(a));
@@ -3857,7 +3858,7 @@ const compose_1 = __webpack_require__(2269);
 
 /***/ }),
 
-/***/ 1451:
+/***/ 6848:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3866,8 +3867,8 @@ const compose_1 = __webpack_require__(2269);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(402);
-const compose_1 = __webpack_require__(2269);
+const core_1 = __webpack_require__(1280);
+const compose_1 = __webpack_require__(5228);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   static sequence(ms) {
     return ms.reduce((acc, m) => acc.fmap(bs => core_1.Sequence.mappend(bs, m)), core_1.Sequence.Return(core_1.Sequence.from([])));
@@ -3876,7 +3877,7 @@ const compose_1 = __webpack_require__(2269);
 
 /***/ }),
 
-/***/ 3780:
+/***/ 1448:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3885,8 +3886,8 @@ const compose_1 = __webpack_require__(2269);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(402);
-const compose_1 = __webpack_require__(2269);
+const core_1 = __webpack_require__(1280);
+const compose_1 = __webpack_require__(5228);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   static union(a, b, cmp) {
     return new core_1.Sequence(([ai, bi] = [() => a.iterate(), () => b.iterate()], cons) => core_1.Sequence.Iterator.when(ai(), () => core_1.Sequence.Iterator.when(bi(), () => cons(), bt => cons(core_1.Sequence.Thunk.value(bt), [core_1.Sequence.Iterator.done, core_1.Sequence.Thunk.iterator(bt)])), at => core_1.Sequence.Iterator.when(bi(), () => cons(core_1.Sequence.Thunk.value(at), [core_1.Sequence.Thunk.iterator(at), core_1.Sequence.Iterator.done]), bt => {
@@ -3900,7 +3901,7 @@ const compose_1 = __webpack_require__(2269);
 
 /***/ }),
 
-/***/ 2870:
+/***/ 7604:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3909,8 +3910,8 @@ const compose_1 = __webpack_require__(2269);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(402);
-const compose_1 = __webpack_require__(2269);
+const core_1 = __webpack_require__(1280);
+const compose_1 = __webpack_require__(5228);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   static zip(a, b) {
     return new core_1.Sequence(([ai, bi] = [() => a.iterate(), () => b.iterate()], cons) => core_1.Sequence.Iterator.when(ai(), () => cons(), at => core_1.Sequence.Iterator.when(bi(), () => cons(), bt => cons([core_1.Sequence.Thunk.value(at), core_1.Sequence.Thunk.value(bt)], [core_1.Sequence.Thunk.iterator(at), core_1.Sequence.Thunk.iterator(bt)]))));
@@ -3919,7 +3920,7 @@ const compose_1 = __webpack_require__(2269);
 
 /***/ }),
 
-/***/ 4615:
+/***/ 4468:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3929,11 +3930,11 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.Observation = void 0;
-const alias_1 = __webpack_require__(5406);
-const list_1 = __webpack_require__(3667);
-const array_1 = __webpack_require__(8112);
-const function_1 = __webpack_require__(6288);
-const exception_1 = __webpack_require__(7822);
+const alias_1 = __webpack_require__(5807);
+const list_1 = __webpack_require__(9756);
+const array_1 = __webpack_require__(8980);
+const function_1 = __webpack_require__(2300);
+const exception_1 = __webpack_require__(7908);
 class Node {
   constructor(value) {
     this.value = value;
@@ -4195,7 +4196,7 @@ function rollback(array, matcher) {
 
 /***/ }),
 
-/***/ 4879:
+/***/ 1324:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -4206,8 +4207,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.never = exports.isPromiseLike = exports.Internal = exports.AtomicPromise = exports.internal = void 0;
-const alias_1 = __webpack_require__(5406);
-const function_1 = __webpack_require__(6288);
+const alias_1 = __webpack_require__(5807);
+const function_1 = __webpack_require__(2300);
 exports.internal = Symbol.for('spica/promise::internal');
 class AtomicPromise {
   static get [(_a = Symbol.toStringTag, Symbol.species)]() {
@@ -4558,7 +4559,7 @@ exports.never = new class Never extends Promise {
 
 /***/ }),
 
-/***/ 4934:
+/***/ 9556:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -4568,8 +4569,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.MultiQueue = exports.PriorityQueue = exports.Queue = void 0;
-const heap_1 = __webpack_require__(818);
-const memoize_1 = __webpack_require__(1808);
+const heap_1 = __webpack_require__(8487);
+const memoize_1 = __webpack_require__(276);
 const size = 2048;
 const initsize = 16;
 class Queue {
@@ -4791,7 +4792,7 @@ exports.MultiQueue = MultiQueue;
 
 /***/ }),
 
-/***/ 6395:
+/***/ 8539:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -4801,8 +4802,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.Ring = void 0;
-const alias_1 = __webpack_require__(5406);
-const array_1 = __webpack_require__(8112);
+const alias_1 = __webpack_require__(5807);
+const array_1 = __webpack_require__(8980);
 const empty = Symbol('empty');
 const unempty = value => value === empty ? undefined : value;
 const space = Object.freeze(Array(100).fill(empty));
@@ -4973,7 +4974,7 @@ function prev(head, tail, length) {
 
 /***/ }),
 
-/***/ 4198:
+/***/ 7564:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -4983,9 +4984,9 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.router = void 0;
-const sequence_1 = __webpack_require__(8715);
-const function_1 = __webpack_require__(6288);
-const memoize_1 = __webpack_require__(1808);
+const sequence_1 = __webpack_require__(4128);
+const function_1 = __webpack_require__(2300);
+const memoize_1 = __webpack_require__(276);
 function router(config) {
   const {
     match
@@ -5226,7 +5227,7 @@ exports.router = router;
 
 /***/ }),
 
-/***/ 8715:
+/***/ 4128:
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -5254,11 +5255,11 @@ var __exportStar = this && this.__exportStar || function (m, exports) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-__exportStar(__webpack_require__(6144), exports);
+__exportStar(__webpack_require__(9136), exports);
 
 /***/ }),
 
-/***/ 5352:
+/***/ 528:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -5307,7 +5308,7 @@ exports.Stack = Stack;
 
 /***/ }),
 
-/***/ 7780:
+/***/ 6348:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -5318,16 +5319,16 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.Supervisor = void 0;
-__webpack_require__(4128);
-const alias_1 = __webpack_require__(5406);
-const chrono_1 = __webpack_require__(4393);
-const coroutine_1 = __webpack_require__(7983);
-const observer_1 = __webpack_require__(4615);
-const promise_1 = __webpack_require__(4879);
-const future_1 = __webpack_require__(3387);
-const function_1 = __webpack_require__(6288);
-const ring_1 = __webpack_require__(6395);
-const exception_1 = __webpack_require__(7822);
+__webpack_require__(8324);
+const alias_1 = __webpack_require__(5807);
+const chrono_1 = __webpack_require__(7820);
+const coroutine_1 = __webpack_require__(8228);
+const observer_1 = __webpack_require__(4468);
+const promise_1 = __webpack_require__(1324);
+const future_1 = __webpack_require__(4508);
+const function_1 = __webpack_require__(2300);
+const ring_1 = __webpack_require__(8539);
+const exception_1 = __webpack_require__(7908);
 class Supervisor extends coroutine_1.Coroutine {
   static get instances() {
     return this.hasOwnProperty('$instances') ? this.$instances : this.$instances = new Set();
@@ -5685,7 +5686,7 @@ class Worker {
 
 /***/ }),
 
-/***/ 5026:
+/***/ 1432:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -5695,8 +5696,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.cothrottle = exports.debounce = exports.throttle = void 0;
-const chrono_1 = __webpack_require__(4393);
-const exception_1 = __webpack_require__(7822);
+const chrono_1 = __webpack_require__(7820);
+const exception_1 = __webpack_require__(7908);
 function throttle(interval, callback, capacity = 1) {
   // Bug: Karma and TypeScript
   let timer = 0;
@@ -5771,7 +5772,7 @@ exports.cothrottle = cothrottle;
 
 /***/ }),
 
-/***/ 8520:
+/***/ 6968:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -5781,9 +5782,9 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.wait = exports.captureTimers = exports.setRepeatTimer = exports.setTimer = void 0;
-const list_1 = __webpack_require__(3667);
-const chrono_1 = __webpack_require__(4393);
-const function_1 = __webpack_require__(6288);
+const list_1 = __webpack_require__(9756);
+const chrono_1 = __webpack_require__(7820);
+const function_1 = __webpack_require__(2300);
 class Node extends list_1.List.Node {
   constructor(value) {
     super();
@@ -5841,7 +5842,252 @@ exports.wait = wait;
 
 /***/ }),
 
-/***/ 5341:
+/***/ 8884:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.TLRU = void 0;
+const alias_1 = __webpack_require__(5807);
+const list_1 = __webpack_require__(9756);
+class Entry {
+  constructor(key, value) {
+    this.key = key;
+    this.value = value;
+    this.next = undefined;
+    this.prev = undefined;
+  }
+}
+class TLRU {
+  constructor(capacity, step = 1, window = 0, retrial = true) {
+    this.capacity = capacity;
+    this.step = step;
+    this.window = window;
+    this.retrial = retrial;
+    this.dict = new Map();
+    this.list = new list_1.List();
+    this.handV = undefined;
+    this.handG = undefined;
+    this.count = 0;
+  }
+  get length() {
+    return this.list.length;
+  }
+  get size() {
+    return this.list.length;
+  }
+  return() {
+    const {
+      list
+    } = this;
+    if (this.count !== -1 && this.handV !== undefined && this.handG !== list.last && this.handG !== undefined) {
+      if (this.count >= 0) {
+        // 1周できる
+
+        //this.count = -max(max(list.length - this.count, 0) * this.step / 100 | 0, 1) - 1;
+        this.count = -(0, alias_1.max)(list.length * this.step / 100 | 0, list.length * this.window / 100 - this.count | 0, 1) - 1;
+      } else {
+        this.handG = this.handG.prev;
+      }
+    } else {
+      if (this.handV === list.head) {
+        this.handG = undefined;
+      }
+      if (this.handG === list.last) {
+        this.handG = this.handG.prev;
+      }
+      this.handV = list.last;
+      this.count = 0;
+    }
+  }
+  replace(key, value) {
+    const {
+      dict,
+      list
+    } = this;
+    if (this.handV === this.handG || this.handV === list.last) {
+      this.return();
+    }
+    // 非延命
+    if (this.count >= 0 || !this.retrial) {
+      const entry = this.handV ??= list.last;
+      dict.delete(entry.key);
+      dict.set(key, entry);
+      entry.key = key;
+      entry.value = value;
+    }
+    // 延命
+    else {
+      const entry = list.last;
+      dict.delete(entry.key);
+      dict.set(key, entry);
+      entry.key = key;
+      entry.value = value;
+      this.escape(entry);
+      list.delete(entry);
+      if (this.handG !== list.head) {
+        list.insert(entry, this.handG);
+      } else {
+        list.unshift(entry);
+      }
+      this.handV = entry;
+      this.handG = entry.prev;
+    }
+    if (this.handV !== this.handG) {
+      this.handV = this.handV.prev;
+    }
+    ++this.count;
+  }
+  evict() {
+    const {
+      list
+    } = this;
+    if (list.length === 0) return;
+    const entry = this.handV ??= list.last;
+    this.delete(entry.key);
+    return [entry.key, entry.value];
+  }
+  add(key, value) {
+    const {
+      dict,
+      list
+    } = this;
+    if (list.length === this.capacity) {
+      this.replace(key, value);
+    } else {
+      const entry = new Entry(key, value);
+      dict.set(key, entry);
+      if (this.handV !== undefined) {
+        list.insert(entry, this.handV.next);
+      } else {
+        list.unshift(entry);
+      }
+    }
+    return true;
+  }
+  set(key, value) {
+    const entry = this.dict.get(key);
+    if (entry === undefined) {
+      this.add(key, value);
+    } else {
+      entry.value = value;
+    }
+    return this;
+  }
+  escape(entry) {
+    const {
+      list
+    } = this;
+    if (list.length === 1) {
+      this.handV = undefined;
+      this.handG = undefined;
+      this.count = 0;
+      return;
+    }
+    if (entry === this.handV) {
+      this.handV = this.handV !== list.head ? this.handV.prev : this.handV.next;
+    }
+    if (entry === this.handG) {
+      this.handG = this.handG !== list.head ? this.handG.prev : this.handG.next;
+    }
+  }
+  get(key) {
+    const {
+      dict,
+      list
+    } = this;
+    const entry = dict.get(key);
+    if (entry === undefined) return;
+    if (entry !== list.head) {
+      this.escape(entry);
+      list.delete(entry);
+      list.unshift(entry);
+    }
+    this.handG ??= entry;
+    return entry.value;
+  }
+  has(key) {
+    return this.dict.has(key);
+  }
+  delete(key) {
+    const {
+      dict,
+      list
+    } = this;
+    const entry = dict.get(key);
+    if (entry === undefined) return false;
+    this.escape(entry);
+    list.delete(entry);
+    return dict.delete(key);
+  }
+  clear() {
+    this.dict.clear();
+    this.list.clear();
+    this.handV = undefined;
+    this.handG = undefined;
+    this.count = 0;
+  }
+  *[Symbol.iterator]() {
+    for (const {
+      key,
+      value
+    } of this.list) {
+      yield [key, value];
+    }
+  }
+}
+exports.TLRU = TLRU;
+
+/***/ }),
+
+/***/ 1900:
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+
+// TLRU: True LRU
+// TRC: True Recency-based Cache
+var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
+  if (k2 === undefined) k2 = k;
+  var desc = Object.getOwnPropertyDescriptor(m, k);
+  if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+    desc = {
+      enumerable: true,
+      get: function () {
+        return m[k];
+      }
+    };
+  }
+  Object.defineProperty(o, k2, desc);
+} : function (o, m, k, k2) {
+  if (k2 === undefined) k2 = k;
+  o[k2] = m[k];
+});
+var __exportStar = this && this.__exportStar || function (m, exports) {
+  for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+/*
+真に最近性に基づく真のLRU。
+最近性には有参照間、無参照間、有無参照間の3つがある。
+LRUは有無参照間の最近性を喪失しClockは有参照間の最近性を喪失する。
+TLRUはすべての最近性を保持する。
+DWCより高速かつ堅牢で小さいキャッシュサイズに適している。
+パラメータを調整しやすくDWCより高ヒット率となることもある。
+
+*/
+__exportStar(__webpack_require__(8884), exports);
+
+/***/ }),
+
+/***/ 5696:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -5858,7 +6104,7 @@ exports.tuple = tuple;
 
 /***/ }),
 
-/***/ 5177:
+/***/ 8816:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -5868,7 +6114,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.isPrimitive = exports.is = exports.type = void 0;
-const alias_1 = __webpack_require__(5406);
+const alias_1 = __webpack_require__(5807);
 const ObjectPrototype = Object.prototype;
 const ArrayPrototype = Array.prototype;
 function type(value) {
@@ -5920,7 +6166,7 @@ exports.isPrimitive = isPrimitive;
 
 /***/ }),
 
-/***/ 2261:
+/***/ 3800:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -5930,15 +6176,15 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.URL = exports.ReadonlyURL = exports.standardize = void 0;
-const internal_1 = __webpack_require__(2560);
-var internal_2 = __webpack_require__(2560);
+const internal_1 = __webpack_require__(7568);
+var internal_2 = __webpack_require__(7568);
 Object.defineProperty(exports, "standardize", ({
   enumerable: true,
   get: function () {
     return internal_2.standardize;
   }
 }));
-var internal_3 = __webpack_require__(2560);
+var internal_3 = __webpack_require__(7568);
 Object.defineProperty(exports, "ReadonlyURL", ({
   enumerable: true,
   get: function () {
@@ -6018,7 +6264,7 @@ exports.URL = URL;
 
 /***/ }),
 
-/***/ 2560:
+/***/ 7568:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -6028,9 +6274,9 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.ReadonlyURL = exports.encode = exports.standardize = void 0;
-__webpack_require__(4128);
-const memoize_1 = __webpack_require__(1808);
-const cache_1 = __webpack_require__(9210);
+__webpack_require__(8324);
+const memoize_1 = __webpack_require__(276);
+const tlru_1 = __webpack_require__(1900);
 function standardize(url, base) {
   const {
     origin,
@@ -6147,7 +6393,7 @@ exports.ReadonlyURL = ReadonlyURL;
 // @ts-ignore
 ReadonlyURL.get = (0, memoize_1.memoize)((url, base) => ({
   url: new __webpack_require__.g.URL(url, base)
-}), (url, base = '') => `${base.indexOf('\n') > -1 ? base.replace(/\n+/g, '') : base}\n${url}`, new cache_1.Cache(10000));
+}), (url, base = '') => `${base.indexOf('\n') > -1 ? base.replace(/\n+/g, '') : base}\n${url}`, new tlru_1.TLRU(10000));
 class ReadonlyURLSearchParams extends URLSearchParams {
   append(name, value) {
     this.sort();
@@ -6171,7 +6417,7 @@ class ReadonlyURLSearchParams extends URLSearchParams {
 
 /***/ }),
 
-/***/ 4279:
+/***/ 6959:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -6181,7 +6427,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.FakeXMLHttpRequest = exports["default"] = exports.Pjax = void 0;
-var gui_1 = __webpack_require__(524);
+var gui_1 = __webpack_require__(6060);
 Object.defineProperty(exports, "Pjax", ({
   enumerable: true,
   get: function () {
@@ -6194,7 +6440,7 @@ Object.defineProperty(exports, "default", ({
     return gui_1.GUI;
   }
 }));
-var xhr_1 = __webpack_require__(5061);
+var xhr_1 = __webpack_require__(6916);
 Object.defineProperty(exports, "FakeXMLHttpRequest", ({
   enumerable: true,
   get: function () {
@@ -6204,7 +6450,7 @@ Object.defineProperty(exports, "FakeXMLHttpRequest", ({
 
 /***/ }),
 
-/***/ 2345:
+/***/ 3788:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -6214,8 +6460,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.route = exports.scope = exports.Config = exports.RouterEventSource = exports.RouterEventType = exports.RouterEvent = void 0;
-const api_1 = __webpack_require__(6562);
-var router_1 = __webpack_require__(9401);
+const api_1 = __webpack_require__(4728);
+var router_1 = __webpack_require__(6435);
 Object.defineProperty(exports, "RouterEvent", ({
   enumerable: true,
   get: function () {
@@ -6234,7 +6480,7 @@ Object.defineProperty(exports, "RouterEventSource", ({
     return router_1.RouterEventSource;
   }
 }));
-var config_1 = __webpack_require__(5411);
+var config_1 = __webpack_require__(9376);
 Object.defineProperty(exports, "Config", ({
   enumerable: true,
   get: function () {
@@ -6254,7 +6500,7 @@ exports.route = route;
 
 /***/ }),
 
-/***/ 8382:
+/***/ 6756:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -6264,7 +6510,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.savePosition = exports.loadTitle = void 0;
-var path_1 = __webpack_require__(5563);
+var path_1 = __webpack_require__(5236);
 Object.defineProperty(exports, "loadTitle", ({
   enumerable: true,
   get: function () {
@@ -6280,7 +6526,7 @@ Object.defineProperty(exports, "savePosition", ({
 
 /***/ }),
 
-/***/ 2090:
+/***/ 2540:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -6338,7 +6584,7 @@ exports.savePjax = savePjax;
 
 /***/ }),
 
-/***/ 5411:
+/***/ 9376:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -6348,9 +6594,9 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.Config = exports.scope = void 0;
-const cache_1 = __webpack_require__(9210);
-const assign_1 = __webpack_require__(4401);
-var scope_1 = __webpack_require__(9375);
+const cache_1 = __webpack_require__(9408);
+const assign_1 = __webpack_require__(1368);
+var scope_1 = __webpack_require__(6920);
 Object.defineProperty(exports, "scope", ({
   enumerable: true,
   get: function () {
@@ -6358,7 +6604,7 @@ Object.defineProperty(exports, "scope", ({
   }
 }));
 class Config {
-  constructor(option) {
+  constructor(options) {
     this.areas = ['body'];
     this.link = ':is(a, area)[href]:not([target])';
     this.form = 'form:not([method])';
@@ -6368,6 +6614,7 @@ class Config {
         threshold: 0
       }
     });
+    this.memory = undefined;
     this.fetch = {
       rewrite: undefined,
       headers: new Headers(),
@@ -6391,13 +6638,11 @@ class Config {
     this.sequence = new Sequence();
     this.progressbar = 'display:none;position:absolute;bottom:0;left:0;width:0;height:2px;background:rgb(40, 105, 255);';
     this.scope = {};
-    (0, assign_1.extend)(this, option);
-    this.update.ignores.$ ??= option.update?.ignore ?? '';
+    this.isolation = false;
+    (0, assign_1.extend)(this, options);
+    this.update.ignores.$ ??= options.update?.ignore ?? '';
     this.update.ignore = Object.values(this.update.ignores).filter(s => s).join(',');
-    (0, assign_1.overwrite)(this.scope, option?.scope ?? {});
-    this.fetch.headers = new Headers(this.fetch.headers);
-    this.fetch.headers.set('X-Requested-With', 'XMLHttpRequest');
-    this.fetch.headers.set('X-Pjax', '1');
+    (0, assign_1.overwrite)(this.scope, options?.scope ?? {});
     Object.freeze(this);
     Object.freeze(this.fetch);
     Object.freeze(this.update);
@@ -6437,7 +6682,7 @@ class Sequence {
 
 /***/ }),
 
-/***/ 9375:
+/***/ 6920:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -6447,29 +6692,34 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.scope = void 0;
-const config_1 = __webpack_require__(5411);
-const router_1 = __webpack_require__(4198);
-const maybe_1 = __webpack_require__(6512);
-const assign_1 = __webpack_require__(4401);
+const config_1 = __webpack_require__(9376);
+const router_1 = __webpack_require__(7564);
+const maybe_1 = __webpack_require__(1792);
+const assign_1 = __webpack_require__(1368);
 const {
   match
 } = router_1.router.helpers();
-function scope(config, path) {
-  const scope = {
+function scope(options, path) {
+  const record = {
     '/': {},
-    ...config.scope
+    ...options.scope
   };
-  for (const pattern of Object.keys(scope).reverse()) {
+  for (const pattern of Object.keys(record).reverse()) {
+    const opts = record[pattern];
     switch (+match(pattern, path.orig) + +match(pattern, path.dest)) {
       case 0:
         continue;
       case 1:
-        return maybe_1.Nothing;
+        if (opts === undefined || opts.isolation) return maybe_1.Nothing;
+        continue;
     }
-    const option = scope[pattern];
-    return option ? (0, maybe_1.Just)(new config_1.Config((0, assign_1.extend)({
-      scope: option.scope && (0, assign_1.overwrite)({}, config.scope, option.scope)
-    }, config, option))) : maybe_1.Nothing;
+    return opts ? opts.scope ? scope((0, assign_1.overwrite)({}, {
+      ...options,
+      scope: undefined
+    }, opts), path) : (0, maybe_1.Just)(new config_1.Config({
+      ...(0, assign_1.extend)({}, options, opts),
+      scope: undefined
+    })) : maybe_1.Nothing;
   }
   return maybe_1.Nothing;
 }
@@ -6477,7 +6727,7 @@ exports.scope = scope;
 
 /***/ }),
 
-/***/ 9401:
+/***/ 6435:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -6487,9 +6737,9 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.RouterEventLocation = exports.RouterEventRequest = exports.RouterEventMethod = exports.RouterEventType = exports.RouterEventSource = exports.RouterEvent = void 0;
-const dom_1 = __webpack_require__(7274);
-const url_1 = __webpack_require__(2261);
-const listener_1 = __webpack_require__(1051);
+const dom_1 = __webpack_require__(9800);
+const url_1 = __webpack_require__(3800);
+const listener_1 = __webpack_require__(5052);
 class RouterEvent {
   constructor(original, base) {
     this.original = original;
@@ -6564,7 +6814,7 @@ exports.RouterEventLocation = RouterEventLocation;
 
 /***/ }),
 
-/***/ 6562:
+/***/ 4728:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -6574,12 +6824,12 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.route = exports.RouterEntityState = exports.RouterEntity = void 0;
-const fetch_1 = __webpack_require__(1791);
-const update_1 = __webpack_require__(5643);
-const content_1 = __webpack_require__(9218);
-const path_1 = __webpack_require__(5563);
-const either_1 = __webpack_require__(8555);
-var entity_1 = __webpack_require__(5721);
+const fetch_1 = __webpack_require__(1764);
+const update_1 = __webpack_require__(132);
+const content_1 = __webpack_require__(7315);
+const path_1 = __webpack_require__(5236);
+const either_1 = __webpack_require__(652);
+var entity_1 = __webpack_require__(3108);
 Object.defineProperty(exports, "RouterEntity", ({
   enumerable: true,
   get: function () {
@@ -6608,7 +6858,7 @@ exports.route = route;
 
 /***/ }),
 
-/***/ 5721:
+/***/ 3108:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -6638,7 +6888,7 @@ exports.RouterEntityState = RouterEntityState;
 
 /***/ }),
 
-/***/ 7624:
+/***/ 8516:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -6648,8 +6898,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.Response = void 0;
-const html_1 = __webpack_require__(6301);
-const url_1 = __webpack_require__(2261);
+const html_1 = __webpack_require__(6744);
+const url_1 = __webpack_require__(3800);
 class Response {
   constructor(url, xhr) {
     this.url = url;
@@ -6671,7 +6921,7 @@ exports.Response = Response;
 
 /***/ }),
 
-/***/ 1791:
+/***/ 1764:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -6681,10 +6931,10 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.fetch = void 0;
-const router_1 = __webpack_require__(9401);
-const xhr_1 = __webpack_require__(4608);
-const timer_1 = __webpack_require__(8520);
-const dom_1 = __webpack_require__(3252);
+const router_1 = __webpack_require__(6435);
+const xhr_1 = __webpack_require__(4416);
+const timer_1 = __webpack_require__(6968);
+const dom_1 = __webpack_require__(8200);
 const style = (0, dom_1.html)('style');
 async function fetch({
   type,
@@ -6695,7 +6945,9 @@ async function fetch({
     body
   }
 }, {
+  areas,
   cache,
+  memory,
   fetch: {
     rewrite,
     headers,
@@ -6711,12 +6963,16 @@ async function fetch({
   if (type === router_1.RouterEventType.Popstate) {
     io.document.documentElement.appendChild(style);
   }
+  headers = new Headers(headers);
+  headers.has('Accept') || headers.set('Accept', 'text/html');
+  headers.has('X-Pjax') || headers.set('X-Pjax', JSON.stringify(areas));
+  const mem = type === router_1.RouterEventType.Popstate ? memory?.get(location.dest.path) : undefined;
   const [seq, res] = await Promise.all([sequence.fetch(undefined, {
     path: url.path,
     method,
     headers,
     body
-  }), (0, xhr_1.xhr)(method, url, location.orig, headers, body, timeout, cache, process, rewrite), (0, timer_1.wait)(wait), window.dispatchEvent(new Event('pjax:fetch'))]);
+  }), (0, xhr_1.xhr)(method, url, location.orig, headers, body, timeout, cache, mem, process, rewrite), (0, timer_1.wait)(wait), window.dispatchEvent(new Event('pjax:fetch'))]);
   if (type === router_1.RouterEventType.Popstate) {
     style.parentNode?.removeChild(style);
     window.scrollTo(scrollX, scrollY);
@@ -6727,7 +6983,7 @@ exports.fetch = fetch;
 
 /***/ }),
 
-/***/ 4608:
+/***/ 4416:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -6737,18 +6993,17 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.match_ = exports.xhr = void 0;
-const fetch_1 = __webpack_require__(7624);
-const promise_1 = __webpack_require__(4879);
-const either_1 = __webpack_require__(8555);
-const url_1 = __webpack_require__(2261);
-function xhr(method, displayURL, base, headers, body, timeout, cache, cancellation, rewrite = request) {
-  headers = new Headers(headers);
-  headers.set('Accept', headers.get('Accept') || 'text/html');
+const fetch_1 = __webpack_require__(8516);
+const promise_1 = __webpack_require__(1324);
+const either_1 = __webpack_require__(652);
+const url_1 = __webpack_require__(3800);
+const function_1 = __webpack_require__(2300);
+function xhr(method, displayURL, base, headers, body, timeout, cache, memory, cancellation, rewrite = function_1.noop) {
   if (method === 'GET' && !headers.has('If-None-Match') && Date.now() > (cache.get(displayURL.path)?.expiry ?? Infinity)) {
     headers.set('If-None-Match', cache.get(displayURL.path).etag);
   }
   return new promise_1.AtomicPromise(resolve => {
-    const xhr = rewrite(displayURL.href, method, headers, timeout, body) ?? request(displayURL.href, method, headers, timeout, body);
+    const xhr = rewrite(displayURL.href, method, headers, timeout, body, memory) ?? request(displayURL.href, method, headers, timeout, body);
     if (xhr.responseType !== 'document') throw new Error(`Response type must be 'document'`);
     cancellation.register(() => void xhr.abort());
     timeout && setTimeout(() => xhr.readyState < 3 && xhr.abort(), timeout + 100);
@@ -6836,7 +7091,7 @@ exports.match_ = match;
 
 /***/ }),
 
-/***/ 5643:
+/***/ 132:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -6846,20 +7101,20 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.update = void 0;
-const router_1 = __webpack_require__(9401);
-const blur_1 = __webpack_require__(4664);
-const url_1 = __webpack_require__(2139);
-const title_1 = __webpack_require__(954);
-const head_1 = __webpack_require__(6379);
-const content_1 = __webpack_require__(9218);
-const css_1 = __webpack_require__(1340);
-const script_1 = __webpack_require__(5433);
-const focus_1 = __webpack_require__(576);
-const scroll_1 = __webpack_require__(6891);
-const path_1 = __webpack_require__(5563);
-const promise_1 = __webpack_require__(4879);
-const either_1 = __webpack_require__(8555);
-const hlist_1 = __webpack_require__(7536);
+const router_1 = __webpack_require__(6435);
+const blur_1 = __webpack_require__(3168);
+const url_1 = __webpack_require__(2468);
+const title_1 = __webpack_require__(4752);
+const head_1 = __webpack_require__(8768);
+const content_1 = __webpack_require__(7315);
+const css_1 = __webpack_require__(3396);
+const script_1 = __webpack_require__(7764);
+const focus_1 = __webpack_require__(3148);
+const scroll_1 = __webpack_require__(1284);
+const path_1 = __webpack_require__(5236);
+const promise_1 = __webpack_require__(1324);
+const either_1 = __webpack_require__(652);
+const hlist_1 = __webpack_require__(3592);
 function update({
   event,
   config,
@@ -6914,7 +7169,7 @@ exports.update = update;
 
 /***/ }),
 
-/***/ 4664:
+/***/ 3168:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -6933,7 +7188,7 @@ exports.blur = blur;
 
 /***/ }),
 
-/***/ 9218:
+/***/ 7315:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -6943,12 +7198,12 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports._wait = exports._split = exports.separate = exports.content = void 0;
-const script_1 = __webpack_require__(5433);
-const promise_1 = __webpack_require__(4879);
-const maybe_1 = __webpack_require__(6512);
-const array_1 = __webpack_require__(8112);
-const query_1 = __webpack_require__(6120);
-const listener_1 = __webpack_require__(1051);
+const script_1 = __webpack_require__(7764);
+const promise_1 = __webpack_require__(1324);
+const maybe_1 = __webpack_require__(1792);
+const array_1 = __webpack_require__(8980);
+const query_1 = __webpack_require__(1632);
+const listener_1 = __webpack_require__(5052);
 function content(documents, areas, io = {
   replace: (src, dst) => void dst.parentNode.replaceChild(src, dst)
 }) {
@@ -7027,7 +7282,7 @@ exports._wait = wait;
 
 /***/ }),
 
-/***/ 1340:
+/***/ 3396:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -7037,7 +7292,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.css = void 0;
-const sync_1 = __webpack_require__(4501);
+const sync_1 = __webpack_require__(7164);
 function css(documents, ignore) {
   const selector = 'link[rel~="stylesheet"], style';
   return void ['head', 'body'].map(query => [documents.src.querySelector(query), documents.dst.querySelector(query)]).forEach(([src, dst]) => void (0, sync_1.sync)((0, sync_1.pair)(list(src), list(dst), (a, b) => a.outerHTML === b.outerHTML), dst));
@@ -7049,7 +7304,7 @@ exports.css = css;
 
 /***/ }),
 
-/***/ 576:
+/***/ 3148:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -7059,7 +7314,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.focus = void 0;
-const router_1 = __webpack_require__(9401);
+const router_1 = __webpack_require__(6435);
 function focus(type, document) {
   switch (type) {
     case router_1.RouterEventType.Click:
@@ -7075,7 +7330,7 @@ exports.focus = focus;
 
 /***/ }),
 
-/***/ 6379:
+/***/ 8768:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -7085,7 +7340,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.head = void 0;
-const sync_1 = __webpack_require__(4501);
+const sync_1 = __webpack_require__(7164);
 function head(documents, selector, ignore) {
   ignore += selector.includes('link') ? ', link[rel~="stylesheet"]' : '';
   return void (0, sync_1.sync)((0, sync_1.pair)(list(documents.src.head), list(documents.dst.head), (a, b) => a.outerHTML === b.outerHTML), documents.dst.head);
@@ -7097,7 +7352,7 @@ exports.head = head;
 
 /***/ }),
 
-/***/ 5433:
+/***/ 7764:
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -7138,14 +7393,14 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.escape = exports._evaluate = exports._fetch = exports.script = void 0;
-const error_1 = __webpack_require__(2893);
-const promise_1 = __webpack_require__(4879);
-const either_1 = __webpack_require__(8555);
-const url_1 = __webpack_require__(2261);
-const array_1 = __webpack_require__(8112);
-const tuple_1 = __webpack_require__(5341);
-const timer_1 = __webpack_require__(8520);
-const dom_1 = __webpack_require__(3252);
+const error_1 = __webpack_require__(3976);
+const promise_1 = __webpack_require__(1324);
+const either_1 = __webpack_require__(652);
+const url_1 = __webpack_require__(3800);
+const array_1 = __webpack_require__(8980);
+const tuple_1 = __webpack_require__(5696);
+const timer_1 = __webpack_require__(6968);
+const dom_1 = __webpack_require__(8200);
 function script(documents, skip, selector, timeout, cancellation, io = {
   fetch,
   evaluate
@@ -7194,7 +7449,7 @@ function evaluate(script, code, logger, skip, wait, cancellation) {
   function evaluate() {
     if (!cancellation.isAlive()) throw new error_1.FatalError('Expired');
     if (script.matches('[type="module"][src]')) {
-      return promise_1.AtomicPromise.resolve(Promise.resolve(`${script.src}`).then(s => __importStar(__webpack_require__(8442)(s)))).catch(reason => reason.message.startsWith('Failed to load ') && script.matches('[src][async]') ? retry(script).catch(() => promise_1.AtomicPromise.reject(reason)) : promise_1.AtomicPromise.reject(reason)).then(() => (script.dispatchEvent(new Event('load')), (0, either_1.Right)(script)), reason => (script.dispatchEvent(new Event('error')), (0, either_1.Left)(new error_1.FatalError(reason instanceof Error ? reason.message : reason + ''))));
+      return promise_1.AtomicPromise.resolve(Promise.resolve(`${script.src}`).then(s => __importStar(__webpack_require__(7520)(s)))).catch(reason => reason.message.startsWith('Failed to load ') && script.matches('[src][async]') ? retry(script).catch(() => promise_1.AtomicPromise.reject(reason)) : promise_1.AtomicPromise.reject(reason)).then(() => (script.dispatchEvent(new Event('load')), (0, either_1.Right)(script)), reason => (script.dispatchEvent(new Event('error')), (0, either_1.Left)(new error_1.FatalError(reason instanceof Error ? reason.message : reason + ''))));
     } else {
       try {
         if (skip.has(new url_1.URL((0, url_1.standardize)(window.location.href)).href)) throw new error_1.FatalError('Expired');
@@ -7237,7 +7492,7 @@ function retry(script) {
 
 /***/ }),
 
-/***/ 6891:
+/***/ 1284:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -7247,7 +7502,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports._hash = exports.scroll = void 0;
-const router_1 = __webpack_require__(9401);
+const router_1 = __webpack_require__(6435);
 function scroll(type, document, env, io = {
   scrollToElement: el => void el.scrollIntoView(),
   scrollToPosition: ({
@@ -7289,7 +7544,7 @@ exports._hash = hash;
 
 /***/ }),
 
-/***/ 4501:
+/***/ 7164:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -7299,8 +7554,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.pair = exports.sync = void 0;
-const either_1 = __webpack_require__(8555);
-const array_1 = __webpack_require__(8112);
+const either_1 = __webpack_require__(652);
+const array_1 = __webpack_require__(8980);
 function sync(pairs, fallback, io = {
   before,
   remove
@@ -7332,7 +7587,7 @@ function remove(el) {
 
 /***/ }),
 
-/***/ 954:
+/***/ 4752:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -7349,7 +7604,7 @@ exports.title = title;
 
 /***/ }),
 
-/***/ 2139:
+/***/ 2468:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -7359,8 +7614,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports._isReplaceable = exports._isRegisterable = exports.url = void 0;
-const router_1 = __webpack_require__(9401);
-const listener_1 = __webpack_require__(1051);
+const router_1 = __webpack_require__(6435);
+const listener_1 = __webpack_require__(5052);
 // A part of the workaround to record the correct browser history.
 (0, listener_1.bind)(document, 'pjax:ready', () => void window.history.replaceState(window.history.state, window.document.title));
 function url(location, title, type, source, replaceable) {
@@ -7401,7 +7656,7 @@ exports._isReplaceable = isReplaceable;
 
 /***/ }),
 
-/***/ 5563:
+/***/ 5236:
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -7429,11 +7684,11 @@ var __exportStar = this && this.__exportStar || function (m, exports) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-__exportStar(__webpack_require__(2090), exports);
+__exportStar(__webpack_require__(2540), exports);
 
 /***/ }),
 
-/***/ 6629:
+/***/ 588:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -7443,8 +7698,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.ClickView = void 0;
-const coroutine_1 = __webpack_require__(7983);
-const listener_1 = __webpack_require__(1051);
+const coroutine_1 = __webpack_require__(8228);
+const listener_1 = __webpack_require__(5052);
 class ClickView extends coroutine_1.Coroutine {
   constructor(document, selector, listener) {
     super(async function* () {
@@ -7462,7 +7717,7 @@ exports.ClickView = ClickView;
 
 /***/ }),
 
-/***/ 42:
+/***/ 5016:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -7472,11 +7727,11 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.NavigationView = void 0;
-const page_1 = __webpack_require__(9114);
-const state_1 = __webpack_require__(2090);
-const coroutine_1 = __webpack_require__(7983);
-const url_1 = __webpack_require__(2261);
-const listener_1 = __webpack_require__(1051);
+const page_1 = __webpack_require__(4872);
+const state_1 = __webpack_require__(2540);
+const coroutine_1 = __webpack_require__(8228);
+const url_1 = __webpack_require__(3800);
+const listener_1 = __webpack_require__(5052);
 class NavigationView extends coroutine_1.Coroutine {
   constructor(window, listener) {
     super(async function* () {
@@ -7495,7 +7750,7 @@ exports.NavigationView = NavigationView;
 
 /***/ }),
 
-/***/ 9078:
+/***/ 1596:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -7505,11 +7760,11 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.ScrollView = void 0;
-const page_1 = __webpack_require__(9114);
-const coroutine_1 = __webpack_require__(7983);
-const url_1 = __webpack_require__(2261);
-const throttle_1 = __webpack_require__(5026);
-const listener_1 = __webpack_require__(1051);
+const page_1 = __webpack_require__(4872);
+const coroutine_1 = __webpack_require__(8228);
+const url_1 = __webpack_require__(3800);
+const throttle_1 = __webpack_require__(1432);
+const listener_1 = __webpack_require__(5052);
 class ScrollView extends coroutine_1.Coroutine {
   constructor(window, listener) {
     super(async function* () {
@@ -7528,7 +7783,7 @@ exports.ScrollView = ScrollView;
 
 /***/ }),
 
-/***/ 2217:
+/***/ 6544:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -7538,8 +7793,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.SubmitView = void 0;
-const coroutine_1 = __webpack_require__(7983);
-const listener_1 = __webpack_require__(1051);
+const coroutine_1 = __webpack_require__(8228);
+const listener_1 = __webpack_require__(5052);
 class SubmitView extends coroutine_1.Coroutine {
   constructor(document, selector, listener) {
     super(async function* () {
@@ -7556,7 +7811,7 @@ exports.SubmitView = SubmitView;
 
 /***/ }),
 
-/***/ 8411:
+/***/ 9788:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -7566,24 +7821,24 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.API = void 0;
-const router_1 = __webpack_require__(574);
-const process_1 = __webpack_require__(4318);
-const page_1 = __webpack_require__(9114);
-const state_1 = __webpack_require__(2090);
-const listener_1 = __webpack_require__(1051);
+const router_1 = __webpack_require__(7152);
+const process_1 = __webpack_require__(9036);
+const page_1 = __webpack_require__(4872);
+const state_1 = __webpack_require__(2540);
+const listener_1 = __webpack_require__(5052);
 class API {
-  static assign(url, option, io = {
+  static assign(url, options, io = {
     document: window.document,
     router: router_1.route
   }) {
-    return click(url, event => io.router(new router_1.Config(option), new router_1.RouterEvent(event, page_1.page.url), process_1.process, io));
+    return click(url, event => io.router(new router_1.Config(options), new router_1.RouterEvent(event, page_1.page.url), process_1.process, io));
   }
-  static replace(url, option, io = {
+  static replace(url, options, io = {
     document: window.document,
     router: router_1.route
   }) {
     return click(url, event => io.router(new router_1.Config({
-      ...option,
+      ...options,
       replace: '*'
     }), new router_1.RouterEvent(event, page_1.page.url), process_1.process, io));
   }
@@ -7618,7 +7873,7 @@ function click(url, callback) {
 
 /***/ }),
 
-/***/ 524:
+/***/ 6060:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -7628,42 +7883,42 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.GUI = void 0;
-const api_1 = __webpack_require__(8411);
-const click_1 = __webpack_require__(6629);
-const submit_1 = __webpack_require__(2217);
-const navigation_1 = __webpack_require__(42);
-const scroll_1 = __webpack_require__(9078);
-const router_1 = __webpack_require__(574);
-const page_1 = __webpack_require__(9114);
-__webpack_require__(4650);
-const process_1 = __webpack_require__(4318);
-const store_1 = __webpack_require__(8382);
-const supervisor_1 = __webpack_require__(7780);
-const copropagator_1 = __webpack_require__(7596);
+const api_1 = __webpack_require__(9788);
+const click_1 = __webpack_require__(588);
+const submit_1 = __webpack_require__(6544);
+const navigation_1 = __webpack_require__(5016);
+const scroll_1 = __webpack_require__(1596);
+const router_1 = __webpack_require__(7152);
+const page_1 = __webpack_require__(4872);
+__webpack_require__(3827);
+const process_1 = __webpack_require__(9036);
+const store_1 = __webpack_require__(6756);
+const supervisor_1 = __webpack_require__(6348);
+const copropagator_1 = __webpack_require__(3512);
 class GUI extends api_1.API {
-  constructor(option, io = {
+  constructor(options, io = {
     document: window.document,
     router: router_1.route
   }) {
     super();
-    this.option = option;
+    this.options = options;
     this.io = io;
-    this.view = new View(this.option, this.io);
+    this.view = new View(this.options, this.io);
     GUI.resources.clear();
     GUI.resources.register('view', this.view);
   }
   assign(url) {
-    return api_1.API.assign(url, this.option, this.io);
+    return api_1.API.assign(url, this.options, this.io);
   }
   replace(url) {
-    return api_1.API.replace(url, this.option, this.io);
+    return api_1.API.replace(url, this.options, this.io);
   }
 }
 exports.GUI = GUI;
 GUI.resources = new class extends supervisor_1.Supervisor {}();
 class View extends copropagator_1.Copropagator {
-  constructor(option, io) {
-    const config = new router_1.Config(option);
+  constructor(options, io) {
+    const config = new router_1.Config(options);
     const router = event => void io.router(config, new router_1.RouterEvent(event, page_1.page.url), process_1.process, io);
     super([new click_1.ClickView(io.document, config.link, router), new submit_1.SubmitView(io.document, config.form, router), new navigation_1.NavigationView(window, router), new scroll_1.ScrollView(window, store_1.savePosition)]);
   }
@@ -7671,7 +7926,7 @@ class View extends copropagator_1.Copropagator {
 
 /***/ }),
 
-/***/ 574:
+/***/ 7152:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -7681,7 +7936,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports._validate = exports.route = exports.RouterEventSource = exports.RouterEvent = exports.Config = void 0;
-const router_1 = __webpack_require__(2345);
+const router_1 = __webpack_require__(3788);
 Object.defineProperty(exports, "Config", ({
   enumerable: true,
   get: function () {
@@ -7700,15 +7955,15 @@ Object.defineProperty(exports, "RouterEventSource", ({
     return router_1.RouterEventSource;
   }
 }));
-const page_1 = __webpack_require__(9114);
-const env_1 = __webpack_require__(608);
+const page_1 = __webpack_require__(4872);
+const env_1 = __webpack_require__(8240);
 //import { progressbar } from './progressbar';
-const error_1 = __webpack_require__(2893);
-const store_1 = __webpack_require__(8382);
-const url_1 = __webpack_require__(2261);
-const cancellation_1 = __webpack_require__(412);
-const maybe_1 = __webpack_require__(6512);
-const promise_1 = __webpack_require__(4879);
+const error_1 = __webpack_require__(3976);
+const store_1 = __webpack_require__(6756);
+const url_1 = __webpack_require__(3800);
+const cancellation_1 = __webpack_require__(6224);
+const maybe_1 = __webpack_require__(1792);
+const promise_1 = __webpack_require__(1324);
 function route(config, event, process, io) {
   switch (event.type) {
     case router_1.RouterEventType.Click:
@@ -7719,13 +7974,10 @@ function route(config, event, process, io) {
       io.document.title = (0, store_1.loadTitle)();
       break;
   }
-  return (0, maybe_1.Just)(0).guard(validate(event.request.url, config, event)).bind(() => (0, router_1.scope)(config, (({
-    orig,
-    dest
-  }) => ({
-    orig: orig.pathname,
-    dest: dest.pathname
-  }))(event.location))).fmap(async config => {
+  return (0, maybe_1.Just)(0).guard(validate(event.request.url, config, event)).bind(() => (0, router_1.scope)(config, {
+    orig: event.location.orig.pathname,
+    dest: event.location.dest.pathname
+  })).fmap(async config => {
     event.original.preventDefault();
     process.cast('', new Error('Canceled'));
     const cancellation = new cancellation_1.Cancellation();
@@ -7815,7 +8067,7 @@ function isHashChange(dest) {
 
 /***/ }),
 
-/***/ 608:
+/***/ 8240:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -7825,12 +8077,12 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.env = void 0;
-const script_1 = __webpack_require__(182);
+const script_1 = __webpack_require__(3292);
 exports.env = Promise.all([script_1.scripts, new Promise(r => void setTimeout(r))]);
 
 /***/ }),
 
-/***/ 9114:
+/***/ 4872:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -7840,9 +8092,9 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.page = void 0;
-const state_1 = __webpack_require__(2090);
-const url_1 = __webpack_require__(2261);
-const listener_1 = __webpack_require__(1051);
+const state_1 = __webpack_require__(2540);
+const url_1 = __webpack_require__(3800);
+const listener_1 = __webpack_require__(5052);
 (0, listener_1.bind)(window, 'hashchange', () => void exports.page.sync(), true);
 (0, listener_1.bind)(window, 'popstate', () => (0, state_1.isTransitable)(exports.page.state) && (0, state_1.isTransitable)(window.history.state) || void exports.page.sync(), true);
 exports.page = new class {
@@ -7879,7 +8131,7 @@ exports.page = new class {
 
 /***/ }),
 
-/***/ 4318:
+/***/ 9036:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -7889,12 +8141,12 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.process = void 0;
-const supervisor_1 = __webpack_require__(7780);
+const supervisor_1 = __webpack_require__(6348);
 exports.process = new class extends supervisor_1.Supervisor {}();
 
 /***/ }),
 
-/***/ 182:
+/***/ 3292:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -7904,15 +8156,15 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.scripts = void 0;
-const page_1 = __webpack_require__(9114);
-const url_1 = __webpack_require__(2261);
-const listener_1 = __webpack_require__(1051);
+const page_1 = __webpack_require__(4872);
+const url_1 = __webpack_require__(3800);
+const listener_1 = __webpack_require__(5052);
 exports.scripts = new Set();
 (0, listener_1.bind)(window, 'pjax:unload', () => void document.querySelectorAll('script[src]').forEach(script => void exports.scripts.add(new url_1.URL((0, url_1.standardize)(script.src, page_1.page.url.href)).href)));
 
 /***/ }),
 
-/***/ 4650:
+/***/ 3827:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -7921,8 +8173,8 @@ exports.scripts = new Set();
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const state_1 = __webpack_require__(2090);
-const listener_1 = __webpack_require__(1051);
+const state_1 = __webpack_require__(2540);
+const listener_1 = __webpack_require__(5052);
 // popstateイベントは事前に検知できないため事前設定
 if ((0, state_1.isTransitable)(window.history.state)) {
   window.history.scrollRestoration = 'manual';
@@ -7936,7 +8188,7 @@ if ((0, state_1.isTransitable)(window.history.state)) {
 
 /***/ }),
 
-/***/ 7274:
+/***/ 9800:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -7980,7 +8232,7 @@ exports.serialize = serialize;
 
 /***/ }),
 
-/***/ 2893:
+/***/ 3976:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -8000,7 +8252,7 @@ FatalError.prototype.name = 'FatalError';
 
 /***/ }),
 
-/***/ 6301:
+/***/ 6744:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -8010,8 +8262,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.fix = exports.parse = void 0;
-const maybe_1 = __webpack_require__(6512);
-const either_1 = __webpack_require__(8555);
+const maybe_1 = __webpack_require__(1792);
+const either_1 = __webpack_require__(652);
 exports.parse = [parseByDOM, parseByDoc].reduce((m, f) => m.bind(() => test(f) ? (0, either_1.Left)(f) : m), (0, either_1.Right)(() => maybe_1.Nothing)).extract(f => html => (0, maybe_1.Just)(f(html)));
 function parseByDOM(html) {
   const document = new DOMParser().parseFromString(html, 'text/html');
@@ -8076,7 +8328,7 @@ function test(parser) {
 
 /***/ }),
 
-/***/ 5061:
+/***/ 6916:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -8086,8 +8338,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.FakeXMLHttpRequest = void 0;
-const promise_1 = __webpack_require__(4879);
-const chrono_1 = __webpack_require__(4393);
+const promise_1 = __webpack_require__(1324);
+const chrono_1 = __webpack_require__(7820);
 class FakeXMLHttpRequest extends XMLHttpRequest {
   static create(url, response) {
     const xhr = new FakeXMLHttpRequest();
@@ -8184,7 +8436,7 @@ exports.FakeXMLHttpRequest = FakeXMLHttpRequest;
 
 /***/ }),
 
-/***/ 3252:
+/***/ 8200:
 /***/ (function(module) {
 
 /*! typed-dom v0.0.348 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
@@ -8552,7 +8804,7 @@ exports.defrag = defrag;
 
 /***/ }),
 
-/***/ 1051:
+/***/ 5052:
 /***/ (function(module) {
 
 /*! typed-dom v0.0.348 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
@@ -9129,7 +9381,7 @@ exports.bind = bind;
 
 /***/ }),
 
-/***/ 6120:
+/***/ 1632:
 /***/ (function(module) {
 
 /*! typed-dom v0.0.348 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
@@ -9182,7 +9434,7 @@ exports.querySelectorAll = querySelectorAll;
 
 /***/ }),
 
-/***/ 8442:
+/***/ 7520:
 /***/ ((module) => {
 
 function webpackEmptyContext(req) {
@@ -9192,7 +9444,7 @@ function webpackEmptyContext(req) {
 }
 webpackEmptyContext.keys = () => ([]);
 webpackEmptyContext.resolve = webpackEmptyContext;
-webpackEmptyContext.id = 8442;
+webpackEmptyContext.id = 7520;
 module.exports = webpackEmptyContext;
 
 /***/ })
@@ -9246,7 +9498,7 @@ module.exports = webpackEmptyContext;
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __webpack_require__(8767);
+/******/ 	var __webpack_exports__ = __webpack_require__(8207);
 /******/ 	
 /******/ 	return __webpack_exports__;
 /******/ })()
