@@ -2,6 +2,7 @@
 
 ## 3.43.0
 
+- Extend `fetch.rewrite` option to add cache parameter.
 - Change `X-Pjax` header value to JSON string of `areas` option.
 
 ## 3.42.0

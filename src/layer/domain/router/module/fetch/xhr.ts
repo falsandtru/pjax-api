@@ -5,6 +5,7 @@ import { AtomicPromise } from 'spica/promise';
 import { Cancellee } from 'spica/cancellation';
 import { Either, Left, Right } from 'spica/either';
 import { URL, StandardURL, standardize } from 'spica/url';
+import { noop } from 'spica/function';
 
 export function xhr(
   method: RouterEventMethod,
@@ -14,8 +15,9 @@ export function xhr(
   body: FormData | null,
   timeout: number,
   cache: Dict<URL.Path<StandardURL>, { etag: string; expiry: number; xhr: XMLHttpRequest; }>,
+  memory: Document | undefined,
   cancellation: Cancellee<Error>,
-  rewrite = request,
+  rewrite: (url: string, method: string, headers: Headers, timeout: number, body: FormData | null, cache?: Document | undefined) => XMLHttpRequest | undefined = noop,
 ): AtomicPromise<Either<Error, Response>> {
   if (method === 'GET' &&
       !headers.has('If-None-Match') &&
@@ -23,7 +25,7 @@ export function xhr(
     headers.set('If-None-Match', cache.get(displayURL.path)!.etag);
   }
   return new AtomicPromise<Either<Error, Response>>(resolve => {
-    const xhr = rewrite(displayURL.href, method, headers, timeout, body) ??
+    const xhr = rewrite(displayURL.href, method, headers, timeout, body, memory) ??
                 request(displayURL.href, method, headers, timeout, body);
 
     if (xhr.responseType !== 'document') throw new Error(`Response type must be 'document'`);

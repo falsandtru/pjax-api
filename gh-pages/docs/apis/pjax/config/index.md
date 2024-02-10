@@ -48,7 +48,7 @@ Set a dictionary object having has/get/set/delete methods of Map to pass the doc
 
 ## fetch: {...} = ...
 
-### rewrite?: (url: string, method: string, headers: Headers, timeout: number, body: FormData | null) => XMLHttpRequest | undefined
+### rewrite?: (url: string, method: string, headers: Headers, timeout: number, body: FormData | null, cache?: Document) => XMLHttpRequest | undefined
 
 Rewrite the XHR object, or replace it with another or fake.
 

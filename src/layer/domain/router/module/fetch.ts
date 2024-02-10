@@ -22,6 +22,7 @@ export async function fetch(
   {
     areas,
     cache,
+    memory,
     fetch: {
       rewrite,
       headers,
@@ -42,6 +43,9 @@ export async function fetch(
   headers = new Headers(headers);
   headers.has('Accept') || headers.set('Accept', 'text/html');
   headers.has('X-Pjax') || headers.set('X-Pjax', JSON.stringify(areas));
+  const mem = type === RouterEventType.Popstate
+    ? memory?.get(location.dest.path)
+    : undefined;
   const [seq, res] = await Promise.all([
     sequence.fetch(undefined, {
       path: url.path,
@@ -49,7 +53,7 @@ export async function fetch(
       headers,
       body,
     }),
-    xhr(method, url, location.orig, headers, body, timeout, cache, process, rewrite),
+    xhr(method, url, location.orig, headers, body, timeout, cache, mem, process, rewrite),
     delay(wait),
     window.dispatchEvent(new Event('pjax:fetch')),
   ]);

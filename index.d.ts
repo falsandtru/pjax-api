@@ -22,7 +22,7 @@ export interface Config {
   readonly cache?: Dict<string, unknown>;
   readonly memory?: Dict<string, Document>;
   readonly fetch?: {
-    readonly rewrite?: (url: string, method: string, headers: Headers, timeout: number, body: FormData | null) => XMLHttpRequest | undefined;
+    readonly rewrite?: (url: string, method: string, headers: Headers, timeout: number, body: FormData | null, cache?: Document) => XMLHttpRequest | undefined;
     readonly headers?: Headers;
     readonly timeout?: number;
     readonly wait?: number;
