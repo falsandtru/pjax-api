@@ -1,4 +1,4 @@
-import { Config as Option } from '../../../../';
+import { Config as Options } from '../../../../';
 import { route, Config, RouterEvent, RouterEventSource } from './router';
 import { process } from './state/process';
 import { page } from './state/page';
@@ -6,13 +6,13 @@ import { savePjax, isTransitable } from '../../data/store/state';
 import { once } from 'typed-dom/listener';
 
 export class API {
-  public static assign(url: string, option: Option, io = { document: window.document, router: route }): boolean {
+  public static assign(url: string, options: Options, io = { document: window.document, router: route }): boolean {
     return click(url, event =>
-      io.router(new Config(option), new RouterEvent(event, page.url), process, io));
+      io.router(new Config(options), new RouterEvent(event, page.url), process, io));
   }
-  public static replace(url: string, option: Option, io = { document: window.document, router: route }): boolean {
+  public static replace(url: string, options: Options, io = { document: window.document, router: route }): boolean {
     return click(url, event =>
-      io.router(new Config({ ...option, replace: '*' }), new RouterEvent(event, page.url), process, io));
+      io.router(new Config({ ...options, replace: '*' }), new RouterEvent(event, page.url), process, io));
   }
   public static sync(isPjaxPage?: boolean): void {
     isPjaxPage && savePjax();

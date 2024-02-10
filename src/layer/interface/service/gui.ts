@@ -1,5 +1,5 @@
 import { API } from './api';
-import { Config as Option } from '../../../../';
+import { Config as Options } from '../../../../';
 import { ClickView } from '../module/view/click';
 import { SubmitView } from '../module/view/submit';
 import { NavigationView } from '../module/view/navigation';
@@ -15,7 +15,7 @@ import { Copropagator } from 'spica/copropagator';
 export class GUI extends API {
   private static readonly resources = new class extends Supervisor<string> { }();
   constructor(
-    private readonly option: Option,
+    private readonly options: Options,
     private readonly io = {
       document: window.document,
       router: route,
@@ -25,24 +25,24 @@ export class GUI extends API {
     GUI.resources.clear();
     GUI.resources.register('view', this.view);
   }
-  private readonly view = new View(this.option, this.io);
+  private readonly view = new View(this.options, this.io);
   public assign(url: string): boolean {
-    return API.assign(url, this.option, this.io);
+    return API.assign(url, this.options, this.io);
   }
   public replace(url: string): boolean {
-    return API.replace(url, this.option, this.io);
+    return API.replace(url, this.options, this.io);
   }
 }
 
 class View extends Copropagator<never> {
   constructor(
-    option: Option,
+    options: Options,
     io: {
       document: Document,
       router: typeof route,
     },
   ) {
-    const config = new Config(option);
+    const config = new Config(options);
     const router = (event: Event) => void io.router(config, new RouterEvent(event, page.url), process, io);
     super([
       new ClickView(io.document, config.link, router),

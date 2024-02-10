@@ -1,4 +1,4 @@
-import { Config as Option } from '../../../../../';
+import { Config as Options } from '../../../../../';
 import { Config } from '../../../domain/data/config';
 import { router } from 'spica/router';
 import { URL, StandardURL } from 'spica/url';
@@ -8,26 +8,26 @@ import { extend, overwrite } from 'spica/assign';
 const { match } = router.helpers();
 
 export function scope(
-  option: Option,
+  options: Options,
   path: {
     orig: URL.Pathname<StandardURL>;
     dest: URL.Pathname<StandardURL>;
   }
 ): Maybe<Config> {
-  const record = { '/': {}, ...option.scope };
+  const record = { '/': {}, ...options.scope };
   for (const pattern of Object.keys(record).reverse()) {
-    const opt: Option | undefined = record[pattern];
+    const opts: Options | undefined = record[pattern];
     switch (+match(pattern, path.orig) + +match(pattern, path.dest)) {
       case 0:
         continue;
       case 1:
-        if (opt === undefined || opt.isolation) return Nothing;
+        if (opts === undefined || opts.isolation) return Nothing;
         continue;
     }
-    return opt
-      ? opt.scope
-        ? scope(overwrite({}, { ...option, scope: undefined }, opt), path)
-        : Just(new Config({ ...extend({}, option, opt), scope: undefined }))
+    return opts
+      ? opts.scope
+        ? scope(overwrite({}, { ...options, scope: undefined }, opts), path)
+        : Just(new Config({ ...extend({}, options, opts), scope: undefined }))
       : Nothing;
   }
   return Nothing;

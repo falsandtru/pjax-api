@@ -1,4 +1,4 @@
-import { Config as Option, Sequence as ISequence } from '../../../../';
+import { Config as Options, Sequence as ISequence } from '../../../../';
 import { Dict } from 'spica/dict';
 import { Cache } from 'spica/cache';
 import { URL, StandardURL } from 'spica/url';
@@ -6,12 +6,12 @@ import { extend, overwrite } from 'spica/assign';
 
 export { scope } from './config/scope';
 
-export class Config implements Option {
-  constructor(option: Option) {
-    extend<Option>(this, option);
-    this.update.ignores.$ ??= option.update?.ignore ?? '';
+export class Config implements Options {
+  constructor(options: Options) {
+    extend<Options>(this, options);
+    this.update.ignores.$ ??= options.update?.ignore ?? '';
     this.update.ignore = Object.values(this.update.ignores).filter(s => s).join(',');
-    overwrite(this.scope, option?.scope ?? {});
+    overwrite(this.scope, options?.scope ?? {});
     Object.freeze(this);
     Object.freeze(this.fetch);
     Object.freeze(this.update);
@@ -26,13 +26,13 @@ export class Config implements Option {
   public readonly cache: Dict<URL.Path<StandardURL>, { etag: string; expiry: number; xhr: XMLHttpRequest; }> = new Cache(100, { sweep: { threshold: 0 } });
   public readonly memory?: Dict<URL.Path<StandardURL>, Document> = undefined;
   public readonly fetch = {
-    rewrite: undefined as NonNullable<Option['fetch']>['rewrite'],
+    rewrite: undefined as NonNullable<Options['fetch']>['rewrite'],
     headers: new Headers(),
     timeout: 3000,
     wait: 0,
   };
   public readonly update = {
-    rewrite: undefined as NonNullable<Option['update']>['rewrite'],
+    rewrite: undefined as NonNullable<Options['update']>['rewrite'],
     head: 'base, meta, link',
     css: true,
     script: true,
@@ -60,7 +60,7 @@ export class Config implements Option {
   }
   public readonly sequence: ISequence<'seq:fetch', 'seq:unload', 'seq:content', 'seq:ready'> = new Sequence();
   public readonly progressbar: string = 'display:none;position:absolute;bottom:0;left:0;width:0;height:2px;background:rgb(40, 105, 255);';
-  public readonly scope: Record<string, Option | undefined> = {};
+  public readonly scope: Record<string, Options | undefined> = {};
   public readonly isolation: boolean = false;
 }
 
