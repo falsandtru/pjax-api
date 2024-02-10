@@ -166,17 +166,21 @@ You can use `{}`, `**`, `*`, and `?` metacharacters for path matching.
 ```ts
 new Pjax({
   areas: [
-    '#header, #primary',
     '#container',
     'body'
   ],
   scope: {
-    '/': undefined, // Disable
-    '/posts/': {}, // Enable
-    '/posts/*/': {
-      replace: '.replace' // Override
+    '/': {}, // Enable.
+    '/form': undefined, // Disable.
+    '/posts': {
+      replace: '.replace' // Override.
     },
-    '/{a,b}/': {} // Expand to '/a/' and '/b/'
+    '/search': { isolation: true }, // Disable inter-scope transitions.
+    '/{a,b}/': {} // Expand to '/a/' and '/b/'.
   }
 });
 ```
+
+## isolation: boolean = `false`
+
+Disable inter-scope transitions.

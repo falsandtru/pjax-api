@@ -39,6 +39,7 @@ export interface Config {
   readonly fallback?: (target: HTMLAnchorElement | HTMLAreaElement | HTMLFormElement | Window, reason: unknown) => void;
   readonly sequence?: Sequence<any, any, any, any>;
   readonly scope?: Record<string, Config | undefined>;
+  readonly isolation?: boolean;
 }
 
 export interface Sequence<a, b, c, d> {

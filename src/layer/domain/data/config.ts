@@ -61,6 +61,7 @@ export class Config implements Option {
   public readonly sequence: ISequence<'seq:fetch', 'seq:unload', 'seq:content', 'seq:ready'> = new Sequence();
   public readonly progressbar: string = 'display:none;position:absolute;bottom:0;left:0;width:0;height:2px;background:rgb(40, 105, 255);';
   public readonly scope: Record<string, Option | undefined> = {};
+  public readonly isolation: boolean = false;
 }
 
 class Sequence implements ISequence<'seq:fetch', 'seq:unload', 'seq:content', 'seq:ready'> {
