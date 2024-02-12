@@ -71,22 +71,22 @@ export function route(
         assert(!event.original.defaultPrevented);
         switch (event.type) {
           case RouterEventType.Click:
-            (event.source as RouterEventSource.Link).matches('[href]') && process.cast('', new Error('Canceled'));
-            page.sync();
-            return false;
           case RouterEventType.Submit:
             process.cast('', new Error('Canceled'));
             page.sync();
             return false;
           case RouterEventType.Popstate:
-            if (isHashChange(event.location.dest)) {
-              process.cast('', new Error('Canceled'));
+            // Disabled by scope.
+            if (validate(event.location.dest, config, event)) {
+              config.fallback(event.source, new Error('Disabled'));
               page.sync();
-              return false;
+              return true;
             }
-            config.fallback(event.source, new Error('Disabled'));
+            process.cast('', new Error('Canceled'));
             page.sync();
-            return true;
+            return false;
+          default:
+            throw new TypeError(event.type);
         }
       },
       () => true);
@@ -94,22 +94,19 @@ export function route(
 
 function validate(url: URL<StandardURL>, config: Config, event: RouterEvent): boolean {
   if (event.original.defaultPrevented) return false;
+  if (!isAccessible(url)) return false;
   switch (event.type) {
     case RouterEventType.Click:
       assert(event.original instanceof MouseEvent);
-      return isAccessible(url)
-          && !isHashClick(url)
+      return !isHashClick(url)
           && !isHashChange(url)
           && !isDownload(event.source as RouterEventSource.Link)
           && !hasModifierKey(event.original as MouseEvent)
           && config.filter(event.source as RouterEventSource.Link);
     case RouterEventType.Submit:
-      return isAccessible(url);
+      return true;
     case RouterEventType.Popstate:
-      return isAccessible(url)
-          && !isHashChange(url);
-    default:
-      return false;
+      return !isHashChange(url);
   }
 
   function isAccessible(dest: URL<StandardURL>): boolean {

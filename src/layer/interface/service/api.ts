@@ -33,6 +33,7 @@ export class API {
 function click<T>(url: string, callback: (ev: Event) => T): T {
   const el: RouterEventSource.Link = document.createElement('a');
   el.href = url;
+  assert(el.matches('[href]'));
   document.createDocumentFragment().appendChild(el);
   let result: T;
   once(el, 'click', ev => {
