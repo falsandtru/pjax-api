@@ -1,7 +1,6 @@
 import { route as router, Config, scope, RouterEvent, RouterEventType, RouterEventSource } from '../../application/router';
 import { page } from './state/page';
 import { env } from '../service/state/env';
-//import { progressbar } from './progressbar';
 import { FatalError } from '../../../lib/error';
 import { loadTitle, savePosition } from '../../application/store';
 import { URL, StandardURL, standardize } from 'spica/url';
@@ -46,7 +45,6 @@ export function route(
       page.isAvailable() && config.memory?.set(event.location.orig.path, io.document.cloneNode(true));
       page.process(event.location.dest);
       const [scripts] = await env;
-      //progressbar(config.progressbar);
       return router(config, event, { process: cancellation, scripts }, io)
         .then(m => m
           .fmap(async ([ss, p]) => {

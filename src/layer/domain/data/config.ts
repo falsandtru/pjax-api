@@ -59,7 +59,6 @@ export class Config implements Options {
     throw reason;
   }
   public readonly sequence: ISequence<'seq:fetch', 'seq:unload', 'seq:content', 'seq:ready'> = new Sequence();
-  public readonly progressbar: string = 'display:none;position:absolute;bottom:0;left:0;width:0;height:2px;background:rgb(40, 105, 255);';
   public readonly scope: Record<string, Options | undefined> = {};
   public readonly isolation: boolean = false;
 }
