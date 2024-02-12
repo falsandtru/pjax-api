@@ -11,6 +11,3 @@ bind(window, 'pjax:fetch', () =>
 // 遷移後ページの設定
 bind(document, 'pjax:ready', () =>
   window.history.scrollRestoration = 'manual', true);
-// 通常ページへの遷移または離脱では戻しておく
-bind(window, 'unload', () =>
-  window.history.scrollRestoration = 'auto', true);
