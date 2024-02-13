@@ -34,6 +34,7 @@ export async function fetch(
       config.fetch.timeout,
       state.process,
       config.fetch.rewrite,
+      // 遷移成功後に遷移可能性が自然に壊れることはないため検査不要
       memory),
     wait(config.fetch.wait),
     window.dispatchEvent(new Event('pjax:fetch')),

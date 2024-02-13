@@ -57,9 +57,7 @@ export function update(
           event.location.dest.href,
           documents.src,
           area,
-          memory && separate({ src: memory, dst: documents.dst }, [area]).extract(() => false)
-            ? memory
-            : undefined);
+          memory);
         return seqB;
       })
       .bind(seqB =>
