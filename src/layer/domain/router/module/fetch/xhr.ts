@@ -14,7 +14,7 @@ export function xhr(
   body: FormData | null,
   timeout: number,
   cancellation: Cancellee<Error>,
-  rewrite: (url: string, method: string, headers: Headers, timeout: number, body: FormData | null, cache?: Document | undefined) => XMLHttpRequest | undefined = noop,
+  rewrite: (url: string, method: string, headers: Headers, timeout: number, body: FormData | null, memory?: Document | undefined) => XMLHttpRequest | undefined = noop,
   memory?: Document,
 ): AtomicPromise<Either<Error, Response>> {
   return new AtomicPromise<Either<Error, Response>>(resolve => {

@@ -16,10 +16,10 @@ describe('Integration: Config', function () {
       new Pjax({
         memory: new Cache(100),
         update: {
-          rewrite(url, doc, area, cache) {
+          rewrite(url, doc, area, memory) {
             switch (url.split('/').at(-1)) {
               case '2.html':
-                cache && doc.querySelector(area)?.replaceWith(cache.querySelector(area)!.cloneNode(true));
+                memory && doc.querySelector(area)?.replaceWith(memory.querySelector(area)!.cloneNode(true));
             }
           },
         },

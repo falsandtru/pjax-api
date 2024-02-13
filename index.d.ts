@@ -21,13 +21,13 @@ export interface Config {
   readonly replace?: string;
   readonly memory?: Dict<string, Document>;
   readonly fetch?: {
-    readonly rewrite?: (url: string, method: string, headers: Headers, timeout: number, body: FormData | null, cache?: Document) => XMLHttpRequest | undefined;
+    readonly rewrite?: (url: string, method: string, headers: Headers, timeout: number, body: FormData | null, memory?: Document) => XMLHttpRequest | undefined;
     readonly headers?: Headers;
     readonly timeout?: number;
     readonly wait?: number;
   };
   readonly update?: {
-    readonly rewrite?: (url: string, document: Document, area: string, cache?: Document) => void;
+    readonly rewrite?: (url: string, document: Document, area: string, memory?: Document) => void;
     readonly head?: string;
     readonly css?: boolean;
     readonly script?: boolean;
