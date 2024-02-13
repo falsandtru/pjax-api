@@ -1,52 +1,44 @@
-import { Config } from '../../data/config';
-import { RouterEvent, RouterEventType } from '../../event/router';
+import { RouterEntity } from '../model/eav/entity';
+import { RouterEventType } from '../../event/router';
 import { Response } from '../model/eav/value/fetch';
 import { xhr } from '../module/fetch/xhr';
-import { Cancellee } from 'spica/cancellation';
 import { Either } from 'spica/either';
-import { wait as delay } from 'spica/timer';
+import { wait } from 'spica/timer';
 
 export async function fetch(
   {
-    type,
-    location,
-    request: {
-      method,
-      url,
-      body,
-    },
-  }: RouterEvent,
-  {
-    areas,
-    memory,
-    fetch: {
-      rewrite,
-      headers,
-      timeout,
-      wait,
-    },
-    sequence,
-  }: Config,
-  process: Cancellee<Error>,
+    event,
+    config,
+    state,
+  }: RouterEntity,
 ): Promise<Either<Error, readonly [Response, 'seq:fetch']>> {
-  headers = new Headers(headers);
+  const headers = new Headers(config.fetch.headers);
   headers.has('Accept') || headers.set('Accept', 'text/html');
-  headers.has('X-Pjax') || headers.set('X-Pjax', JSON.stringify(areas));
-  const mem = type === RouterEventType.Popstate
-    ? memory?.get(location.dest.path)
+  headers.has('X-Pjax') || headers.set('X-Pjax', JSON.stringify(config.areas));
+  const memory = event.type === RouterEventType.Popstate
+    ? config.memory?.get(event.location.dest.path)
     : undefined;
   const [seq, res] = await Promise.all([
-    sequence.fetch(undefined, {
-      path: url.path,
-      method,
+    config.sequence.fetch(undefined, {
+      path: event.request.url.path,
+      method: event.request.method,
       headers,
-      body,
+      body: event.request.body,
     }),
-    xhr(method, url, location.orig, headers, body, timeout, process, rewrite, mem),
-    delay(wait),
+    xhr(
+      event.request.method,
+      event.request.url,
+      event.location.orig,
+      headers,
+      event.request.body,
+      config.fetch.timeout,
+      state.process,
+      config.fetch.rewrite,
+      memory),
+    wait(config.fetch.wait),
     window.dispatchEvent(new Event('pjax:fetch')),
   ]);
   return res
-    .bind(process.either)
+    .bind(state.process.either)
     .fmap(res => [res, seq] as const);
 }
