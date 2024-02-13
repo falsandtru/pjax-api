@@ -2,6 +2,7 @@
 
 ## 3.44.0
 
+- Change `logger` to `log` option.
 - Remove `cache` option.
 
 ## 3.43.0

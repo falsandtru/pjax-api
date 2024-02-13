@@ -95,9 +95,9 @@ The next internal defaults are also applied.
 
 Reload targets of scripts.
 
-### logger: string = `''`
+### log: string = `''`
 
-Logging targets of scripts.
+Log targets of scripts.
 
 ## fallback: (target: HTMLAnchorElement | HTMLAreaElement | HTMLFormElement | Window, reason: unknown) => void = ...
 

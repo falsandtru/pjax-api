@@ -41,7 +41,7 @@ export class Config implements Options {
       security: '[src*=".scr.kaspersky-labs.com/"]',
     },
     reload: '',
-    logger: '',
+    log: '',
   };
   public fallback(target: HTMLAnchorElement | HTMLAreaElement | HTMLFormElement | Window, reason: unknown): void {
     if (target instanceof HTMLAnchorElement ||

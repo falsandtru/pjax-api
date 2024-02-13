@@ -18,7 +18,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         {
           ignore: '',
           reload: '',
-          logger: ''
+          log: ''
         },
         1e3,
         new Cancellation<Error>(),
@@ -50,7 +50,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         {
           ignore: '',
           reload: '',
-          logger: 'head'
+          log: 'head'
         },
         1e3,
         new Cancellation<Error>(),
@@ -92,7 +92,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         {
           ignore: '',
           reload: '',
-          logger: 'head'
+          log: 'head'
         },
         1e3,
         new Cancellation<Error>())
@@ -120,7 +120,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         {
           ignore: '',
           reload: '',
-          logger: 'head'
+          log: 'head'
         },
         1e3,
         new Cancellation<Error>(),
@@ -154,7 +154,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         {
           ignore: '',
           reload: '',
-          logger: 'head'
+          log: 'head'
         },
         1e3,
         new Cancellation<Error>(),
@@ -188,7 +188,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         {
           ignore: '',
           reload: '',
-          logger: 'head'
+          log: 'head'
         },
         1e3,
         cancellation,
@@ -222,7 +222,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         {
           ignore: '',
           reload: '',
-          logger: 'head'
+          log: 'head'
         },
         1e3,
         new Cancellation<Error>(),
@@ -263,7 +263,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         {
           ignore: '',
           reload: '',
-          logger: 'head'
+          log: 'head'
         },
         1e3,
         new Cancellation<Error>(),
@@ -305,7 +305,7 @@ describe('Unit: layer/domain/router/module/update/script', () => {
         {
           ignore: '',
           reload: '',
-          logger: 'head'
+          log: 'head'
         },
         1e3,
         cancellation,

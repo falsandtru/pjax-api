@@ -20,7 +20,7 @@ export function script(
   selector: {
     ignore: string;
     reload: string;
-    logger: string;
+    log: string;
   },
   timeout: number,
   cancellation: Cancellee<Error>,
@@ -79,7 +79,7 @@ export function script(
           results
             .bind(cancellation.either)
             .bind(([sp, ap]) =>
-              io.evaluate(script, code, selector.logger, skip, AtomicPromise.all(sp), cancellation)
+              io.evaluate(script, code, selector.log, skip, AtomicPromise.all(sp), cancellation)
                 .extract(
                   p => Right(tuple(push(sp, [p]), ap)),
                   p => Right(tuple(sp, push(ap, [p]))))),
@@ -123,7 +123,7 @@ export { fetch as _fetch }
 function evaluate(
   script: HTMLScriptElement,
   code: string,
-  logger: string,
+  log: string,
   skip: ReadonlySet<URL.Href<StandardURL>>,
   wait: Promise<any>,
   cancellation: Cancellee<Error>,
@@ -134,7 +134,7 @@ function evaluate(
   script = script.ownerDocument === document
     ? script // only for testing
     : document.importNode(script.cloneNode(true), true) as HTMLScriptElement;
-  const logging = !!script.parentElement && script.parentElement.matches(logger.trim() || '_');
+  const logging = !!script.parentElement && script.parentElement.matches(log.trim() || '_');
   const container = document.querySelector(
     logging
       ? script.parentElement!.id

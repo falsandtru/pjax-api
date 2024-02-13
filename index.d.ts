@@ -33,7 +33,7 @@ export interface Config {
     readonly script?: boolean;
     readonly ignore?: string;
     readonly reload?: string;
-    readonly logger?: string;
+    readonly log?: string;
   };
   readonly fallback?: (target: HTMLAnchorElement | HTMLAreaElement | HTMLFormElement | Window, reason: unknown) => void;
   readonly sequence?: Sequence<any, any, any, any>;
