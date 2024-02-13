@@ -301,804 +301,6 @@ function empty(source) {
 
 /***/ }),
 
-/***/ 9408:
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.Cache = void 0;
-const alias_1 = __webpack_require__(5807);
-const chrono_1 = __webpack_require__(7820);
-const list_1 = __webpack_require__(9756);
-const heap_1 = __webpack_require__(8487);
-const assign_1 = __webpack_require__(1368);
-// Dual Window Cache
-/*
-LFU論理寿命：
-小容量で小効果のみにつきLRU下限で代替し無効化。
-
-LRU下限：
-小容量で大効果につき採用。
-
-統計解像度：
-効果ないが検証用に残置。
-
-サイクリックスィープ：
-LRU汚染対策。
-大効果につき採用。
-
-履歴標本：
-大効果につき採用。
-
-*/
-/*
-比較検討
-
-LRU:
-低性能。
-
-CLOCK:
-非常に高速かつLRUよりややヒット率が高い。
-容量制限付きマップなどヒット率より速度を優先する場合に最適。
-ただし最悪時間計算量O(n)。
-
-CAR/CDW(CLOCK+DWC)/CLOCK-Pro:
-最悪時間計算量O(n)。
-CARとCLOCK-Proは合計2倍の履歴を持つ。
-
-ARC:
-キャッシュサイズの2倍のキーを保持する。
-すでにARCに近いヒット率を達成しているため2倍のキーサイズとリスト操作による
-空間効率と速度の低下を正当化できるワークロードでのみ優位性がある。
-Loop耐性が欠如しておりGLIやDS1などLoop耐性を要するワークロードではDWCが大幅に優れている。
-
-DWC:
-時間空間ともに定数計算量かつすべての基本的耐性を持つ。
-情報量(履歴)の不足を補うため全体的に統計精度への依存度が上がっており標本サイズが小さくなるほど
-情報量(標本に含まれるシグナルの比率)の加速的減少と統計精度の低下により性能低下しやすくなる。
-
-LIRS:
-キャッシュサイズの3倍以上のキーを保持する。
-LIRS論文全著者を共著者とするLIRS2論文筆頭著者の実装によると最大2500倍、事実上無制限。
-にもかかわらずARCより安定して十分に性能が高いとは言えないうえ大幅に性能の劣るケースも散見される。
-履歴に現実的な上限を与えた場合の実際の性能が不明でありまともな比較資料がない。
-キーを無制限に走査するGC的処理があるためキャッシュサイズに比例して大きな遅延が入る可能性が上がり
-遅延が許容できない水準に達する可能性がある。
-まともなアルゴリズムではない。
-
-TinyLFU:
-TinyLFUはキーのポインタのアドレスでブルームフィルタを生成するためJavaScriptでは
-文字列やオブジェクトなどからアドレスを取得または代替値を高速に割り当てる方法がなく汎用的に使用できない。
-乱数で代用する方法は強引で低速だがリモートアクセスなど低速な処理では償却可能と思われる。
-オーバーヘッドが大きくメモ化など同期処理に耐える速度を要件とする用途には適さないと思われる。
-ブルームフィルタが削除操作不可であるため一定期間内のキャッシュの任意または有効期限超過による
-削除数に比例して性能が低下する。
-キャッシュサイズ分の挿入ごとにブルームフィルタがリセットのため全走査されるため
-キャッシュサイズに比例した大きさの遅延が入る。
-TinyLFUはバーストアクセスに脆弱であるため基本的にW-TinyLFU以外選択肢に入れるべきではない。
-メインキャッシュにLRUを使用しているためこれをDWCに置換できる可能性がある。
-
-https://github.com/ben-manes/caffeine/wiki/Efficiency
-
-*/
-/*
-# lru-cacheの最適化分析
-
-最適化前(@6)よりオブジェクト値において50-10%ほど高速化している。
-
-## Map値の数値化
-
-Mapは値が数値の場合setが2倍高速化される。
-getは変わらないため読み取り主体の場合効果が低い。
-
-## インデクスアクセス化
-
-個別の状態を個別のオブジェクトのプロパティに持たせると最適化されていないプロパティアクセスにより
-低速化するためすべての状態を状態別の配列に格納しインデクスアクセスに変換することで高速化している。
-DWCはこの最適化を行っても状態数の多さに比例して増加したオーバーヘッドに相殺され効果を得られない。
-状態をオブジェクトの代わりに配列に入れても最適化されずプロパティ・インデクスとも二段のアクセスは
-最適化されないと思われる。
-
-## TypedArray
-
-インデクスアクセス化にTypedArrayを使うことで配列の書き込みが2倍高速化される。
-これによりリスト操作が高速化されるがもともと高速なため全体的な寄与は小さいと思われる。
-
-*/
-class Entry {
-  constructor(key, value, size, expiration) {
-    this.key = key;
-    this.value = value;
-    this.size = size;
-    this.expiration = expiration;
-    this.partition = 'LRU';
-    this.affiliation = 'LRU';
-    this.enode = undefined;
-    this.next = undefined;
-    this.prev = undefined;
-  }
-}
-function segment(expiration) {
-  return expiration >>> 4;
-}
-class Cache {
-  constructor(capacity, opts = {}) {
-    this.settings = {
-      capacity: 0,
-      window: 1,
-      sample: 1,
-      age: Infinity,
-      eagerExpiration: false,
-      capture: {
-        delete: true,
-        clear: true
-      },
-      sweep: {
-        threshold: 20,
-        ratio: 50,
-        window: 1,
-        room: 50,
-        range: 1,
-        shift: 2
-      }
-    };
-    this.dict = new Map();
-    this.LRU = new list_1.List();
-    this.LFU = new list_1.List();
-    this.overlapLRU = 0;
-    this.overlapLFU = 0;
-    this.expiration = false;
-    this.$size = 0;
-    this.injection = 100;
-    this.declination = 1;
-    if (typeof capacity === 'object') {
-      opts = capacity;
-      capacity = opts.capacity ?? 0;
-    }
-    const settings = (0, assign_1.extend)(this.settings, opts, {
-      capacity
-    });
-    this.capacity = capacity = settings.capacity;
-    if (capacity >>> 0 !== capacity) throw new Error(`Spica: Cache: Capacity must be integer.`);
-    if (capacity >= 1 === false) throw new Error(`Spica: Cache: Capacity must be 1 or more.`);
-    this.window = capacity * settings.window / 100 >>> 0 || 1;
-    this.partition = capacity - this.window;
-    this.sample = settings.sample;
-    this.resource = settings.resource ?? capacity;
-    this.age = settings.age;
-    if (settings.eagerExpiration) {
-      this.expirations = new heap_1.Heap(heap_1.Heap.min, {
-        stable: false
-      });
-    }
-    this.sweeper = new Sweeper(this.LRU, capacity, settings.sweep.window, settings.sweep.room, settings.sweep.threshold, settings.sweep.ratio, settings.sweep.range, settings.sweep.shift);
-    this.disposer = settings.disposer;
-  }
-  get length() {
-    const {
-      LRU,
-      LFU
-    } = this;
-    return LRU.length + LFU.length;
-  }
-  get size() {
-    return this.$size;
-  }
-  resize(capacity, resource) {
-    if (capacity >>> 0 !== capacity) throw new Error(`Spica: Cache: Capacity must be integer.`);
-    if (capacity >= 1 === false) throw new Error(`Spica: Cache: Capacity must be 1 or more.`);
-    this.partition = this.partition / this.capacity * capacity >>> 0;
-    this.capacity = capacity;
-    const {
-      settings
-    } = this;
-    this.window = capacity * settings.window / 100 >>> 0 || 1;
-    this.resource = resource ?? settings.resource ?? capacity;
-    this.sweeper.resize(capacity, settings.sweep.window, settings.sweep.room, settings.sweep.range);
-    this.ensure(0);
-  }
-  clear() {
-    const {
-      LRU,
-      LFU
-    } = this;
-    this.$size = 0;
-    this.partition = this.capacity - this.window;
-    this.injection = 100;
-    this.declination = 1;
-    this.dict = new Map();
-    this.LRU = new list_1.List();
-    this.LFU = new list_1.List();
-    this.overlapLRU = 0;
-    this.overlapLFU = 0;
-    this.expiration = false;
-    this.expirations?.clear();
-    this.sweeper.clear();
-    this.sweeper.replace(this.LRU);
-    if (!this.disposer || !this.settings.capture.clear) return;
-    for (const {
-      key,
-      value
-    } of LRU) {
-      this.disposer(value, key);
-    }
-    for (const {
-      key,
-      value
-    } of LFU) {
-      this.disposer(value, key);
-    }
-  }
-  evict$(entry, callback) {
-    //assert(this.dict.size <= this.capacity);
-
-    this.overlap(entry, true);
-    if (entry.enode !== undefined) {
-      this.expirations.delete(entry.enode);
-      entry.enode = undefined;
-    }
-    entry.partition === 'LRU' ? this.LRU.delete(entry) : this.LFU.delete(entry);
-    this.dict.delete(entry.key);
-    //assert(this.dict.size <= this.capacity);
-    this.$size -= entry.size;
-    callback && this.disposer?.(entry.value, entry.key);
-  }
-  get overflow() {
-    return this.overlapLRU * 100 > this.LFU.length * this.sample;
-  }
-  overlap(entry, eviction = false) {
-    if (entry.partition === 'LRU') {
-      if (entry.affiliation === 'LRU') {
-        if (eviction) return entry;
-        ++this.overlapLRU;
-      } else {
-        --this.overlapLFU;
-      }
-    } else {
-      if (entry.affiliation === 'LFU') {
-        if (eviction) return entry;
-        ++this.overlapLFU;
-      } else {
-        --this.overlapLRU;
-        if (this.declination !== 1 && !this.overflow) {
-          this.declination = 1;
-        }
-      }
-    }
-    return entry;
-  }
-  // Update and deletion are reentrant but addition is not.
-  ensure(margin, target, capture = false) {
-    let size = target?.size ?? 0;
-    const {
-      LRU,
-      LFU
-    } = this;
-    while (this.size + margin - size > this.resource) {
-      this.injection = (0, alias_1.min)(this.injection + this.sample, 100 * this.declination);
-      let victim = this.expirations?.peek()?.value;
-      if (victim !== undefined && victim !== target && victim.expiration < (0, chrono_1.now)()) {} else if (LRU.length === 0) {
-        victim = LFU.head.prev;
-        victim = victim !== target ? victim : victim.prev;
-      } else {
-        if (LRU.length >= this.window && this.injection === 100 * this.declination) {
-          const entry = LRU.head.prev;
-          if (entry.affiliation === 'LRU') {
-            LRU.delete(entry);
-            LFU.unshift(this.overlap(entry));
-            entry.partition = 'LFU';
-            this.injection = 0;
-            this.declination = !this.overflow ? 1 : (0, alias_1.min)(this.declination << 1, this.capacity / LFU.length << 3, 8);
-          }
-        }
-        if (this.sweeper.isActive()) {
-          this.sweeper.sweep();
-        }
-        if (LFU.length > this.partition) {
-          let entry = LFU.head.prev;
-          entry = entry !== target ? entry : LFU.length !== 1 ? entry.prev : undefined;
-          if (entry !== undefined) {
-            LFU.delete(entry);
-            LRU.unshift(this.overlap(entry));
-            entry.partition = 'LRU';
-          }
-        }
-        if (LRU.length !== 0) {
-          victim = LRU.head.prev;
-          victim = victim !== target ? victim : LRU.length !== 1 ? victim.prev : undefined;
-          if (capture && target === undefined && victim !== undefined) {
-            target = victim;
-            size = target.size;
-            continue;
-          }
-          victim ??= LFU.head.prev;
-        } else {
-          victim = LFU.head.prev;
-          victim = victim !== target ? victim : victim.prev;
-        }
-      }
-      this.evict$(victim, true);
-      target = target?.next && target;
-      size = target?.size ?? 0;
-    }
-    return target;
-  }
-  update(entry, key, value, size, expiration) {
-    const key$ = entry.key;
-    const value$ = entry.value;
-    entry.key = key;
-    entry.value = value;
-    this.$size += size - entry.size;
-    entry.size = size;
-    entry.expiration = expiration;
-    if (this.expiration && this.expirations !== undefined && expiration !== Infinity) {
-      entry.enode !== undefined ? this.expirations.update(entry.enode, segment(expiration)) : entry.enode = this.expirations.insert(entry, segment(expiration));
-    } else if (entry.enode !== undefined) {
-      this.expirations.delete(entry.enode);
-      entry.enode = undefined;
-    }
-    this.disposer?.(value$, key$);
-  }
-  replace(entry) {
-    const {
-      LRU,
-      LFU
-    } = this;
-    if (entry.partition === 'LRU') {
-      if (entry.affiliation === 'LRU') {
-        // For memoize.
-        // Strict checks are ineffective with OLTP.
-        if (entry === LRU.head) return;
-        entry.affiliation = 'LFU';
-      } else {
-        const delta = LFU.length <= this.partition ? (0, alias_1.max)(LRU.length / (LFU.length || 1) * (0, alias_1.max)(this.overlapLRU / this.overlapLFU, 1) | 0, 1) : 0;
-        this.partition = (0, alias_1.min)(this.partition + delta, this.capacity - this.window);
-        --this.overlapLFU;
-      }
-      LRU.delete(entry);
-      LFU.unshift(entry);
-      entry.partition = 'LFU';
-    } else {
-      if (entry.affiliation === 'LFU') {} else {
-        const delta = LRU.length <= this.capacity - this.partition ? (0, alias_1.max)(LFU.length / (LRU.length || 1) * (0, alias_1.max)(this.overlapLFU / this.overlapLRU, 1) | 0, 1) : 0;
-        this.partition = (0, alias_1.max)(this.partition - delta, 0);
-        entry.affiliation = 'LFU';
-        --this.overlapLRU;
-        if (this.declination !== 1 && !this.overflow) {
-          this.declination = 1;
-        }
-      }
-      if (entry === LFU.head) return;
-      LFU.delete(entry);
-      LFU.unshift(entry);
-    }
-  }
-  validate(size, age) {
-    if (1 <= age) {
-      this.expiration ||= age !== Infinity;
-    } else {
-      return false;
-    }
-    return 1 <= size && size <= this.resource;
-  }
-  evict() {
-    const victim = this.LRU.last ?? this.LFU.last;
-    if (victim === undefined) return;
-    this.evict$(victim, true);
-    return [victim.key, victim.value];
-  }
-  add(key, value, opts, victim) {
-    const {
-      size = 1,
-      age = this.age
-    } = opts ?? {};
-    if (opts !== undefined && !this.validate(size, age)) {
-      this.disposer?.(value, key);
-      return false;
-    }
-    const {
-      LRU
-    } = this;
-    const expiration = age === Infinity ? age : (0, chrono_1.now)() + age;
-    victim = this.ensure(size, victim, true);
-    // Note that the key will be duplicate if the key is evicted and added again in disposing.
-    if (victim !== undefined) {
-      victim.affiliation === 'LFU' && --this.overlapLFU;
-      this.dict.delete(victim.key);
-      this.dict.set(key, victim);
-      victim.affiliation = 'LRU';
-      LRU.head = victim;
-      this.update(victim, key, value, size, expiration);
-      return true;
-    }
-    this.$size += size;
-    const entry = new Entry(key, value, size, expiration);
-    LRU.unshift(entry);
-    this.dict.set(key, entry);
-    if (this.expiration && this.expirations !== undefined && expiration !== Infinity) {
-      entry.enode = this.expirations.insert(entry, segment(expiration));
-    }
-    return true;
-  }
-  put(key, value, opts) {
-    const {
-      size = 1,
-      age = this.age
-    } = opts ?? {};
-    if (opts !== undefined && !this.validate(size, age)) {
-      this.disposer?.(value, key);
-      return false;
-    }
-    const entry = this.dict.get(key);
-    const match = entry !== undefined;
-    const victim = this.ensure(size, entry, true);
-    // Note that the key of entry or victim may be changed if the new key is set in disposing.
-    if (match && entry === victim) {
-      const expiration = age === Infinity ? age : (0, chrono_1.now)() + age;
-      this.update(entry, key, value, size, expiration);
-      return match;
-    }
-    this.add(key, value, {
-      size,
-      age
-    }, victim);
-    return match;
-  }
-  set(key, value, opts) {
-    this.put(key, value, opts);
-    return this;
-  }
-  get(key) {
-    const entry = this.dict.get(key);
-    if (entry === undefined) {
-      this.sweeper.miss();
-      return;
-    }
-    if (this.expiration && entry.expiration !== Infinity && entry.expiration < (0, chrono_1.now)()) {
-      this.sweeper.miss();
-      this.evict$(entry, true);
-      return;
-    }
-    this.sweeper.hit();
-    this.replace(entry);
-    return entry.value;
-  }
-  has(key) {
-    const entry = this.dict.get(key);
-    if (entry === undefined) return false;
-    if (this.expiration && entry.expiration !== Infinity && entry.expiration < (0, chrono_1.now)()) {
-      this.evict$(entry, true);
-      return false;
-    }
-    return true;
-  }
-  delete(key) {
-    const entry = this.dict.get(key);
-    if (entry === undefined) return false;
-    this.evict$(entry, this.settings.capture.delete === true);
-    return true;
-  }
-  *[Symbol.iterator]() {
-    for (const {
-      key,
-      value
-    } of this.LRU) {
-      yield [key, value];
-    }
-    for (const {
-      key,
-      value
-    } of this.LFU) {
-      yield [key, value];
-    }
-  }
-}
-exports.Cache = Cache;
-// Transitive Wide MRU with Cyclic Replacement
-class Sweeper {
-  constructor(target, capacity, $window, room, threshold, ratio, $range, shift) {
-    this.target = target;
-    this.$window = $window;
-    this.room = room;
-    this.threshold = threshold;
-    this.ratio = ratio;
-    this.$range = $range;
-    this.shift = shift;
-    this.currWindowHits = 0;
-    this.currWindowMisses = 0;
-    this.prevWindowHits = 0;
-    this.prevWindowMisses = 0;
-    this.currRoomHits = 0;
-    this.currRoomMisses = 0;
-    this.prevRoomHits = 0;
-    this.prevRoomMisses = 0;
-    this.active = false;
-    this.processing = false;
-    this.direction = true;
-    this.initial = true;
-    this.back = 0;
-    this.advance = 0;
-    this.threshold *= 100;
-    this.resize(capacity, $window, room, $range);
-  }
-  replace(target) {
-    this.target = target;
-  }
-  get window() {
-    const n = this.target.length > this.$window << 1 ? 2 : 1;
-    return (0, alias_1.max)(this.$window, (0, alias_1.min)(this.target.length >>> n, this.$window << n + 1));
-  }
-  get range() {
-    return (0, alias_1.max)(this.$range, (0, alias_1.min)(this.window >>> 1, this.target.length >>> 2));
-  }
-  resize(capacity, window, room, range) {
-    this.$window = (0, alias_1.round)(capacity * window / 100) || 1;
-    this.room = (0, alias_1.round)(capacity * room / 100) || 1;
-    this.$range = capacity * range / 100;
-    this.currWindowHits + this.currWindowMisses >= this.window && this.slideWindow();
-    this.currRoomHits + this.currRoomMisses >= this.room && this.slideRoom();
-    this.update();
-  }
-  clear() {
-    this.active = false;
-    this.processing = true;
-    this.reset();
-    this.slideWindow();
-    this.slideWindow();
-    this.slideRoom();
-    this.slideRoom();
-  }
-  slideWindow() {
-    this.prevWindowHits = this.currWindowHits;
-    this.prevWindowMisses = this.currWindowMisses;
-    this.currWindowHits = 0;
-    this.currWindowMisses = 0;
-  }
-  slideRoom() {
-    this.prevRoomHits = this.currRoomHits;
-    this.prevRoomMisses = this.currRoomMisses;
-    this.currRoomHits = 0;
-    this.currRoomMisses = 0;
-  }
-  hit() {
-    ++this.currWindowHits + this.currWindowMisses >= this.window && this.slideWindow();
-    ++this.currRoomHits + this.currRoomMisses >= this.room && this.slideRoom();
-    this.update();
-    this.processing && !this.active && this.reset();
-  }
-  miss() {
-    this.currWindowHits + ++this.currWindowMisses >= this.window && this.slideWindow();
-    this.currRoomHits + ++this.currRoomMisses >= this.room && this.slideRoom();
-    this.update();
-  }
-  update() {
-    if (this.threshold === 0) return;
-    const ratio = this.ratioWindow();
-    this.active = ratio < this.threshold || ratio < this.ratioRoom() * this.ratio / 100;
-  }
-  isActive() {
-    return this.active;
-  }
-  ratioWindow() {
-    return ratio(this.window, [this.currWindowHits, this.prevWindowHits], [this.currWindowMisses, this.prevWindowMisses], 0);
-  }
-  ratioRoom() {
-    return ratio(this.room, [this.currRoomHits, this.prevRoomHits], [this.currRoomMisses, this.prevRoomMisses], 0);
-  }
-  sweep() {
-    const {
-      target
-    } = this;
-    let lap = false;
-    if (target.length === 0) return lap;
-    this.processing ||= true;
-    if (this.direction) {
-      if (this.back < 1) {
-        this.back += this.range;
-        lap = !this.initial && this.back >= 1;
-      }
-    } else {
-      if (this.advance < 1) {
-        this.advance += this.range * (100 - this.shift) / 100;
-      }
-    }
-    if (this.back >= 1) {
-      if (--this.back < 1) {
-        this.direction = false;
-      }
-      if (this.initial) {
-        this.initial = false;
-        target.head = target.head.next;
-      } else {
-        target.head = target.head.next.next;
-      }
-    } else if (this.advance >= 1) {
-      if (--this.advance < 1) {
-        this.direction = true;
-      }
-    } else {
-      this.direction = !this.direction;
-      target.head = target.head.next;
-    }
-    return lap;
-  }
-  reset() {
-    this.processing = false;
-    this.direction = true;
-    this.initial = true;
-    this.back = 0;
-    this.advance = 0;
-  }
-}
-function ratio(window, targets, remains, offset) {
-  const currHits = targets[0];
-  const prevHits = targets[1];
-  const currTotal = currHits + remains[0];
-  const prevTotal = prevHits + remains[1];
-  const prevRate = prevHits && prevHits * 100 / prevTotal;
-  const currRatio = currTotal * 100 / window - offset;
-  if (currRatio <= 0) return prevRate * 100 | 0;
-  const currRate = currHits && currHits * 100 / currTotal;
-  if (prevTotal === 0) return currRate * 100 | 0;
-  const prevRatio = 100 - currRatio;
-  return currRate * currRatio + prevRate * prevRatio | 0;
-}
-function ratio2(window, targets, remains, offset) {
-  let total = 0;
-  let hits = 0;
-  let ratio = 100;
-  for (let len = targets.length, i = 0; i < len; ++i) {
-    const subtotal = targets[i] + remains[i];
-    if (subtotal === 0) continue;
-    offset = i + 1 === len ? 0 : offset;
-    const subratio = (0, alias_1.min)(subtotal * 100 / window, ratio) - offset;
-    offset = offset && subratio < 0 ? -subratio : 0;
-    if (subratio <= 0) continue;
-    const r = window * subratio / subtotal;
-    total += subtotal * r;
-    hits += targets[i] * r;
-    ratio -= subratio;
-    if (ratio <= 0) break;
-  }
-  return hits * 10000 / total | 0;
-}
-// OLTPのような流出の多いワークロードで1%未満上がる効果しかない。
-// 流出軽減以外の効果はないと思われる。
-// 速度も落ちるので不採用。
-// @ts-ignore
-class TLRU {
-  constructor(step = 1, window = 0, retrial = true) {
-    this.step = step;
-    this.window = window;
-    this.retrial = retrial;
-    this.list = new list_1.List();
-    this.handV = undefined;
-    this.handG = undefined;
-    this.count = 0;
-  }
-  get head() {
-    return this.list.head;
-  }
-  set head(entry) {
-    this.list.head = entry;
-  }
-  get victim() {
-    return this.handV ?? this.list.last;
-  }
-  get length() {
-    return this.list.length;
-  }
-  get size() {
-    return this.list.length;
-  }
-  return() {
-    const {
-      list
-    } = this;
-    if (this.count !== -1 && this.handV !== undefined && this.handG !== list.last && this.handG !== undefined) {
-      if (this.count >= 0) {
-        //this.count = -max(max(list.length - this.count, 0) * this.step / 100 | 0, 1) - 1;
-        this.count = -(0, alias_1.max)(list.length * this.step / 100 | 0, list.length * this.window / 100 - this.count | 0, 1) - 1;
-      } else {
-        this.handG = this.handG.prev;
-      }
-    } else {
-      if (this.handV === list.head) {
-        this.handG = undefined;
-      }
-      if (this.handG === list.last) {
-        this.handG = this.handG?.prev;
-      }
-      this.handV = list.last;
-      this.count = 0;
-    }
-  }
-  unshift(entry) {
-    const {
-      list
-    } = this;
-    if (this.handV === this.handG || this.handV === list.last) {
-      this.return();
-    }
-    list.unshift(entry);
-    this.hit(entry);
-  }
-  hit(entry) {
-    this.handG ??= entry;
-  }
-  add(entry) {
-    const {
-      list
-    } = this;
-    if (this.handV === this.handG || this.handV === list.last) {
-      this.return();
-    }
-    // 非延命
-    if (this.count >= 0 || !this.retrial) {
-      this.handV ??= list.last;
-      list.insert(entry, this.handV?.next);
-      this.handV ??= list.last;
-    }
-    // 延命
-    else {
-      if (this.handG !== list.head) {
-        list.insert(entry, this.handG);
-      } else {
-        list.unshift(entry);
-      }
-      this.handV = entry;
-      this.handG = entry.prev;
-    }
-    if (this.handV !== this.handG) {
-      this.handV = this.handV.prev;
-    }
-    ++this.count;
-    return true;
-  }
-  escape(entry) {
-    const {
-      list
-    } = this;
-    if (list.length === 1) {
-      this.handV = undefined;
-      this.handG = undefined;
-      this.count = 0;
-      return;
-    }
-    if (entry === this.handV) {
-      this.handV = this.handV !== list.head ? this.handV.prev : this.handV.next;
-    }
-    if (entry === this.handG) {
-      this.handG = this.handG !== list.head ? this.handG.prev : this.handG.next;
-    }
-  }
-  delete(entry) {
-    const {
-      list
-    } = this;
-    if (entry === undefined) return;
-    this.escape(entry);
-    list.delete(entry);
-  }
-  clear() {
-    this.list.clear();
-    this.handV = undefined;
-    this.handG = undefined;
-    this.count = 0;
-  }
-  *[Symbol.iterator]() {
-    for (const entry of this.list) {
-      yield entry;
-    }
-  }
-}
-
-/***/ }),
-
 /***/ 6224:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
@@ -6594,7 +5796,6 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.Config = exports.scope = void 0;
-const cache_1 = __webpack_require__(9408);
 const assign_1 = __webpack_require__(1368);
 var scope_1 = __webpack_require__(6920);
 Object.defineProperty(exports, "scope", ({
@@ -6609,11 +5810,6 @@ class Config {
     this.link = ':is(a, area)[href]:not([target])';
     this.form = 'form:not([method])';
     this.replace = '';
-    this.cache = new cache_1.Cache(100, {
-      sweep: {
-        threshold: 0
-      }
-    });
     this.memory = undefined;
     this.fetch = {
       rewrite: undefined,
@@ -6633,10 +5829,9 @@ class Config {
         security: '[src*=".scr.kaspersky-labs.com/"]'
       },
       reload: '',
-      logger: ''
+      log: ''
     };
     this.sequence = new Sequence();
-    this.progressbar = 'display:none;position:absolute;bottom:0;left:0;width:0;height:2px;background:rgb(40, 105, 255);';
     this.scope = {};
     this.isolation = false;
     (0, assign_1.extend)(this, options);
@@ -6843,7 +6038,7 @@ Object.defineProperty(exports, "RouterEntityState", ({
   }
 }));
 async function route(entity, io) {
-  return (0, either_1.Right)(undefined).bind(entity.state.process.either).bind(() => match(io.document, entity.config.areas) ? (0, either_1.Right)(undefined) : (0, either_1.Left)(new Error(`Failed to match the areas`))).fmap(() => (0, fetch_1.fetch)(entity.event, entity.config, entity.state.process, io)).fmap(async p => (await p).fmap(([res, seq]) => (0, update_1.update)(entity, res, seq, {
+  return (0, either_1.Right)(undefined).bind(entity.state.process.either).bind(() => match(io.document, entity.config.areas) ? (0, either_1.Right)(undefined) : (0, either_1.Left)(new Error(`Failed to match the areas`))).fmap(() => (0, fetch_1.fetch)(entity)).fmap(async p => (await p).fmap(([res, seq]) => (0, update_1.update)(entity, res, seq, {
     document: io.document,
     position: path_1.loadPosition
   })).extract(either_1.Left)).extract(either_1.Left);
@@ -6934,50 +6129,24 @@ exports.fetch = void 0;
 const router_1 = __webpack_require__(6435);
 const xhr_1 = __webpack_require__(4416);
 const timer_1 = __webpack_require__(6968);
-const dom_1 = __webpack_require__(8200);
-const style = (0, dom_1.html)('style');
 async function fetch({
-  type,
-  location,
-  request: {
-    method,
-    url,
-    body
-  }
-}, {
-  areas,
-  cache,
-  memory,
-  fetch: {
-    rewrite,
-    headers,
-    timeout,
-    wait
-  },
-  sequence
-}, process, io) {
-  const {
-    scrollX,
-    scrollY
-  } = window;
-  if (type === router_1.RouterEventType.Popstate) {
-    io.document.documentElement.appendChild(style);
-  }
-  headers = new Headers(headers);
+  event,
+  config,
+  state
+}) {
+  const headers = new Headers(config.fetch.headers);
   headers.has('Accept') || headers.set('Accept', 'text/html');
-  headers.has('X-Pjax') || headers.set('X-Pjax', JSON.stringify(areas));
-  const mem = type === router_1.RouterEventType.Popstate ? memory?.get(location.dest.path) : undefined;
-  const [seq, res] = await Promise.all([sequence.fetch(undefined, {
-    path: url.path,
-    method,
+  headers.has('X-Pjax') || headers.set('X-Pjax', JSON.stringify(config.areas));
+  const memory = event.type === router_1.RouterEventType.Popstate ? config.memory?.get(event.location.dest.path) : undefined;
+  const [seq, res] = await Promise.all([config.sequence.fetch(undefined, {
+    path: event.request.url.path,
+    method: event.request.method,
     headers,
-    body
-  }), (0, xhr_1.xhr)(method, url, location.orig, headers, body, timeout, cache, mem, process, rewrite), (0, timer_1.wait)(wait), window.dispatchEvent(new Event('pjax:fetch'))]);
-  if (type === router_1.RouterEventType.Popstate) {
-    style.parentNode?.removeChild(style);
-    window.scrollTo(scrollX, scrollY);
-  }
-  return res.bind(process.either).fmap(res => [res, seq]);
+    body: event.request.body
+  }), (0, xhr_1.xhr)(event.request.method, event.request.url, event.location.orig, headers, event.request.body, config.fetch.timeout, state.process, config.fetch.rewrite,
+  // 遷移成功後に遷移可能性が自然に壊れることはないため検査不要
+  memory), (0, timer_1.wait)(config.fetch.wait), window.dispatchEvent(new Event('pjax:fetch'))]);
+  return res.bind(state.process.either).fmap(res => [res, seq]);
 }
 exports.fetch = fetch;
 
@@ -6998,10 +6167,7 @@ const promise_1 = __webpack_require__(1324);
 const either_1 = __webpack_require__(652);
 const url_1 = __webpack_require__(3800);
 const function_1 = __webpack_require__(2300);
-function xhr(method, displayURL, base, headers, body, timeout, cache, memory, cancellation, rewrite = function_1.noop) {
-  if (method === 'GET' && !headers.has('If-None-Match') && Date.now() > (cache.get(displayURL.path)?.expiry ?? Infinity)) {
-    headers.set('If-None-Match', cache.get(displayURL.path).etag);
-  }
+function xhr(method, displayURL, base, headers, body, timeout, cancellation, rewrite = function_1.noop, memory) {
   return new promise_1.AtomicPromise(resolve => {
     const xhr = rewrite(displayURL.href, method, headers, timeout, body, memory) ?? request(displayURL.href, method, headers, timeout, body);
     if (xhr.responseType !== 'document') throw new Error(`Response type must be 'document'`);
@@ -7010,24 +6176,8 @@ function xhr(method, displayURL, base, headers, body, timeout, cache, memory, ca
     xhr.addEventListener("abort", () => void resolve((0, either_1.Left)(new Error(`Failed to request a page by abort`))));
     xhr.addEventListener("error", () => void resolve((0, either_1.Left)(new Error(`Failed to request a page by error`))));
     xhr.addEventListener("timeout", () => void resolve((0, either_1.Left)(new Error(`Failed to request a page by timeout`))));
-    xhr.addEventListener("load", () => void verify(base, method, xhr, cache).fmap(xhr => {
+    xhr.addEventListener("load", () => void verify(base, xhr).fmap(xhr => {
       const responseURL = new url_1.URL((0, url_1.standardize)(restore(xhr.responseURL, displayURL.href), base.href));
-      if (method === 'GET') {
-        const cc = new Map(xhr.getResponseHeader('Cache-Control')
-        // eslint-disable-next-line redos/no-vulnerable
-        ? xhr.getResponseHeader('Cache-Control').trim().split(/\s*,\s*/).filter(v => v.length > 0).map(v => v.split('=').concat('')) : []);
-        for (const path of new Set([displayURL.path, responseURL.path])) {
-          if (xhr.getResponseHeader('ETag') && !cc.has('no-store')) {
-            cache.set(path, {
-              etag: xhr.getResponseHeader('ETag'),
-              expiry: cc.has('max-age') && !cc.has('no-cache') ? Date.now() + +cc.get('max-age') * 1000 || 0 : 0,
-              xhr
-            });
-          } else {
-            cache.delete(path);
-          }
-        }
-      }
       return new fetch_1.Response(responseURL, xhr);
     }).extract(err => void resolve((0, either_1.Left)(err)), res => void resolve((0, either_1.Right)(res))));
   });
@@ -7047,7 +6197,7 @@ function request(url, method, headers, timeout, body) {
 function restore(res, req) {
   return !res.includes('#') && req.includes('#') ? res + req.slice(req.indexOf('#')) : res;
 }
-function verify(base, method, xhr, cache) {
+function verify(base, xhr) {
   const url = new url_1.URL((0, url_1.standardize)(xhr.responseURL, base.href));
   switch (true) {
     case !xhr.responseURL:
@@ -7057,7 +6207,7 @@ function verify(base, method, xhr, cache) {
     case !/2..|304/.test(`${xhr.status}`):
       return (0, either_1.Left)(new Error(`Failed to validate the status of response`));
     case !xhr.response:
-      return method === 'GET' && xhr.status === 304 && cache.has(url.path) ? (0, either_1.Right)(cache.get(url.path).xhr) : (0, either_1.Left)(new Error(`Failed to get the response body`));
+      return (0, either_1.Left)(new Error(`Failed to get the response body`));
     case !match(xhr.getResponseHeader('Content-Type'), 'text/html'):
       return (0, either_1.Left)(new Error(`Failed to validate the content type of response`));
     default:
@@ -7129,10 +6279,7 @@ function update({
   };
   return promise_1.AtomicPromise.resolve(seq).then(process.either).then(m => m.bind(() => (0, content_1.separate)(documents, config.areas).extract(() => (0, either_1.Left)(new Error(`Failed to separate the areas`)), () => m))).then(m => m.bind(seqA => (0, content_1.separate)(documents, config.areas).fmap(([area]) => [seqA, area]).extract(() => (0, either_1.Left)(new Error(`Failed to separate the areas`)), process.either)).fmap(([seqB, area]) => {
     const memory = event.type === router_1.RouterEventType.Popstate ? config.memory?.get(event.location.dest.path) : undefined;
-    config.update.rewrite?.(event.location.dest.href, documents.src, area, memory && (0, content_1.separate)({
-      src: memory,
-      dst: documents.dst
-    }, [area]).extract(() => false) ? memory : undefined);
+    config.update.rewrite?.(event.location.dest.href, documents.src, area, memory);
     return seqB;
   }).bind(seqB => (0, content_1.separate)(documents, config.areas).fmap(([, areas]) => [seqB, areas]).extract(() => (0, either_1.Left)(new Error(`Failed to separate the areas`)), process.either)))
   // fetch -> unload
@@ -7420,7 +6567,7 @@ function script(documents, skip, selector, timeout, cancellation, io = {
     return scripts.map(script => io.fetch(script, timeout));
   }
   function run(responses) {
-    return either_1.Either.sequence(responses).bind(results => results.reduce((results, [script, code]) => results.bind(cancellation.either).bind(([sp, ap]) => io.evaluate(script, code, selector.logger, skip, promise_1.AtomicPromise.all(sp), cancellation).extract(p => (0, either_1.Right)((0, tuple_1.tuple)((0, array_1.push)(sp, [p]), ap)), p => (0, either_1.Right)((0, tuple_1.tuple)(sp, (0, array_1.push)(ap, [p]))))), (0, either_1.Right)([[], []]))).fmap(([sp, ap]) => promise_1.AtomicPromise.all(sp).then(m => either_1.Either.sequence(m)).then(m => m.fmap(ss => (0, tuple_1.tuple)(ss, Promise.all(ap).then(ms => either_1.Either.sequence(ms))))));
+    return either_1.Either.sequence(responses).bind(results => results.reduce((results, [script, code]) => results.bind(cancellation.either).bind(([sp, ap]) => io.evaluate(script, code, selector.log, skip, promise_1.AtomicPromise.all(sp), cancellation).extract(p => (0, either_1.Right)((0, tuple_1.tuple)((0, array_1.push)(sp, [p]), ap)), p => (0, either_1.Right)((0, tuple_1.tuple)(sp, (0, array_1.push)(ap, [p]))))), (0, either_1.Right)([[], []]))).fmap(([sp, ap]) => promise_1.AtomicPromise.all(sp).then(m => either_1.Either.sequence(m)).then(m => m.fmap(ss => (0, tuple_1.tuple)(ss, Promise.all(ap).then(ms => either_1.Either.sequence(ms))))));
   }
 }
 exports.script = script;
@@ -7435,10 +6582,10 @@ async function fetch(script, timeout) {
   }), (0, timer_1.wait)(timeout).then(() => promise_1.AtomicPromise.reject(new Error(`${script.src}: Timeout`)))]).then(async res => res.ok ? (0, either_1.Right)([script, await res.text()]) : script.matches('[src][async]') ? retry(script).then(() => (0, either_1.Right)([script, '']), () => (0, either_1.Left)(new Error(`${script.src}: ${res.statusText}`))) : (0, either_1.Left)(new Error(res.statusText)), error => (0, either_1.Left)(error));
 }
 exports._fetch = fetch;
-function evaluate(script, code, logger, skip, wait, cancellation) {
+function evaluate(script, code, log, skip, wait, cancellation) {
   script = script.ownerDocument === document ? script // only for testing
   : document.importNode(script.cloneNode(true), true);
-  const logging = !!script.parentElement && script.parentElement.matches(logger.trim() || '_');
+  const logging = !!script.parentElement && script.parentElement.matches(log.trim() || '_');
   const container = document.querySelector(logging ? script.parentElement.id ? `#${script.parentElement.id}` : script.parentElement.tagName : '_') || document.body;
   const unescape = escape(script);
   container.appendChild(script);
@@ -7957,7 +7104,6 @@ Object.defineProperty(exports, "RouterEventSource", ({
 }));
 const page_1 = __webpack_require__(4872);
 const env_1 = __webpack_require__(8240);
-//import { progressbar } from './progressbar';
 const error_1 = __webpack_require__(3976);
 const store_1 = __webpack_require__(6756);
 const url_1 = __webpack_require__(3800);
@@ -7989,7 +7135,6 @@ function route(config, event, process, io) {
     page_1.page.isAvailable() && config.memory?.set(event.location.orig.path, io.document.cloneNode(true));
     page_1.page.process(event.location.dest);
     const [scripts] = await env_1.env;
-    //progressbar(config.progressbar);
     return (0, router_1.route)(config, event, {
       process: cancellation,
       scripts
@@ -8012,37 +7157,36 @@ function route(config, event, process, io) {
   }).extract(() => {
     switch (event.type) {
       case router_1.RouterEventType.Click:
-        event.source.matches('[href]') && process.cast('', new Error('Canceled'));
-        page_1.page.sync();
-        return false;
       case router_1.RouterEventType.Submit:
         process.cast('', new Error('Canceled'));
         page_1.page.sync();
         return false;
       case router_1.RouterEventType.Popstate:
-        if (isHashChange(event.location.dest)) {
-          process.cast('', new Error('Canceled'));
+        // Disabled by scope.
+        if (validate(event.location.dest, config, event)) {
+          config.fallback(event.source, new Error('Disabled'));
           page_1.page.sync();
-          return false;
+          return true;
         }
-        config.fallback(event.source, new Error('Disabled'));
+        process.cast('', new Error('Canceled'));
         page_1.page.sync();
-        return true;
+        return false;
+      default:
+        throw new TypeError(event.type);
     }
   }, () => true);
 }
 exports.route = route;
 function validate(url, config, event) {
   if (event.original.defaultPrevented) return false;
+  if (!isAccessible(url)) return false;
   switch (event.type) {
     case router_1.RouterEventType.Click:
-      return isAccessible(url) && !isHashClick(url) && !isHashChange(url) && !isDownload(event.source) && !hasModifierKey(event.original) && config.filter(event.source);
+      return !isHashClick(url) && !isHashChange(url) && !isDownload(event.source) && !hasModifierKey(event.original) && config.filter(event.source);
     case router_1.RouterEventType.Submit:
-      return isAccessible(url);
+      return true;
     case router_1.RouterEventType.Popstate:
-      return isAccessible(url) && !isHashChange(url);
-    default:
-      return false;
+      return !isHashChange(url);
   }
   function isAccessible(dest) {
     const orig = page_1.page.url;
@@ -8183,7 +7327,7 @@ if ((0, state_1.isTransitable)(window.history.state)) {
 (0, listener_1.bind)(window, 'pjax:fetch', () => window.history.scrollRestoration = 'manual', true);
 // 遷移後ページの設定
 (0, listener_1.bind)(document, 'pjax:ready', () => window.history.scrollRestoration = 'manual', true);
-// 通常ページへの遷移または離脱では戻しておく
+// リロード後のスクロール位置復元に必要
 (0, listener_1.bind)(window, 'unload', () => window.history.scrollRestoration = 'auto', true);
 
 /***/ }),
