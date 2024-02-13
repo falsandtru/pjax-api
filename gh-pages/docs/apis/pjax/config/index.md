@@ -10,14 +10,14 @@ class: style-api style-api-detail
 
 ## areas: string[] = `['body']`
 
-Set target areas.
+Target areas.
 
-You can specify the multiple targets like `['#header, #primary']`.
-You can also specify the other candidates of targets like `['#container', 'body']`.
+Multiple areas can be specified as `['#header, #primary']`.
+Multiple candidates can be specified as `['#container', 'body']`.
 
 ## link: string = `':is(a, area)[href]:not([target])'`
 
-Set target links.
+Target links.
 
 ## filter: (el: HTMLAnchorElement | HTMLAreaElement) => boolean = ...
 
@@ -32,15 +32,15 @@ Filter target links.
 
 ## form: string = `'form:not([method])'`
 
-Set target forms.
+Target forms.
 
 ## replace: string = `''`
 
-Set target links that replace the current URL.
+Target links that replace the current URL.
 
 ## memory?: Dict<string, Document>
 
-Set a dictionary object having has/get/set/delete methods of Map to pass the document object matching the URL to the rewrite function.
+Dictionary or cache object having has/get/set/delete methods of Map to pass the document object matching the URL to the rewrite functions.
 
 ## fetch: {...} = ...
 
@@ -50,11 +50,11 @@ Rewrite the XHR object, or replace it with another or fake.
 
 ### timeout: number = `3000`
 
-Set timeout for request by ms.
+Timeout value of requests by ms.
 
 ### wait: number = `0`
 
-Wait for the specified milliseconds after sending a request.
+Minimum time by ms required for requests.
 
 ## update: {...} = ...
 
@@ -65,22 +65,22 @@ If you use the sequence option, you should use only it instead of this.
 
 ### head: string = `'base, meta, link'`
 
-Set sync targets in the head element. Only support `base`, `meta`, and `link` tags.
+Sync targets in the head element. Only support `base`, `meta`, and `link` tags.
 
 ### css: boolean = `true`
 
-Set CSS auto sync.
+CSS auto sync.
 
 ### script: boolean = `true`
 
-Set script auto load.
+Script auto load.
 
-External scripts run once per URL.
+External scripts run once per their source URL.
 Inline scripts run every transition.
 
 ### ignore: string = `''`
 
-Select ignore targets from head children, CSS, and scripts.
+Ignore targets from head children, CSS, and scripts.
 The next internal defaults are also applied.
 
 ```ts
@@ -93,11 +93,11 @@ The next internal defaults are also applied.
 
 ### reload: string = `''`
 
-Select reload targets from scripts.
+Reload targets of scripts.
 
 ### logger: string = `''`
 
-Select logging targets from scripts.
+Logging targets of scripts.
 
 ## fallback: (target: HTMLAnchorElement | HTMLAreaElement | HTMLFormElement | Window, reason: unknown) => void = ...
 
@@ -157,7 +157,7 @@ const sequence: Sequence<1, 2, 3, 4> = {
 ## scope: Record<string, Config | undefined> = `{}`
 
 Override the default configs, or disable pjax.
-You can use `{}`, `**`, `*`, and `?` metacharacters for path matching.
+`{}`, `**`, `*`, and `?` metacharacters are available for path matching.
 
 ```ts
 new Pjax({
