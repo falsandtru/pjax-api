@@ -11,3 +11,6 @@ bind(window, 'pjax:fetch', () =>
 // 遷移後ページの設定
 bind(document, 'pjax:ready', () =>
   window.history.scrollRestoration = 'manual', true);
+// リロード後のスクロール位置復元に必要
+bind(window, 'unload', () =>
+  window.history.scrollRestoration = 'auto', true);
