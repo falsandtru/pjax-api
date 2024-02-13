@@ -5,9 +5,6 @@ import { xhr } from '../module/fetch/xhr';
 import { Cancellee } from 'spica/cancellation';
 import { Either } from 'spica/either';
 import { wait as delay } from 'spica/timer';
-import { html } from 'typed-dom/dom';
-
-const style = html('style');
 
 export async function fetch(
   {
@@ -31,14 +28,7 @@ export async function fetch(
     sequence,
   }: Config,
   process: Cancellee<Error>,
-  io: {
-    document: Document;
-  }
 ): Promise<Either<Error, readonly [Response, 'seq:fetch']>> {
-  const { scrollX, scrollY } = window;
-  if (type === RouterEventType.Popstate) {
-    io.document.documentElement.appendChild(style);
-  }
   headers = new Headers(headers);
   headers.has('Accept') || headers.set('Accept', 'text/html');
   headers.has('X-Pjax') || headers.set('X-Pjax', JSON.stringify(areas));
@@ -56,10 +46,6 @@ export async function fetch(
     delay(wait),
     window.dispatchEvent(new Event('pjax:fetch')),
   ]);
-  if (type === RouterEventType.Popstate) {
-    style.parentNode?.removeChild(style);
-    window.scrollTo(scrollX, scrollY);
-  }
   return res
     .bind(process.either)
     .fmap(res => [res, seq] as const);
