@@ -13,9 +13,9 @@ export function xhr(
   headers: Headers,
   body: FormData | null,
   timeout: number,
-  memory: Document | undefined,
   cancellation: Cancellee<Error>,
   rewrite: (url: string, method: string, headers: Headers, timeout: number, body: FormData | null, cache?: Document | undefined) => XMLHttpRequest | undefined = noop,
+  memory?: Document,
 ): AtomicPromise<Either<Error, Response>> {
   return new AtomicPromise<Either<Error, Response>>(resolve => {
     const xhr = rewrite(displayURL.href, method, headers, timeout, body, memory) ??

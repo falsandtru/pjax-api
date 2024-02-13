@@ -52,7 +52,7 @@ export async function fetch(
       headers,
       body,
     }),
-    xhr(method, url, location.orig, headers, body, timeout, mem, process, rewrite),
+    xhr(method, url, location.orig, headers, body, timeout, process, rewrite, mem),
     delay(wait),
     window.dispatchEvent(new Event('pjax:fetch')),
   ]);
