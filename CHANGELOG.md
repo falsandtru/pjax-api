@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.44.0
+
+- Remove `cache` option.
+
 ## 3.43.0
 
 - Refine scope option.

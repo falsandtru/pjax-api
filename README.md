@@ -95,8 +95,6 @@ new Pjax({
 |**Rewrite request and response (XHR)**| | |✓| |
 |Rewrite source document| |✓|✓| |
 |Concurrent sequence integration| | |✓| |
-|ETag support| | |✓| |
-|Cache|✓|✓|✓|✓|
 |URL scope| | |✓|✓|
 |URL scope-based override settings| | |✓|✓|
 |**Browser history fix**| | |✓| |

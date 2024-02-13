@@ -1,6 +1,5 @@
 import { Config as Options, Sequence as ISequence } from '../../../../';
 import { Dict } from 'spica/dict';
-import { Cache } from 'spica/cache';
 import { URL, StandardURL } from 'spica/url';
 import { extend, overwrite } from 'spica/assign';
 
@@ -23,7 +22,6 @@ export class Config implements Options {
   }
   public readonly form = 'form:not([method])';
   public readonly replace = '';
-  public readonly cache: Dict<URL.Path<StandardURL>, { etag: string; expiry: number; xhr: XMLHttpRequest; }> = new Cache(100, { sweep: { threshold: 0 } });
   public readonly memory?: Dict<URL.Path<StandardURL>, Document> = undefined;
   public readonly fetch = {
     rewrite: undefined as NonNullable<Options['fetch']>['rewrite'],

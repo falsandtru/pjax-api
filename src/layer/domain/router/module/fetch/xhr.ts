@@ -1,6 +1,5 @@
 import { RouterEventMethod } from '../../../event/router';
 import { Response } from '../../model/eav/value/fetch';
-import { Dict } from 'spica/dict';
 import { AtomicPromise } from 'spica/promise';
 import { Cancellee } from 'spica/cancellation';
 import { Either, Left, Right } from 'spica/either';
@@ -14,16 +13,10 @@ export function xhr(
   headers: Headers,
   body: FormData | null,
   timeout: number,
-  cache: Dict<URL.Path<StandardURL>, { etag: string; expiry: number; xhr: XMLHttpRequest; }>,
   memory: Document | undefined,
   cancellation: Cancellee<Error>,
   rewrite: (url: string, method: string, headers: Headers, timeout: number, body: FormData | null, cache?: Document | undefined) => XMLHttpRequest | undefined = noop,
 ): AtomicPromise<Either<Error, Response>> {
-  if (method === 'GET' &&
-      !headers.has('If-None-Match') &&
-      Date.now() > (cache.get(displayURL.path)?.expiry ?? Infinity)) {
-    headers.set('If-None-Match', cache.get(displayURL.path)!.etag);
-  }
   return new AtomicPromise<Either<Error, Response>>(resolve => {
     const xhr = rewrite(displayURL.href, method, headers, timeout, body, memory) ??
                 request(displayURL.href, method, headers, timeout, body);
@@ -43,34 +36,11 @@ export function xhr(
       void resolve(Left(new Error(`Failed to request a page by timeout`))));
 
     xhr.addEventListener("load", () =>
-      void verify(base, method, xhr, cache)
+      void verify(base, xhr)
         .fmap(xhr => {
           const responseURL: URL<StandardURL> = new URL(
             standardize(restore(xhr.responseURL, displayURL.href), base.href));
           assert(responseURL.origin === new URL('', window.location.origin).origin);
-          if (method === 'GET') {
-            const cc = new Map<string, string>(
-              xhr.getResponseHeader('Cache-Control')
-                // eslint-disable-next-line redos/no-vulnerable
-                ? xhr.getResponseHeader('Cache-Control')!.trim().split(/\s*,\s*/)
-                    .filter(v => v.length > 0)
-                    .map(v => v.split('=').concat('') as [string, string])
-                : []);
-            for (const path of new Set([displayURL.path, responseURL.path])) {
-              if (xhr.getResponseHeader('ETag') && !cc.has('no-store')) {
-                cache.set(path, {
-                  etag: xhr.getResponseHeader('ETag')!,
-                  expiry: cc.has('max-age') && !cc.has('no-cache')
-                    ? Date.now() + +cc.get('max-age')! * 1000 || 0
-                    : 0,
-                  xhr,
-                });
-              }
-              else {
-                cache.delete(path);
-              }
-            }
-          }
           return new Response(responseURL, xhr);
         })
         .extract(
@@ -106,9 +76,7 @@ function restore(res: string, req: string): string {
 
 function verify(
   base: URL<StandardURL>,
-  method: RouterEventMethod,
   xhr: XMLHttpRequest,
-  cache: Dict<URL.Path<StandardURL>, { etag: string; expiry: number; xhr: XMLHttpRequest; }>,
 ): Either<Error, XMLHttpRequest> {
   const url = new URL(standardize(xhr.responseURL, base.href));
   switch (true) {
@@ -119,9 +87,7 @@ function verify(
     case !/2..|304/.test(`${xhr.status}`):
       return Left(new Error(`Failed to validate the status of response`));
     case !xhr.response:
-      return method === 'GET' && xhr.status === 304 && cache.has(url.path)
-        ? Right(cache.get(url.path)!.xhr)
-        : Left(new Error(`Failed to get the response body`));
+      return Left(new Error(`Failed to get the response body`));
     case !match(xhr.getResponseHeader('Content-Type'), 'text/html'):
       return Left(new Error(`Failed to validate the content type of response`));
     default:

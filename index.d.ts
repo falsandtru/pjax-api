@@ -19,7 +19,6 @@ export interface Config {
   readonly filter?: (el: HTMLAnchorElement | HTMLAreaElement) => boolean;
   readonly form?: string;
   readonly replace?: string;
-  readonly cache?: Dict<string, unknown>;
   readonly memory?: Dict<string, Document>;
   readonly fetch?: {
     readonly rewrite?: (url: string, method: string, headers: Headers, timeout: number, body: FormData | null, cache?: Document) => XMLHttpRequest | undefined;

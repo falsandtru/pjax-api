@@ -14,7 +14,6 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
         new Headers(),
         null,
         0,
-        new Map(),
         undefined,
         new Cancellation<Error>())
         .then(m => m.fmap(res => {
@@ -33,7 +32,6 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
         new Headers(),
         null,
         1,
-        new Map(),
         undefined,
         new Cancellation<Error>())
         .then(m => m.extract(err => {
@@ -51,7 +49,6 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
         new Headers(),
         null,
         0,
-        new Map(),
         undefined,
         new Cancellation<Error>())
         .then(m => m.fmap(() => {
@@ -69,7 +66,6 @@ describe('Unit: layer/domain/router/module/fetch/xhr', () => {
         new Headers(),
         null,
         0,
-        new Map(),
         undefined,
         cancellation)
         .then(m => m.extract(err => {
