@@ -96,7 +96,6 @@ new Pjax({
 |Rewrite source document| |✓|✓| |
 |Concurrent sequence integration| | |✓| |
 |URL scope| | |✓|✓|
-|URL scope-based override settings| | |✓|✓|
 |**Browser history fix**| | |✓| |
 |**Scroll position restoration**| | |✓| |
 |**Unexpected scroll prevention**| | |✓| |
