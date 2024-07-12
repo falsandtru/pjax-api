@@ -12,7 +12,7 @@
 return /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 8207:
+/***/ 8257:
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -46,19 +46,19 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports["default"] = void 0;
-__webpack_require__(8324);
-var export_1 = __webpack_require__(6959);
+__webpack_require__(518);
+var export_1 = __webpack_require__(2076);
 Object.defineProperty(exports, "default", ({
   enumerable: true,
   get: function () {
     return __importDefault(export_1).default;
   }
 }));
-__exportStar(__webpack_require__(6959), exports);
+__exportStar(__webpack_require__(2076), exports);
 
 /***/ }),
 
-/***/ 5807:
+/***/ 5413:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -82,7 +82,7 @@ exports.ObjectSetPrototypeOf = Object.setPrototypeOf;
 
 /***/ }),
 
-/***/ 8980:
+/***/ 6876:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -178,7 +178,7 @@ exports.splice = splice;
 
 /***/ }),
 
-/***/ 1368:
+/***/ 9888:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -188,9 +188,9 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.template = exports.inherit = exports.merge = exports.extend = exports.overwrite = exports.clone = exports.assign = void 0;
-const alias_1 = __webpack_require__(5807);
-const type_1 = __webpack_require__(8816);
-const array_1 = __webpack_require__(8980);
+const alias_1 = __webpack_require__(5413);
+const type_1 = __webpack_require__(113);
+const array_1 = __webpack_require__(6876);
 exports.assign = template((prop, target, source) => target[prop] = source[prop]);
 exports.clone = template((prop, target, source) => {
   switch ((0, type_1.type)(source[prop])) {
@@ -301,7 +301,7 @@ function empty(source) {
 
 /***/ }),
 
-/***/ 6224:
+/***/ 3669:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -312,11 +312,11 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.Cancellation = void 0;
-const promise_1 = __webpack_require__(1324);
-const maybe_1 = __webpack_require__(1792);
-const either_1 = __webpack_require__(652);
-const function_1 = __webpack_require__(2300);
-const exception_1 = __webpack_require__(7908);
+const promise_1 = __webpack_require__(8312);
+const maybe_1 = __webpack_require__(6189);
+const either_1 = __webpack_require__(7704);
+const function_1 = __webpack_require__(1825);
+const exception_1 = __webpack_require__(6192);
 class Cancellation {
   constructor(cancellees) {
     this[_a] = 'Cancellation';
@@ -401,7 +401,7 @@ Cancellation.prototype.finally = promise_1.AtomicPromise.prototype.finally;
 
 /***/ }),
 
-/***/ 6712:
+/***/ 4778:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -411,10 +411,10 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.Channel = void 0;
-const promise_1 = __webpack_require__(1324);
-const future_1 = __webpack_require__(4508);
-const queue_1 = __webpack_require__(9556);
-const fail = () => promise_1.AtomicPromise.reject(new Error('Spica: Channel: Closed.'));
+const promise_1 = __webpack_require__(8312);
+const future_1 = __webpack_require__(9998);
+const queue_1 = __webpack_require__(4110);
+const fail = () => promise_1.AtomicPromise.reject(new Error('Spica: Channel: Closed'));
 class Channel {
   constructor(capacity = 0) {
     this.capacity = capacity;
@@ -497,7 +497,7 @@ exports.Channel = Channel;
 
 /***/ }),
 
-/***/ 7820:
+/***/ 9522:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -507,8 +507,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.clock = exports.now = void 0;
-const queue_1 = __webpack_require__(9556);
-const exception_1 = __webpack_require__(7908);
+const queue_1 = __webpack_require__(4110);
+const exception_1 = __webpack_require__(6192);
 let time;
 let count = 0;
 function now(nocache) {
@@ -558,7 +558,39 @@ function run() {
 
 /***/ }),
 
-/***/ 1928:
+/***/ 6212:
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
+  if (k2 === undefined) k2 = k;
+  var desc = Object.getOwnPropertyDescriptor(m, k);
+  if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+    desc = {
+      enumerable: true,
+      get: function () {
+        return m[k];
+      }
+    };
+  }
+  Object.defineProperty(o, k2, desc);
+} : function (o, m, k, k2) {
+  if (k2 === undefined) k2 = k;
+  o[k2] = m[k];
+});
+var __exportStar = this && this.__exportStar || function (m, exports) {
+  for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+__exportStar(__webpack_require__(1311), exports);
+
+/***/ }),
+
+/***/ 1934:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -575,7 +607,7 @@ exports.equal = equal;
 
 /***/ }),
 
-/***/ 3512:
+/***/ 7218:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -585,9 +617,9 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.Copropagator = void 0;
-const alias_1 = __webpack_require__(5807);
-const coroutine_1 = __webpack_require__(8228);
-const promise_1 = __webpack_require__(1324);
+const alias_1 = __webpack_require__(5413);
+const coroutine_1 = __webpack_require__(8779);
+const promise_1 = __webpack_require__(8312);
 class Copropagator extends coroutine_1.Coroutine {
   constructor(coroutines, reducer = results => results[0], opts) {
     const cs = (0, alias_1.isArray)(coroutines) ? coroutines : [...coroutines];
@@ -602,7 +634,7 @@ class Copropagator extends coroutine_1.Coroutine {
           co[coroutine_1.Coroutine.exit](rejection);
         }
       });
-      promise_1.AtomicPromise.all(cs).then(results => results.length === 0 ? void this[coroutine_1.Coroutine.terminate](new Error(`Spica: Copropagator: No result.`)) : void this[coroutine_1.Coroutine.exit](reducer(results)), reason => void this[coroutine_1.Coroutine.terminate](reason));
+      promise_1.AtomicPromise.all(cs).then(results => results.length === 0 ? void this[coroutine_1.Coroutine.terminate](new Error(`Spica: Copropagator: No result`)) : void this[coroutine_1.Coroutine.exit](reducer(results)), reason => void this[coroutine_1.Coroutine.terminate](reason));
       return promise_1.never;
     }, {
       delay: false,
@@ -614,7 +646,7 @@ exports.Copropagator = Copropagator;
 
 /***/ }),
 
-/***/ 8228:
+/***/ 8779:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -625,15 +657,15 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.isCoroutine = exports.Coroutine = void 0;
-const alias_1 = __webpack_require__(5807);
-const chrono_1 = __webpack_require__(7820);
-const promise_1 = __webpack_require__(1324);
-const future_1 = __webpack_require__(4508);
-const channel_1 = __webpack_require__(6712);
-const timer_1 = __webpack_require__(6968);
-const function_1 = __webpack_require__(2300);
-const queue_1 = __webpack_require__(9556);
-const exception_1 = __webpack_require__(7908);
+const alias_1 = __webpack_require__(5413);
+const chrono_1 = __webpack_require__(9522);
+const promise_1 = __webpack_require__(8312);
+const future_1 = __webpack_require__(9998);
+const channel_1 = __webpack_require__(4778);
+const timer_1 = __webpack_require__(9152);
+const function_1 = __webpack_require__(1825);
+const queue_1 = __webpack_require__(4110);
+const exception_1 = __webpack_require__(6192);
 const alive = Symbol.for('spica/Coroutine.alive');
 const init = Symbol.for('spica/Coroutine.init');
 const exit = Symbol.for('spica/Coroutine.exit');
@@ -699,7 +731,7 @@ class Coroutine {
             return;
           }
         }
-        reply(promise_1.AtomicPromise.reject(new Error(`Spica: Coroutine: Canceled.`)));
+        reply(promise_1.AtomicPromise.reject(new Error(`Spica: Coroutine: Canceled`)));
       } catch (reason) {
         reply(promise_1.AtomicPromise.reject(reason));
         this[Coroutine.terminate](reason);
@@ -836,7 +868,7 @@ class Internal {
             1: reply
           } = msgs.shift();
           try {
-            reply(promise_1.AtomicPromise.reject(new Error(`Spica: Coroutine: Canceled.`)));
+            reply(promise_1.AtomicPromise.reject(new Error(`Spica: Coroutine: Canceled`)));
           } catch (reason) {
             (0, exception_1.causeAsyncException)(reason);
           }
@@ -855,8 +887,8 @@ class Port {
   }
   ask(msg) {
     const core = this[internal].co[internal];
-    if (!core.alive) return promise_1.AtomicPromise.reject(new Error(`Spica: Coroutine: Canceled.`));
-    if (core.settings.capacity < 0) return promise_1.AtomicPromise.reject(new Error(`Spica: Coroutine: Overflowed.`));
+    if (!core.alive) return promise_1.AtomicPromise.reject(new Error(`Spica: Coroutine: Canceled`));
+    if (core.settings.capacity < 0) return promise_1.AtomicPromise.reject(new Error(`Spica: Coroutine: Overflowed`));
     core.settings.capacity >= 0 && core.reception === 0 && ++core.reception && core.recvBuffer.take();
     const future = new future_1.AtomicFuture();
     core.sendBuffer.put([msg, future.bind]);
@@ -872,7 +904,7 @@ class Port {
   }
   recv() {
     const core = this[internal].co[internal];
-    if (!core.alive) return promise_1.AtomicPromise.reject(new Error(`Spica: Coroutine: Canceled.`));
+    if (!core.alive) return promise_1.AtomicPromise.reject(new Error(`Spica: Coroutine: Canceled`));
     ++core.reception;
     return Promise.resolve(core.recvBuffer.take()).then(result => result.done ? core.result.then(({
       value
@@ -885,15 +917,15 @@ class Port {
   }
   send(msg) {
     const core = this[internal].co[internal];
-    if (!core.alive) return promise_1.AtomicPromise.reject(new Error(`Spica: Coroutine: Canceled.`));
-    if (core.settings.capacity < 0) return promise_1.AtomicPromise.reject(new Error(`Spica: Coroutine: Overflowed.`));
+    if (!core.alive) return promise_1.AtomicPromise.reject(new Error(`Spica: Coroutine: Canceled`));
+    if (core.settings.capacity < 0) return promise_1.AtomicPromise.reject(new Error(`Spica: Coroutine: Overflowed`));
     core.settings.capacity >= 0 && core.reception === 0 && ++core.reception && core.recvBuffer.take();
     const future = new future_1.AtomicFuture();
     return Promise.resolve(core.sendBuffer.put([msg, future.bind]));
   }
   connect(com) {
     const core = this[internal].co[internal];
-    if (!core.alive) return promise_1.AtomicPromise.reject(new Error(`Spica: Coroutine: Canceled.`));
+    if (!core.alive) return promise_1.AtomicPromise.reject(new Error(`Spica: Coroutine: Canceled`));
     return (async () => {
       core.settings.capacity >= 0 && core.reception === 0 && ++core.reception && core.recvBuffer.take();
       const iter = com.call(this[internal].co);
@@ -952,7 +984,7 @@ class BroadcastChannel {
 }
 _d = internal;
 (function (BroadcastChannel) {
-  BroadcastChannel.fail = () => promise_1.AtomicPromise.reject(new Error('Spica: Channel: Closed.'));
+  BroadcastChannel.fail = () => promise_1.AtomicPromise.reject(new Error('Spica: Channel: Closed'));
   class Internal {
     constructor() {
       this.alive = true;
@@ -964,7 +996,7 @@ _d = internal;
 
 /***/ }),
 
-/***/ 5836:
+/***/ 4042:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -974,7 +1006,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.uncurry = exports.curry = void 0;
-const array_1 = __webpack_require__(8980);
+const array_1 = __webpack_require__(6876);
 exports.curry = f => curry_(f, f.length);
 function curry_(f, arity, ...xs) {
   let g;
@@ -989,7 +1021,7 @@ function uncurry_(f) {
 
 /***/ }),
 
-/***/ 652:
+/***/ 7704:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -999,9 +1031,9 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.Either = exports.Left = exports.Right = void 0;
-const promise_1 = __webpack_require__(1324);
-const curry_1 = __webpack_require__(5836);
-const array_1 = __webpack_require__(8980);
+const promise_1 = __webpack_require__(8312);
+const curry_1 = __webpack_require__(4042);
+const array_1 = __webpack_require__(6876);
 class Right {
   constructor(value) {
     this.value = value;
@@ -1076,7 +1108,7 @@ var Either;
 
 /***/ }),
 
-/***/ 7908:
+/***/ 6192:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -1086,7 +1118,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.suppressAsyncException = exports.causeAsyncException = void 0;
-const stack_1 = __webpack_require__(528);
+const stack_1 = __webpack_require__(7345);
 const stack = new stack_1.Stack();
 function causeAsyncException(reason) {
   if (stack.isEmpty()) {
@@ -1109,7 +1141,7 @@ exports.suppressAsyncException = suppressAsyncException;
 
 /***/ }),
 
-/***/ 2300:
+/***/ 1825:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -1149,7 +1181,7 @@ exports.noop = noop;
 
 /***/ }),
 
-/***/ 4508:
+/***/ 9998:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -1160,7 +1192,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.AtomicFuture = exports.Future = void 0;
-const promise_1 = __webpack_require__(1324);
+const promise_1 = __webpack_require__(8312);
 const state = Symbol('spica/future::state');
 class Future extends Promise {
   static get [Symbol.species]() {
@@ -1180,7 +1212,7 @@ class Future extends Promise {
       this[state].pending = false;
       this[state].resolve(value);
     } else if (this.strict) {
-      throw new Error(`Spica: Future: Cannot rebind the value.`);
+      throw new Error(`Spica: Future: Cannot rebind the value`);
     }
     return this;
   }
@@ -1199,7 +1231,7 @@ class AtomicFuture {
     if (this[promise_1.internal].isPending()) {
       this[promise_1.internal].resolve(value);
     } else if (this.strict) {
-      throw new Error(`Spica: AtomicFuture: Cannot rebind the value.`);
+      throw new Error(`Spica: AtomicFuture: Cannot rebind the value`);
     }
     return this;
   }
@@ -1215,7 +1247,7 @@ AtomicFuture.prototype.finally = promise_1.AtomicPromise.prototype.finally;
 
 /***/ }),
 
-/***/ 8324:
+/***/ 518:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -1224,14 +1256,14 @@ AtomicFuture.prototype.finally = promise_1.AtomicPromise.prototype.finally;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-__webpack_require__(8304);
+__webpack_require__(3394);
 const global = globalThis;
 global.global = global;
 exports["default"] = global;
 
 /***/ }),
 
-/***/ 8304:
+/***/ 3394:
 /***/ (() => {
 
 "use strict";
@@ -1242,7 +1274,7 @@ var global = (/* unused pure expression or super */ null && (globalThis));
 
 /***/ }),
 
-/***/ 8487:
+/***/ 3719:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -1252,8 +1284,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.MultiHeap = exports.Heap = void 0;
-const list_1 = __webpack_require__(9756);
-const memoize_1 = __webpack_require__(276);
+const list_1 = __webpack_require__(4609);
+const memoize_1 = __webpack_require__(6925);
 class Heap {
   constructor(cmp = Heap.max, options) {
     this.cmp = cmp;
@@ -1479,7 +1511,7 @@ MultiHeap.min = Heap.min;
 
 /***/ }),
 
-/***/ 5228:
+/***/ 7386:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -1500,7 +1532,7 @@ exports.compose = compose;
 
 /***/ }),
 
-/***/ 3592:
+/***/ 8553:
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -1528,11 +1560,11 @@ var __exportStar = this && this.__exportStar || function (m, exports) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-__exportStar(__webpack_require__(6428), exports);
+__exportStar(__webpack_require__(4974), exports);
 
 /***/ }),
 
-/***/ 9756:
+/***/ 4609:
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -1560,68 +1592,11 @@ var __exportStar = this && this.__exportStar || function (m, exports) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-__exportStar(__webpack_require__(6868), exports);
+__exportStar(__webpack_require__(1952), exports);
 
 /***/ }),
 
-/***/ 6428:
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.HList = void 0;
-const array_1 = __webpack_require__(8980);
-function HList(...as) {
-  return as.reduceRight((node, a) => node.add(a), HNil);
-}
-exports.HList = HList;
-const HNil = new class HNil {
-  add(a) {
-    return new HCons(a, this);
-  }
-  reverse() {
-    return [];
-  }
-  tuple() {
-    return [];
-  }
-}();
-class HCons {
-  constructor(head, tail) {
-    this.head = head;
-    this.tail = tail;
-  }
-  add(a) {
-    // @ts-ignore
-    return new HCons(a, this);
-  }
-  modify(f) {
-    // @ts-ignore
-    return this.tail.add(f(this.head));
-  }
-  fold(f) {
-    // @ts-ignore
-    return this.tail.modify(r => f(this.head, r));
-  }
-  unfold(f) {
-    // @ts-ignore
-    return this.add(f(this.head));
-  }
-  reverse() {
-    return this.tuple().reverse();
-  }
-  tuple() {
-    return (0, array_1.unshift)([this.head], this.tail.tuple());
-  }
-}
-
-/***/ }),
-
-/***/ 6868:
+/***/ 1311:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -1735,7 +1710,177 @@ exports.List = List;
 
 /***/ }),
 
-/***/ 1792:
+/***/ 4974:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.HList = void 0;
+const array_1 = __webpack_require__(6876);
+function HList(...as) {
+  return as.reduceRight((node, a) => node.add(a), HNil);
+}
+exports.HList = HList;
+const HNil = new class HNil {
+  add(a) {
+    return new HCons(a, this);
+  }
+  reverse() {
+    return [];
+  }
+  tuple() {
+    return [];
+  }
+}();
+class HCons {
+  constructor(head, tail) {
+    this.head = head;
+    this.tail = tail;
+  }
+  add(a) {
+    // @ts-ignore
+    return new HCons(a, this);
+  }
+  modify(f) {
+    // @ts-ignore
+    return this.tail.add(f(this.head));
+  }
+  fold(f) {
+    // @ts-ignore
+    return this.tail.modify(r => f(this.head, r));
+  }
+  unfold(f) {
+    // @ts-ignore
+    return this.add(f(this.head));
+  }
+  reverse() {
+    return this.tuple().reverse();
+  }
+  tuple() {
+    return (0, array_1.unshift)([this.head], this.tail.tuple());
+  }
+}
+
+/***/ }),
+
+/***/ 1952:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+// Memory-efficient flexible list.
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.List = void 0;
+// LRUではclistの方が速い。
+class List {
+  constructor() {
+    this.length = 0;
+    this.head = undefined;
+    this.last = undefined;
+  }
+  get tail() {
+    return this.head?.next;
+  }
+  insert(node, before) {
+    if (before === undefined) return this.push(node);
+    if (before === this.head) return this.unshift(node);
+    if (++this.length === 1) {
+      return this.head = this.last = node;
+    }
+    const next = node.next = before;
+    const prev = node.prev = next.prev;
+    return next.prev = prev.next = node;
+  }
+  delete(node) {
+    if (--this.length === 0) {
+      this.head = this.last = undefined;
+    } else {
+      const {
+        next,
+        prev
+      } = node;
+      prev === undefined ? this.head = next : prev.next = next;
+      next === undefined ? this.last = prev : next.prev = prev;
+    }
+    node.next = node.prev = undefined;
+    return node;
+  }
+  unshift(node) {
+    if (++this.length === 1) {
+      return this.head = this.last = node;
+    }
+    node.next = this.head;
+    return this.head = this.head.prev = node;
+  }
+  push(node) {
+    if (++this.length === 1) {
+      return this.head = this.last = node;
+    }
+    node.prev = this.last;
+    return this.last = this.last.next = node;
+  }
+  shift() {
+    if (this.length === 0) return;
+    return this.delete(this.head);
+  }
+  pop() {
+    if (this.length === 0) return;
+    return this.delete(this.last);
+  }
+  clear() {
+    this.length = 0;
+    this.head = this.last = undefined;
+  }
+  *[Symbol.iterator]() {
+    for (let node = this.head; node !== undefined; node = node.next) {
+      yield node;
+    }
+  }
+  flatMap(f) {
+    const acc = [];
+    for (let node = this.head; node !== undefined; node = node.next) {
+      const as = f(node);
+      switch (as.length) {
+        case 0:
+          break;
+        case 1:
+          acc.push(as[0]);
+          break;
+        default:
+          for (let len = as.length, i = 0; i < len; ++i) {
+            acc.push(as[i]);
+          }
+      }
+    }
+    return acc;
+  }
+  find(f) {
+    for (let node = this.head; node !== undefined; node = node.next) {
+      if (f(node)) return node;
+    }
+  }
+}
+exports.List = List;
+(function (List) {
+  class Node {
+    constructor() {
+      this.next = undefined;
+      this.prev = undefined;
+    }
+  }
+  List.Node = Node;
+})(List || (exports.List = List = {}));
+
+/***/ }),
+
+/***/ 6189:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -1745,9 +1890,9 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.Maybe = exports.Nothing = exports.Just = void 0;
-const promise_1 = __webpack_require__(1324);
-const curry_1 = __webpack_require__(5836);
-const array_1 = __webpack_require__(8980);
+const promise_1 = __webpack_require__(8312);
+const curry_1 = __webpack_require__(4042);
+const array_1 = __webpack_require__(6876);
 class Just {
   constructor(value) {
     this.value = value;
@@ -1790,7 +1935,7 @@ class Nothing {
   }
   extract(nothing) {
     if (nothing !== undefined) return nothing();
-    throw new Error(`Spica: Maybe: Nothing value is extracted.`);
+    throw new Error(`Spica: Maybe: Nothing value is extracted`);
   }
 }
 function just(value) {
@@ -1828,7 +1973,7 @@ var Maybe;
 
 /***/ }),
 
-/***/ 276:
+/***/ 6925:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -1838,8 +1983,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.reduce = exports.memoize = void 0;
-const alias_1 = __webpack_require__(5807);
-const compare_1 = __webpack_require__(1928);
+const alias_1 = __webpack_require__(5413);
+const compare_1 = __webpack_require__(1934);
 function memoize(f, identify, memory) {
   if (typeof identify === 'object') {
     memory = identify;
@@ -1906,7 +2051,7 @@ exports.reduce = reduce;
 
 /***/ }),
 
-/***/ 7936:
+/***/ 4455:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -1916,8 +2061,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.Applicative = void 0;
-const functor_1 = __webpack_require__(2644);
-const curry_1 = __webpack_require__(5836);
+const functor_1 = __webpack_require__(6562);
+const curry_1 = __webpack_require__(4042);
 class Applicative extends functor_1.Functor {}
 exports.Applicative = Applicative;
 (function (Applicative) {
@@ -1929,7 +2074,7 @@ exports.Applicative = Applicative;
 
 /***/ }),
 
-/***/ 2644:
+/***/ 6562:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -1939,7 +2084,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.Functor = void 0;
-const lazy_1 = __webpack_require__(9612);
+const lazy_1 = __webpack_require__(2939);
 class Functor extends lazy_1.Lazy {}
 exports.Functor = Functor;
 (function (Functor) {
@@ -1951,7 +2096,7 @@ exports.Functor = Functor;
 
 /***/ }),
 
-/***/ 9612:
+/***/ 2939:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -1974,7 +2119,7 @@ exports.Lazy = Lazy;
 
 /***/ }),
 
-/***/ 9152:
+/***/ 862:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -1984,7 +2129,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.Monad = void 0;
-const applicative_1 = __webpack_require__(7936);
+const applicative_1 = __webpack_require__(4455);
 class Monad extends applicative_1.Applicative {}
 exports.Monad = Monad;
 (function (Monad) {
@@ -1997,7 +2142,7 @@ exports.Monad = Monad;
 
 /***/ }),
 
-/***/ 2832:
+/***/ 6978:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2007,14 +2152,14 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.MonadPlus = void 0;
-const monad_1 = __webpack_require__(9152);
+const monad_1 = __webpack_require__(862);
 class MonadPlus extends monad_1.Monad {}
 exports.MonadPlus = MonadPlus;
 (function (MonadPlus) {})(MonadPlus || (exports.MonadPlus = MonadPlus = {}));
 
 /***/ }),
 
-/***/ 9136:
+/***/ 6276:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2024,52 +2169,52 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.Sequence = void 0;
-__webpack_require__(7812);
-__webpack_require__(6564);
-__webpack_require__(3020);
-__webpack_require__(3480);
-__webpack_require__(6316);
-__webpack_require__(7604);
-__webpack_require__(9132);
-__webpack_require__(1448);
-__webpack_require__(1816);
-__webpack_require__(9472);
-__webpack_require__(2780);
-__webpack_require__(6848);
-__webpack_require__(0);
-__webpack_require__(5555);
-__webpack_require__(1440);
-__webpack_require__(5612);
-__webpack_require__(4448);
-__webpack_require__(1540);
-__webpack_require__(4272);
-__webpack_require__(5276);
-__webpack_require__(2331);
-__webpack_require__(8172);
-__webpack_require__(2727);
-__webpack_require__(3928);
-__webpack_require__(6780);
-__webpack_require__(1064);
-__webpack_require__(7720);
-__webpack_require__(4244);
-__webpack_require__(5972);
-__webpack_require__(9772);
-__webpack_require__(712);
-__webpack_require__(1676);
-__webpack_require__(6195);
-__webpack_require__(3076);
-__webpack_require__(6380);
-__webpack_require__(6820);
-__webpack_require__(4848);
-__webpack_require__(2044);
-__webpack_require__(1852);
-__webpack_require__(284);
-__webpack_require__(2788);
-__webpack_require__(6964);
-__webpack_require__(5888);
-__webpack_require__(6800);
-__webpack_require__(944);
-var core_1 = __webpack_require__(1280);
+__webpack_require__(654);
+__webpack_require__(2877);
+__webpack_require__(6931);
+__webpack_require__(9698);
+__webpack_require__(6117);
+__webpack_require__(9090);
+__webpack_require__(2486);
+__webpack_require__(5834);
+__webpack_require__(8136);
+__webpack_require__(1171);
+__webpack_require__(1875);
+__webpack_require__(8096);
+__webpack_require__(6633);
+__webpack_require__(8122);
+__webpack_require__(1634);
+__webpack_require__(3204);
+__webpack_require__(5990);
+__webpack_require__(4909);
+__webpack_require__(8462);
+__webpack_require__(968);
+__webpack_require__(5720);
+__webpack_require__(2685);
+__webpack_require__(5759);
+__webpack_require__(2104);
+__webpack_require__(722);
+__webpack_require__(4973);
+__webpack_require__(3007);
+__webpack_require__(7854);
+__webpack_require__(9453);
+__webpack_require__(7698);
+__webpack_require__(39);
+__webpack_require__(6921);
+__webpack_require__(9526);
+__webpack_require__(1135);
+__webpack_require__(4845);
+__webpack_require__(406);
+__webpack_require__(9664);
+__webpack_require__(3511);
+__webpack_require__(2003);
+__webpack_require__(7519);
+__webpack_require__(3367);
+__webpack_require__(2395);
+__webpack_require__(1380);
+__webpack_require__(9642);
+__webpack_require__(9731);
+var core_1 = __webpack_require__(1472);
 Object.defineProperty(exports, "Sequence", ({
   enumerable: true,
   get: function () {
@@ -2079,7 +2224,7 @@ Object.defineProperty(exports, "Sequence", ({
 
 /***/ }),
 
-/***/ 1280:
+/***/ 1472:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2089,7 +2234,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.Sequence = void 0;
-const monadplus_1 = __webpack_require__(2832);
+const monadplus_1 = __webpack_require__(6978);
 class Sequence extends monadplus_1.MonadPlus {
   constructor(cons) {
     super(throwCallError);
@@ -2159,28 +2304,28 @@ exports.Sequence = Sequence;
   (function (Exception) {
     function invalidConsError(args) {
       console.error(args, args.length, args[0], args[1]);
-      return new TypeError(`Spica: Sequence: Invalid parameters of cons.`);
+      return new TypeError(`Spica: Sequence: Invalid parameters of cons`);
     }
     Exception.invalidConsError = invalidConsError;
     function invalidDataError(data) {
       console.error(data);
-      return new TypeError(`Spica: Sequence: Invalid data.`);
+      return new TypeError(`Spica: Sequence: Invalid data`);
     }
     Exception.invalidDataError = invalidDataError;
     function invalidThunkError(thunk) {
       console.error(thunk);
-      return new TypeError(`Spica: Sequence: Invalid thunk.`);
+      return new TypeError(`Spica: Sequence: Invalid thunk`);
     }
     Exception.invalidThunkError = invalidThunkError;
   })(Exception = Sequence.Exception || (Sequence.Exception = {}));
 })(Sequence || (exports.Sequence = Sequence = {}));
 function throwCallError() {
-  throw new Error(`Spica: Sequence: Invalid thunk call.`);
+  throw new Error(`Spica: Sequence: Invalid thunk call`);
 }
 
 /***/ }),
 
-/***/ 712:
+/***/ 39:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2189,8 +2334,8 @@ function throwCallError() {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(1280);
-const compose_1 = __webpack_require__(5228);
+const core_1 = __webpack_require__(1472);
+const compose_1 = __webpack_require__(7386);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   ap(a) {
     return core_1.Sequence.ap(this, a);
@@ -2199,7 +2344,7 @@ const compose_1 = __webpack_require__(5228);
 
 /***/ }),
 
-/***/ 1676:
+/***/ 6921:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2208,8 +2353,8 @@ const compose_1 = __webpack_require__(5228);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(1280);
-const compose_1 = __webpack_require__(5228);
+const core_1 = __webpack_require__(1472);
+const compose_1 = __webpack_require__(7386);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   bind(f) {
     return core_1.Sequence.concat(this.fmap(f));
@@ -2218,7 +2363,7 @@ const compose_1 = __webpack_require__(5228);
 
 /***/ }),
 
-/***/ 2727:
+/***/ 5759:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2227,8 +2372,8 @@ const compose_1 = __webpack_require__(5228);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(1280);
-const compose_1 = __webpack_require__(5228);
+const core_1 = __webpack_require__(1472);
+const compose_1 = __webpack_require__(7386);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   drop(n) {
     return new core_1.Sequence((iter = () => this.iterate(), cons) => core_1.Sequence.Iterator.when(iter(), () => cons(), (thunk, recur) => core_1.Sequence.Thunk.index(thunk) < n ? recur() : cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk))));
@@ -2237,7 +2382,7 @@ const compose_1 = __webpack_require__(5228);
 
 /***/ }),
 
-/***/ 7720:
+/***/ 3007:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2246,8 +2391,8 @@ const compose_1 = __webpack_require__(5228);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(1280);
-const compose_1 = __webpack_require__(5228);
+const core_1 = __webpack_require__(1472);
+const compose_1 = __webpack_require__(7386);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   dropUntil(f) {
     return new core_1.Sequence((iter = () => this.iterate(), cons) => core_1.Sequence.Iterator.when(iter(), () => cons(), (thunk, recur) => f(core_1.Sequence.Thunk.value(thunk)) ? recur() : cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk))));
@@ -2256,7 +2401,7 @@ const compose_1 = __webpack_require__(5228);
 
 /***/ }),
 
-/***/ 6780:
+/***/ 722:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2265,8 +2410,8 @@ const compose_1 = __webpack_require__(5228);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(1280);
-const compose_1 = __webpack_require__(5228);
+const core_1 = __webpack_require__(1472);
+const compose_1 = __webpack_require__(7386);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   dropWhile(f) {
     return new core_1.Sequence((iter = () => this.iterate(), cons) => core_1.Sequence.Iterator.when(iter(), () => cons(), (thunk, recur) => f(core_1.Sequence.Thunk.value(thunk)) ? recur() : cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk))));
@@ -2275,7 +2420,7 @@ const compose_1 = __webpack_require__(5228);
 
 /***/ }),
 
-/***/ 1540:
+/***/ 4909:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2284,8 +2429,8 @@ const compose_1 = __webpack_require__(5228);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(1280);
-const compose_1 = __webpack_require__(5228);
+const core_1 = __webpack_require__(1472);
+const compose_1 = __webpack_require__(7386);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   extract() {
     const acc = [];
@@ -2301,7 +2446,7 @@ const compose_1 = __webpack_require__(5228);
 
 /***/ }),
 
-/***/ 4848:
+/***/ 9664:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2310,8 +2455,8 @@ const compose_1 = __webpack_require__(5228);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(1280);
-const compose_1 = __webpack_require__(5228);
+const core_1 = __webpack_require__(1472);
+const compose_1 = __webpack_require__(7386);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   filter(f) {
     return new core_1.Sequence((iter = () => this.iterate(), cons) => core_1.Sequence.Iterator.when(iter(), () => cons(), (thunk, recur) => f(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.index(thunk)) ? cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk)) : recur()));
@@ -2320,7 +2465,7 @@ const compose_1 = __webpack_require__(5228);
 
 /***/ }),
 
-/***/ 6380:
+/***/ 4845:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2329,8 +2474,8 @@ const compose_1 = __webpack_require__(5228);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(1280);
-const compose_1 = __webpack_require__(5228);
+const core_1 = __webpack_require__(1472);
+const compose_1 = __webpack_require__(7386);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   filterM(f) {
     return core_1.Sequence.from([0]).bind(() => {
@@ -2350,7 +2495,7 @@ const compose_1 = __webpack_require__(5228);
 
 /***/ }),
 
-/***/ 9772:
+/***/ 7698:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2359,8 +2504,8 @@ const compose_1 = __webpack_require__(5228);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(1280);
-const compose_1 = __webpack_require__(5228);
+const core_1 = __webpack_require__(1472);
+const compose_1 = __webpack_require__(7386);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   fmap(f) {
     return new core_1.Sequence((iter = () => this.iterate()) => core_1.Sequence.Iterator.when(iter(), () => core_1.Sequence.Data.cons(), thunk => core_1.Sequence.Data.cons(f(core_1.Sequence.Thunk.value(thunk)), core_1.Sequence.Thunk.iterator(thunk))));
@@ -2369,7 +2514,7 @@ const compose_1 = __webpack_require__(5228);
 
 /***/ }),
 
-/***/ 1852:
+/***/ 2003:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2378,8 +2523,8 @@ const compose_1 = __webpack_require__(5228);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(1280);
-const compose_1 = __webpack_require__(5228);
+const core_1 = __webpack_require__(1472);
+const compose_1 = __webpack_require__(7386);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   foldr(f, z) {
     return new core_1.Sequence((iter = () => this.reduce().iterate()) => core_1.Sequence.Iterator.when(iter(), () => core_1.Sequence.Data.cons(z), thunk => core_1.Sequence.Data.cons(f(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.resume(core_1.Sequence.Thunk.iterator(thunk)).foldr(f, z))))).bind(s => s);
@@ -2388,7 +2533,7 @@ const compose_1 = __webpack_require__(5228);
 
 /***/ }),
 
-/***/ 284:
+/***/ 7519:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2397,8 +2542,8 @@ const compose_1 = __webpack_require__(5228);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(1280);
-const compose_1 = __webpack_require__(5228);
+const core_1 = __webpack_require__(1472);
+const compose_1 = __webpack_require__(7386);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   group(f) {
     return new core_1.Sequence(([iter, acc] = [() => this.iterate(), []], cons) => core_1.Sequence.Iterator.when(iter(), () => acc.length === 0 ? cons() : cons(acc), (thunk, recur) => acc.length === 0 || f(acc[0], core_1.Sequence.Thunk.value(thunk)) ? (acc.push(core_1.Sequence.Thunk.value(thunk)), recur()) : cons(acc, [core_1.Sequence.Thunk.iterator(thunk), [core_1.Sequence.Thunk.value(thunk)]])));
@@ -2407,7 +2552,7 @@ const compose_1 = __webpack_require__(5228);
 
 /***/ }),
 
-/***/ 2788:
+/***/ 3367:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2416,8 +2561,8 @@ const compose_1 = __webpack_require__(5228);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(1280);
-const compose_1 = __webpack_require__(5228);
+const core_1 = __webpack_require__(1472);
+const compose_1 = __webpack_require__(7386);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   inits() {
     return core_1.Sequence.mappend(core_1.Sequence.from([[]]), this.scanl((b, a) => [...b, a], []).dropWhile(as => as.length === 0));
@@ -2426,7 +2571,7 @@ const compose_1 = __webpack_require__(5228);
 
 /***/ }),
 
-/***/ 4272:
+/***/ 8462:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2435,8 +2580,8 @@ const compose_1 = __webpack_require__(5228);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(1280);
-const compose_1 = __webpack_require__(5228);
+const core_1 = __webpack_require__(1472);
+const compose_1 = __webpack_require__(7386);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   iterate() {
     return this.iterate_();
@@ -2458,7 +2603,7 @@ const compose_1 = __webpack_require__(5228);
 
 /***/ }),
 
-/***/ 6195:
+/***/ 9526:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2467,8 +2612,8 @@ const compose_1 = __webpack_require__(5228);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(1280);
-const compose_1 = __webpack_require__(5228);
+const core_1 = __webpack_require__(1472);
+const compose_1 = __webpack_require__(7386);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   join() {
     return core_1.Sequence.concat(this);
@@ -2477,7 +2622,7 @@ const compose_1 = __webpack_require__(5228);
 
 /***/ }),
 
-/***/ 6820:
+/***/ 406:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2486,8 +2631,8 @@ const compose_1 = __webpack_require__(5228);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(1280);
-const compose_1 = __webpack_require__(5228);
+const core_1 = __webpack_require__(1472);
+const compose_1 = __webpack_require__(7386);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   map(f) {
     return new core_1.Sequence((iter = () => this.iterate()) => core_1.Sequence.Iterator.when(iter(), () => core_1.Sequence.Data.cons(), thunk => core_1.Sequence.Data.cons(f(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.index(thunk)), core_1.Sequence.Thunk.iterator(thunk))));
@@ -2496,7 +2641,7 @@ const compose_1 = __webpack_require__(5228);
 
 /***/ }),
 
-/***/ 3076:
+/***/ 1135:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2505,8 +2650,8 @@ const compose_1 = __webpack_require__(5228);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(1280);
-const compose_1 = __webpack_require__(5228);
+const core_1 = __webpack_require__(1472);
+const compose_1 = __webpack_require__(7386);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   mapM(f) {
     return core_1.Sequence.from([0]).bind(() => {
@@ -2526,7 +2671,7 @@ const compose_1 = __webpack_require__(5228);
 
 /***/ }),
 
-/***/ 5276:
+/***/ 968:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2535,9 +2680,9 @@ const compose_1 = __webpack_require__(5228);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(1280);
-const compose_1 = __webpack_require__(5228);
-const memoize_1 = __webpack_require__(276);
+const core_1 = __webpack_require__(1472);
+const compose_1 = __webpack_require__(7386);
+const memoize_1 = __webpack_require__(6925);
 const memory = (0, memoize_1.memoize)(_ => new Map());
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   memoize() {
@@ -2547,7 +2692,7 @@ const memory = (0, memoize_1.memoize)(_ => new Map());
 
 /***/ }),
 
-/***/ 944:
+/***/ 9731:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2556,8 +2701,8 @@ const memory = (0, memoize_1.memoize)(_ => new Map());
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(1280);
-const compose_1 = __webpack_require__(5228);
+const core_1 = __webpack_require__(1472);
+const compose_1 = __webpack_require__(7386);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   permutations() {
     return core_1.Sequence.from([0]).bind(() => {
@@ -2589,7 +2734,7 @@ function perms(ts, is) {
 
 /***/ }),
 
-/***/ 2331:
+/***/ 5720:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2598,8 +2743,8 @@ function perms(ts, is) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(1280);
-const compose_1 = __webpack_require__(5228);
+const core_1 = __webpack_require__(1472);
+const compose_1 = __webpack_require__(7386);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   reduce() {
     return new core_1.Sequence(([i, memo] = [0, new Map()], cons) => core_1.Sequence.Iterator.when(memo.get(i) || memo.set(i, i > 0 && memo.has(i - 1) ? core_1.Sequence.Thunk.iterator(memo.get(i - 1))() : this.iterate()).get(i), () => cons(), thunk => cons(core_1.Sequence.Thunk.value(thunk), [i + 1, memo])));
@@ -2608,7 +2753,7 @@ const compose_1 = __webpack_require__(5228);
 
 /***/ }),
 
-/***/ 2044:
+/***/ 3511:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2617,8 +2762,8 @@ const compose_1 = __webpack_require__(5228);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(1280);
-const compose_1 = __webpack_require__(5228);
+const core_1 = __webpack_require__(1472);
+const compose_1 = __webpack_require__(7386);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   scanl(f, z) {
     return new core_1.Sequence(([prev, iter, i] = [z, () => this.iterate(), 0]) => core_1.Sequence.Iterator.when(iter(), () => i === 0 ? core_1.Sequence.Data.cons(z) : core_1.Sequence.Data.cons(), thunk => core_1.Sequence.Data.cons(prev = f(prev, core_1.Sequence.Thunk.value(thunk)), [prev, core_1.Sequence.Thunk.iterator(thunk), core_1.Sequence.Thunk.index(thunk) + 1])));
@@ -2627,7 +2772,7 @@ const compose_1 = __webpack_require__(5228);
 
 /***/ }),
 
-/***/ 5888:
+/***/ 1380:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2636,8 +2781,8 @@ const compose_1 = __webpack_require__(5228);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(1280);
-const compose_1 = __webpack_require__(5228);
+const core_1 = __webpack_require__(1472);
+const compose_1 = __webpack_require__(7386);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   segs() {
     return core_1.Sequence.mappend(this.foldr((a, bs) => bs.take(1).bind(b => core_1.Sequence.mappend(core_1.Sequence.from([core_1.Sequence.mappend(core_1.Sequence.from([[a]]), core_1.Sequence.from(b).map(c => [a, ...c]))]), bs)), core_1.Sequence.from([core_1.Sequence.from([])])).bind(a => a), core_1.Sequence.from([[]]));
@@ -2646,7 +2791,7 @@ const compose_1 = __webpack_require__(5228);
 
 /***/ }),
 
-/***/ 4244:
+/***/ 7854:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2655,8 +2800,8 @@ const compose_1 = __webpack_require__(5228);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(1280);
-const compose_1 = __webpack_require__(5228);
+const core_1 = __webpack_require__(1472);
+const compose_1 = __webpack_require__(7386);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   sort(cmp) {
     return core_1.Sequence.from(this.extract().sort(cmp));
@@ -2665,7 +2810,7 @@ const compose_1 = __webpack_require__(5228);
 
 /***/ }),
 
-/***/ 6800:
+/***/ 9642:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2674,8 +2819,8 @@ const compose_1 = __webpack_require__(5228);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(1280);
-const compose_1 = __webpack_require__(5228);
+const core_1 = __webpack_require__(1472);
+const compose_1 = __webpack_require__(7386);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   subsequences() {
     return core_1.Sequence.mappend(core_1.Sequence.from([[]]), core_1.Sequence.from([0]).bind(() => nonEmptySubsequences(this)));
@@ -2687,7 +2832,7 @@ function nonEmptySubsequences(xs) {
 
 /***/ }),
 
-/***/ 6964:
+/***/ 2395:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2696,8 +2841,8 @@ function nonEmptySubsequences(xs) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(1280);
-const compose_1 = __webpack_require__(5228);
+const core_1 = __webpack_require__(1472);
+const compose_1 = __webpack_require__(7386);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   tails() {
     return core_1.Sequence.mappend(core_1.Sequence.from(this.extract().map((_, i, as) => as.slice(i))), core_1.Sequence.from([[]]));
@@ -2706,7 +2851,7 @@ const compose_1 = __webpack_require__(5228);
 
 /***/ }),
 
-/***/ 8172:
+/***/ 2685:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2715,8 +2860,8 @@ const compose_1 = __webpack_require__(5228);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(1280);
-const compose_1 = __webpack_require__(5228);
+const core_1 = __webpack_require__(1472);
+const compose_1 = __webpack_require__(7386);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   take(n) {
     return new core_1.Sequence((iter = () => this.iterate(), cons) => core_1.Sequence.Iterator.when(n > 0 ? iter() : core_1.Sequence.Iterator.done(), () => cons(), thunk => core_1.Sequence.Thunk.index(thunk) + 1 < n ? cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk)) : cons(core_1.Sequence.Thunk.value(thunk))));
@@ -2725,7 +2870,7 @@ const compose_1 = __webpack_require__(5228);
 
 /***/ }),
 
-/***/ 1064:
+/***/ 4973:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2734,8 +2879,8 @@ const compose_1 = __webpack_require__(5228);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(1280);
-const compose_1 = __webpack_require__(5228);
+const core_1 = __webpack_require__(1472);
+const compose_1 = __webpack_require__(7386);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   takeUntil(f) {
     return new core_1.Sequence((iter = () => this.iterate(), cons) => core_1.Sequence.Iterator.when(iter(), () => cons(), thunk => f(core_1.Sequence.Thunk.value(thunk)) ? cons(core_1.Sequence.Thunk.value(thunk)) : cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk))));
@@ -2744,7 +2889,7 @@ const compose_1 = __webpack_require__(5228);
 
 /***/ }),
 
-/***/ 3928:
+/***/ 2104:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2753,8 +2898,8 @@ const compose_1 = __webpack_require__(5228);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(1280);
-const compose_1 = __webpack_require__(5228);
+const core_1 = __webpack_require__(1472);
+const compose_1 = __webpack_require__(7386);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   takeWhile(f) {
     return new core_1.Sequence((iter = () => this.iterate(), cons) => core_1.Sequence.Iterator.when(iter(), () => cons(), thunk => f(core_1.Sequence.Thunk.value(thunk)) ? cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk)) : cons()));
@@ -2763,7 +2908,7 @@ const compose_1 = __webpack_require__(5228);
 
 /***/ }),
 
-/***/ 5972:
+/***/ 9453:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2772,8 +2917,8 @@ const compose_1 = __webpack_require__(5228);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(1280);
-const compose_1 = __webpack_require__(5228);
+const core_1 = __webpack_require__(1472);
+const compose_1 = __webpack_require__(7386);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   unique() {
     const memory = new Set();
@@ -2783,7 +2928,7 @@ const compose_1 = __webpack_require__(5228);
 
 /***/ }),
 
-/***/ 6316:
+/***/ 6117:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2792,8 +2937,8 @@ const compose_1 = __webpack_require__(5228);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(1280);
-const compose_1 = __webpack_require__(5228);
+const core_1 = __webpack_require__(1472);
+const compose_1 = __webpack_require__(7386);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   static concat(as) {
     return new core_1.Sequence(([ai, bi] = [() => as.iterate(), core_1.Sequence.Iterator.done], cons) => core_1.Sequence.Iterator.when(ai(), () => cons(), (at, ar) => (bi = bi === core_1.Sequence.Iterator.done ? () => core_1.Sequence.Thunk.value(at).iterate() : bi, core_1.Sequence.Iterator.when(bi(), () => (bi = core_1.Sequence.Iterator.done, ar()), bt => cons(core_1.Sequence.Thunk.value(bt), [() => at, core_1.Sequence.Thunk.iterator(bt)])))));
@@ -2802,7 +2947,7 @@ const compose_1 = __webpack_require__(5228);
 
 /***/ }),
 
-/***/ 3020:
+/***/ 6931:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2811,8 +2956,8 @@ const compose_1 = __webpack_require__(5228);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(1280);
-const compose_1 = __webpack_require__(5228);
+const core_1 = __webpack_require__(1472);
+const compose_1 = __webpack_require__(7386);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   static cycle(as) {
     return new core_1.Sequence(function cycle([iter, i] = [as[Symbol.iterator](), 0], cons) {
@@ -2824,7 +2969,7 @@ const compose_1 = __webpack_require__(5228);
 
 /***/ }),
 
-/***/ 9132:
+/***/ 2486:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2833,8 +2978,8 @@ const compose_1 = __webpack_require__(5228);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(1280);
-const compose_1 = __webpack_require__(5228);
+const core_1 = __webpack_require__(1472);
+const compose_1 = __webpack_require__(7386);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   static difference(a, b, cmp) {
     return new core_1.Sequence(([ai, bi] = [() => a.iterate(), () => b.iterate()], cons) => core_1.Sequence.Iterator.when(ai(), () => core_1.Sequence.Iterator.when(bi(), () => cons(), bt => cons(core_1.Sequence.Thunk.value(bt), [core_1.Sequence.Iterator.done, core_1.Sequence.Thunk.iterator(bt)])), (at, ar) => core_1.Sequence.Iterator.when(bi(), () => cons(core_1.Sequence.Thunk.value(at), [core_1.Sequence.Thunk.iterator(at), core_1.Sequence.Iterator.done]), bt => {
@@ -2848,7 +2993,7 @@ const compose_1 = __webpack_require__(5228);
 
 /***/ }),
 
-/***/ 6564:
+/***/ 2877:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2857,8 +3002,8 @@ const compose_1 = __webpack_require__(5228);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(1280);
-const compose_1 = __webpack_require__(5228);
+const core_1 = __webpack_require__(1472);
+const compose_1 = __webpack_require__(7386);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   static from(as) {
     return new core_1.Sequence(([iter, i] = [as[Symbol.iterator](), 0], cons) => {
@@ -2870,7 +3015,7 @@ const compose_1 = __webpack_require__(5228);
 
 /***/ }),
 
-/***/ 1816:
+/***/ 8136:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2879,8 +3024,8 @@ const compose_1 = __webpack_require__(5228);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(1280);
-const compose_1 = __webpack_require__(5228);
+const core_1 = __webpack_require__(1472);
+const compose_1 = __webpack_require__(7386);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   static intersect(a, b, cmp) {
     return new core_1.Sequence(([ai, bi] = [() => a.iterate(), () => b.iterate()], cons) => core_1.Sequence.Iterator.when(ai(), () => cons(), (at, ar) => core_1.Sequence.Iterator.when(bi(), () => cons(), (bt, br) => {
@@ -2894,7 +3039,7 @@ const compose_1 = __webpack_require__(5228);
 
 /***/ }),
 
-/***/ 1440:
+/***/ 1634:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2903,8 +3048,8 @@ const compose_1 = __webpack_require__(5228);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(1280);
-const compose_1 = __webpack_require__(5228);
+const core_1 = __webpack_require__(1472);
+const compose_1 = __webpack_require__(7386);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   static mappend(l, r) {
     return core_1.Sequence.mconcat([l, r]);
@@ -2913,7 +3058,7 @@ const compose_1 = __webpack_require__(5228);
 
 /***/ }),
 
-/***/ 5555:
+/***/ 8122:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2922,8 +3067,8 @@ const compose_1 = __webpack_require__(5228);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(1280);
-const compose_1 = __webpack_require__(5228);
+const core_1 = __webpack_require__(1472);
+const compose_1 = __webpack_require__(7386);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   static mconcat(as) {
     return [...as].reduce((a, b) => mconcat(a, b), core_1.Sequence.mempty);
@@ -2935,7 +3080,7 @@ function mconcat(a, b) {
 
 /***/ }),
 
-/***/ 0:
+/***/ 6633:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2945,13 +3090,13 @@ var _a;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(1280);
-const compose_1 = __webpack_require__(5228);
+const core_1 = __webpack_require__(1472);
+const compose_1 = __webpack_require__(7386);
 (0, compose_1.compose)(core_1.Sequence, (_a = class extends core_1.Sequence {}, _a.mempty = new core_1.Sequence((_, cons) => cons()), _a));
 
 /***/ }),
 
-/***/ 4448:
+/***/ 5990:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2961,13 +3106,13 @@ var _a;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(1280);
-const compose_1 = __webpack_require__(5228);
+const core_1 = __webpack_require__(1472);
+const compose_1 = __webpack_require__(7386);
 (0, compose_1.compose)(core_1.Sequence, (_a = class extends core_1.Sequence {}, _a.mplus = core_1.Sequence.mappend, _a));
 
 /***/ }),
 
-/***/ 5612:
+/***/ 3204:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2977,13 +3122,13 @@ var _a;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(1280);
-const compose_1 = __webpack_require__(5228);
+const core_1 = __webpack_require__(1472);
+const compose_1 = __webpack_require__(7386);
 (0, compose_1.compose)(core_1.Sequence, (_a = class extends core_1.Sequence {}, _a.mzero = core_1.Sequence.mempty, _a));
 
 /***/ }),
 
-/***/ 9472:
+/***/ 1171:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -2992,8 +3137,8 @@ const compose_1 = __webpack_require__(5228);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(1280);
-const compose_1 = __webpack_require__(5228);
+const core_1 = __webpack_require__(1472);
+const compose_1 = __webpack_require__(7386);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   static pure(a) {
     return new core_1.Sequence((_, cons) => cons(a));
@@ -3002,7 +3147,7 @@ const compose_1 = __webpack_require__(5228);
 
 /***/ }),
 
-/***/ 3480:
+/***/ 9698:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3011,9 +3156,9 @@ const compose_1 = __webpack_require__(5228);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const alias_1 = __webpack_require__(5807);
-const core_1 = __webpack_require__(1280);
-const compose_1 = __webpack_require__(5228);
+const alias_1 = __webpack_require__(5413);
+const core_1 = __webpack_require__(1472);
+const compose_1 = __webpack_require__(7386);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   static random(p = () => (0, alias_1.random)()) {
     return typeof p === 'function' ? core_1.Sequence.from(new core_1.Sequence((_, cons) => cons(p(), _))) : this.random().map(r => p[(0, alias_1.floor)(r * p.length)]);
@@ -3022,7 +3167,7 @@ const compose_1 = __webpack_require__(5228);
 
 /***/ }),
 
-/***/ 7812:
+/***/ 654:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3031,8 +3176,8 @@ const compose_1 = __webpack_require__(5228);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(1280);
-const compose_1 = __webpack_require__(5228);
+const core_1 = __webpack_require__(1472);
+const compose_1 = __webpack_require__(7386);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   static resume(iterator) {
     return new core_1.Sequence((iter = iterator, cons) => core_1.Sequence.Iterator.when(iter(), () => cons(), thunk => cons(core_1.Sequence.Thunk.value(thunk), core_1.Sequence.Thunk.iterator(thunk))));
@@ -3041,7 +3186,7 @@ const compose_1 = __webpack_require__(5228);
 
 /***/ }),
 
-/***/ 2780:
+/***/ 1875:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3050,8 +3195,8 @@ const compose_1 = __webpack_require__(5228);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(1280);
-const compose_1 = __webpack_require__(5228);
+const core_1 = __webpack_require__(1472);
+const compose_1 = __webpack_require__(7386);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   static Return(a) {
     return new core_1.Sequence((_, cons) => cons(a));
@@ -3060,7 +3205,7 @@ const compose_1 = __webpack_require__(5228);
 
 /***/ }),
 
-/***/ 6848:
+/***/ 8096:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3069,8 +3214,8 @@ const compose_1 = __webpack_require__(5228);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(1280);
-const compose_1 = __webpack_require__(5228);
+const core_1 = __webpack_require__(1472);
+const compose_1 = __webpack_require__(7386);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   static sequence(ms) {
     return ms.reduce((acc, m) => acc.fmap(bs => core_1.Sequence.mappend(bs, m)), core_1.Sequence.Return(core_1.Sequence.from([])));
@@ -3079,7 +3224,7 @@ const compose_1 = __webpack_require__(5228);
 
 /***/ }),
 
-/***/ 1448:
+/***/ 5834:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3088,8 +3233,8 @@ const compose_1 = __webpack_require__(5228);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(1280);
-const compose_1 = __webpack_require__(5228);
+const core_1 = __webpack_require__(1472);
+const compose_1 = __webpack_require__(7386);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   static union(a, b, cmp) {
     return new core_1.Sequence(([ai, bi] = [() => a.iterate(), () => b.iterate()], cons) => core_1.Sequence.Iterator.when(ai(), () => core_1.Sequence.Iterator.when(bi(), () => cons(), bt => cons(core_1.Sequence.Thunk.value(bt), [core_1.Sequence.Iterator.done, core_1.Sequence.Thunk.iterator(bt)])), at => core_1.Sequence.Iterator.when(bi(), () => cons(core_1.Sequence.Thunk.value(at), [core_1.Sequence.Thunk.iterator(at), core_1.Sequence.Iterator.done]), bt => {
@@ -3103,7 +3248,7 @@ const compose_1 = __webpack_require__(5228);
 
 /***/ }),
 
-/***/ 7604:
+/***/ 9090:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3112,8 +3257,8 @@ const compose_1 = __webpack_require__(5228);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const core_1 = __webpack_require__(1280);
-const compose_1 = __webpack_require__(5228);
+const core_1 = __webpack_require__(1472);
+const compose_1 = __webpack_require__(7386);
 (0, compose_1.compose)(core_1.Sequence, class extends core_1.Sequence {
   static zip(a, b) {
     return new core_1.Sequence(([ai, bi] = [() => a.iterate(), () => b.iterate()], cons) => core_1.Sequence.Iterator.when(ai(), () => cons(), at => core_1.Sequence.Iterator.when(bi(), () => cons(), bt => cons([core_1.Sequence.Thunk.value(at), core_1.Sequence.Thunk.value(bt)], [core_1.Sequence.Thunk.iterator(at), core_1.Sequence.Thunk.iterator(bt)]))));
@@ -3122,7 +3267,7 @@ const compose_1 = __webpack_require__(5228);
 
 /***/ }),
 
-/***/ 4468:
+/***/ 5995:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3132,11 +3277,11 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.Observation = void 0;
-const alias_1 = __webpack_require__(5807);
-const list_1 = __webpack_require__(9756);
-const array_1 = __webpack_require__(8980);
-const function_1 = __webpack_require__(2300);
-const exception_1 = __webpack_require__(7908);
+const alias_1 = __webpack_require__(5413);
+const list_1 = __webpack_require__(4609);
+const array_1 = __webpack_require__(6876);
+const function_1 = __webpack_require__(1825);
+const exception_1 = __webpack_require__(6192);
 class Node {
   constructor(value) {
     this.value = value;
@@ -3207,7 +3352,7 @@ class Observation {
     if (typeof monitor !== 'function') throw new Error(`Spica: Observation: Invalid listener: ${monitor}`);
     const node = this.seek(namespace, 0 /* SeekMode.Extensible */);
     const monitors = node.monitors;
-    if (monitors.length === this.limit) throw new Error(`Spica: Observation: Exceeded max listener limit.`);
+    if (monitors.length === this.limit) throw new Error(`Spica: Observation: Exceeded max listener limit`);
     node.mid === alias_1.MAX_SAFE_INTEGER && node.reset(monitors);
     const inode = monitors.push(new Node({
       id: ++node.mid,
@@ -3222,7 +3367,7 @@ class Observation {
     if (typeof subscriber !== 'function') throw new Error(`Spica: Observation: Invalid listener: ${subscriber}`);
     const node = this.seek(namespace, 0 /* SeekMode.Extensible */);
     const subscribers = node.subscribers;
-    if (subscribers.length === this.limit) throw new Error(`Spica: Observation: Exceeded max listener limit.`);
+    if (subscribers.length === this.limit) throw new Error(`Spica: Observation: Exceeded max listener limit`);
     node.sid === alias_1.MAX_SAFE_INTEGER && node.reset(subscribers);
     const inode = subscribers.push(new Node({
       id: ++node.sid,
@@ -3242,7 +3387,7 @@ class Observation {
     if (subscriber) {
       const list = this.seek(namespace, 1 /* SeekMode.Breakable */)?.subscribers;
       const node = list?.find(node => node.value.listener === subscriber);
-      node?.next && list?.delete(node);
+      node && list?.delete(node);
     } else {
       void this.seek(namespace, 1 /* SeekMode.Breakable */)?.clear();
     }
@@ -3257,7 +3402,7 @@ class Observation {
   }
   relay(source) {
     this.relaies ??= new WeakSet();
-    if (this.relaies.has(source)) throw new Error(`Spica: Observation: Relay source is already registered.`);
+    if (this.relaies.has(source)) throw new Error(`Spica: Observation: Relay source is already registered`);
     this.relaies.add(source);
     return source.monitor([], (data, namespace) => void this.emit(namespace, data));
   }
@@ -3286,7 +3431,7 @@ class Observation {
         } catch (reason) {
           (0, exception_1.causeAsyncException)(reason);
         }
-        node.next !== undefined && recents.push(node);
+        (node.next !== undefined || node.prev !== undefined || items.head === node) && recents.push(node);
         node = node.next ?? prev?.next ?? rollback(recents, item => item.next) ?? items.head;
         prev = node?.prev;
       }
@@ -3308,7 +3453,7 @@ class Observation {
         } catch (reason) {
           (0, exception_1.causeAsyncException)(reason);
         }
-        node.next !== undefined && recents.push(node);
+        (node.next !== undefined || node.prev !== undefined || items.head === node) && recents.push(node);
         node = node.next ?? prev?.next ?? rollback(recents, item => item.next) ?? items.head;
         prev = node?.prev;
       }
@@ -3398,7 +3543,7 @@ function rollback(array, matcher) {
 
 /***/ }),
 
-/***/ 1324:
+/***/ 8312:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3409,8 +3554,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.never = exports.isPromiseLike = exports.Internal = exports.AtomicPromise = exports.internal = void 0;
-const alias_1 = __webpack_require__(5807);
-const function_1 = __webpack_require__(2300);
+const alias_1 = __webpack_require__(5413);
+const function_1 = __webpack_require__(1825);
 exports.internal = Symbol.for('spica/promise::internal');
 class AtomicPromise {
   static get [(_a = Symbol.toStringTag, Symbol.species)]() {
@@ -3735,7 +3880,7 @@ function call(internal, state, procedure, param) {
   }
 }
 function isPromiseLike(value) {
-  return value != null && typeof value === 'object' && typeof value.then === 'function';
+  return value != null && typeof value === 'object' && 'then' in value && typeof value.then === 'function';
 }
 exports.isPromiseLike = isPromiseLike;
 function isAtomicPromiseLike(value) {
@@ -3761,7 +3906,7 @@ exports.never = new class Never extends Promise {
 
 /***/ }),
 
-/***/ 9556:
+/***/ 4110:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -3771,8 +3916,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.MultiQueue = exports.PriorityQueue = exports.Queue = void 0;
-const heap_1 = __webpack_require__(8487);
-const memoize_1 = __webpack_require__(276);
+const heap_1 = __webpack_require__(3719);
+const memoize_1 = __webpack_require__(6925);
 const size = 2048;
 const initsize = 16;
 class Queue {
@@ -3780,11 +3925,11 @@ class Queue {
     this.head = new FixedQueue(initsize);
     this.tail = this.head;
     this.count = 0;
-    this.irregular = 0;
   }
   get length() {
-    return this.count === 0 ? this.head.length : this.head.length + this.tail.length + (size - 1) * (this.count - 2) + (this.irregular || size) - 1;
+    return this.head === this.tail ? this.head.length : this.head.length + this.count + this.tail.length;
   }
+  // Faster than queue.length > 0.
   isEmpty() {
     return this.head.isEmpty();
   }
@@ -3799,9 +3944,8 @@ class Queue {
       } else {
         this.tail = tail.next = new FixedQueue(size, tail.next);
       }
-      ++this.count;
-      if (tail.size !== size && tail !== this.head) {
-        this.irregular = tail.size;
+      if (this.head !== tail) {
+        this.count += tail.size;
       }
     }
     this.tail.push(value);
@@ -3810,10 +3954,16 @@ class Queue {
     const head = this.head;
     const value = head.pop();
     if (head.isEmpty() && !head.next.isEmpty()) {
-      --this.count;
+      const tail = this.tail;
+      // 空になるごとの削除と再作成を避ける
+      if (tail.next !== head) {
+        // 初期サイズの方を消す
+        tail.next.next = tail.next;
+        tail.next = head;
+      }
       this.head = head.next;
-      if (this.head.size === this.irregular) {
-        this.irregular = 0;
+      if (this.head !== tail) {
+        this.count -= head.next.size;
       }
     }
     return value;
@@ -3821,7 +3971,6 @@ class Queue {
   clear() {
     this.head = this.tail = new FixedQueue(initsize);
     this.count = 0;
-    this.irregular = 0;
   }
   *[Symbol.iterator]() {
     while (!this.isEmpty()) {
@@ -3837,29 +3986,34 @@ class FixedQueue {
     this.mask = this.array.length - 1;
     this.head = 0;
     this.tail = 0;
+    // 1要素無駄にしフラグを使用しない場合と有意差がないため可読性とテスト性を優先しフラグを使用。
+    this.empty = true;
     this.next = next ?? this;
   }
   get length() {
-    return this.tail >= this.head ? this.tail - this.head : this.array.length - this.head + this.tail;
+    return this.tail >= this.head ? this.empty ? 0 : this.tail - this.head || this.size : this.array.length - this.head + this.tail;
   }
   isEmpty() {
-    return this.tail === this.head;
+    return this.empty;
   }
   isFull() {
-    return (this.tail + 1 & this.mask) === this.head;
+    return this.tail === this.head && !this.empty;
   }
   peek(index = 0) {
-    return index === 0 ? this.array[this.head] : this.array[this.tail - 1 & this.mask];
+    return index >= 0 ? this.array[this.head + index & this.mask] : this.array[this.tail + index & this.mask];
   }
   push(value) {
     this.array[this.tail] = value;
     this.tail = this.tail + 1 & this.mask;
+    this.empty = false;
   }
   pop() {
-    if (this.isEmpty()) return;
+    if (this.empty) return;
     const value = this.array[this.head];
     this.array[this.head] = undefined;
     this.head = this.head + 1 & this.mask;
+    // isEmptyの前倒し
+    this.empty = this.tail === this.head;
     return value;
   }
 }
@@ -3994,7 +4148,7 @@ exports.MultiQueue = MultiQueue;
 
 /***/ }),
 
-/***/ 8539:
+/***/ 2027:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -4004,8 +4158,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.Ring = void 0;
-const alias_1 = __webpack_require__(5807);
-const array_1 = __webpack_require__(8980);
+const alias_1 = __webpack_require__(5413);
+const array_1 = __webpack_require__(6876);
 const empty = Symbol('empty');
 const unempty = value => value === empty ? undefined : value;
 const space = Object.freeze(Array(100).fill(empty));
@@ -4176,7 +4330,7 @@ function prev(head, tail, length) {
 
 /***/ }),
 
-/***/ 7564:
+/***/ 7727:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -4186,9 +4340,9 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.router = void 0;
-const sequence_1 = __webpack_require__(4128);
-const function_1 = __webpack_require__(2300);
-const memoize_1 = __webpack_require__(276);
+const sequence_1 = __webpack_require__(4252);
+const function_1 = __webpack_require__(1825);
+const memoize_1 = __webpack_require__(6925);
 function router(config) {
   const {
     match
@@ -4429,7 +4583,7 @@ exports.router = router;
 
 /***/ }),
 
-/***/ 4128:
+/***/ 4252:
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -4457,11 +4611,11 @@ var __exportStar = this && this.__exportStar || function (m, exports) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-__exportStar(__webpack_require__(9136), exports);
+__exportStar(__webpack_require__(6276), exports);
 
 /***/ }),
 
-/***/ 528:
+/***/ 7345:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -4482,20 +4636,13 @@ class Stack {
     return this.array.length === 0;
   }
   peek(index = 0) {
-    const {
-      array
-    } = this;
-    return index === 0 ? array.at(-1) : array[0];
+    return index === 0 ? this.array.at(-1) : this.array[0];
   }
   push(value) {
     this.array.push(value);
   }
   pop() {
-    const {
-      array
-    } = this;
-    if (array.length === 0) return;
-    return array.pop();
+    return this.array.pop();
   }
   clear() {
     this.array = [];
@@ -4510,7 +4657,7 @@ exports.Stack = Stack;
 
 /***/ }),
 
-/***/ 6348:
+/***/ 7339:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -4521,16 +4668,15 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.Supervisor = void 0;
-__webpack_require__(8324);
-const alias_1 = __webpack_require__(5807);
-const chrono_1 = __webpack_require__(7820);
-const coroutine_1 = __webpack_require__(8228);
-const observer_1 = __webpack_require__(4468);
-const promise_1 = __webpack_require__(1324);
-const future_1 = __webpack_require__(4508);
-const function_1 = __webpack_require__(2300);
-const ring_1 = __webpack_require__(8539);
-const exception_1 = __webpack_require__(7908);
+const alias_1 = __webpack_require__(5413);
+const chrono_1 = __webpack_require__(9522);
+const coroutine_1 = __webpack_require__(8779);
+const observer_1 = __webpack_require__(5995);
+const promise_1 = __webpack_require__(8312);
+const future_1 = __webpack_require__(9998);
+const function_1 = __webpack_require__(1825);
+const ring_1 = __webpack_require__(2027);
+const exception_1 = __webpack_require__(6192);
 class Supervisor extends coroutine_1.Coroutine {
   static get instances() {
     return this.hasOwnProperty('$instances') ? this.$instances : this.$instances = new Set();
@@ -4576,16 +4722,16 @@ class Supervisor extends coroutine_1.Coroutine {
     this.available = true;
     this[_a] = {
       ask: () => {
-        throw new Error(`Spica: Supervisor: <${this.name}>: Cannot use coroutine port.`);
+        throw new Error(`Spica: Supervisor: <${this.name}>: Cannot use coroutine port`);
       },
       recv: () => {
-        throw new Error(`Spica: Supervisor: <${this.name}>: Cannot use coroutine port.`);
+        throw new Error(`Spica: Supervisor: <${this.name}>: Cannot use coroutine port`);
       },
       send: () => {
-        throw new Error(`Spica: Supervisor: <${this.name}>: Cannot use coroutine port.`);
+        throw new Error(`Spica: Supervisor: <${this.name}>: Cannot use coroutine port`);
       },
       connect: () => {
-        throw new Error(`Spica: Supervisor: <${this.name}>: Cannot use coroutine port.`);
+        throw new Error(`Spica: Supervisor: <${this.name}>: Cannot use coroutine port`);
       }
     };
     this.scheduled = false;
@@ -4593,7 +4739,7 @@ class Supervisor extends coroutine_1.Coroutine {
     this.messages = new ring_1.Ring();
     (0, alias_1.ObjectAssign)(this.settings, opts);
     this.name = this.settings.name;
-    if (this.constructor === Supervisor) throw new Error(`Spica: Supervisor: <${this.name}>: Cannot instantiate abstract classes.`);
+    if (this.constructor === Supervisor) throw new Error(`Spica: Supervisor: <${this.name}>: Cannot instantiate abstract classes`);
     this.constructor.instances.add(this);
   }
   destructor(reason) {
@@ -4625,7 +4771,7 @@ class Supervisor extends coroutine_1.Coroutine {
     };
   }
   throwErrorIfNotAvailable() {
-    if (!this.available) throw new Error(`Spica: Supervisor: <${this.name}>: Cannot use terminated supervisors.`);
+    if (!this.available) throw new Error(`Spica: Supervisor: <${this.name}>: Cannot use terminated supervisors`);
   }
   register(name, process, state) {
     state = state;
@@ -4678,7 +4824,7 @@ class Supervisor extends coroutine_1.Coroutine {
         exit: function_1.noop
       }, state);
     }
-    if (this.workers.has(name)) throw new Error(`Spica: Supervisor: <${this.name}/${name}>: Cannot register another process with tha same name.`);
+    if (this.workers.has(name)) throw new Error(`Spica: Supervisor: <${this.name}/${name}>: Cannot register another process with tha same name`);
     this.schedule();
     const worker = new Worker(name, process, state, this, () => void this.schedule(), this.constructor.standalone.has(process), this.$events, () => {
       this.workers.get(name) === worker && void this.workers.delete(name);
@@ -4701,7 +4847,7 @@ class Supervisor extends coroutine_1.Coroutine {
       const name = names[Symbol.iterator]().next().value;
       this.$events?.loss.emit([name], [name, param]);
       try {
-        callback(new Error(`Spica: Supervisor: <${this.name}>: Message overflowed.`), undefined);
+        callback(new Error(`Spica: Supervisor: <${this.name}>: Message overflowed`), undefined);
       } catch (reason) {
         (0, exception_1.causeAsyncException)(reason);
       }
@@ -4785,11 +4931,11 @@ class Supervisor extends coroutine_1.Coroutine {
       --len;
       timer && clearTimeout(timer);
       if (result) {
-        result.then(reply => void callback(undefined, reply), () => void callback(new Error(`Spica: Supervisor: <${this.name}>: Process failed.`), undefined));
+        result.then(reply => void callback(undefined, reply), () => void callback(new Error(`Spica: Supervisor: <${this.name}>: Process failed`), undefined));
       } else {
         this.$events?.loss.emit([name], [name, param]);
         try {
-          callback(new Error(`Spica: Supervisor: <${this.name}>: Message expired.`), undefined);
+          callback(new Error(`Spica: Supervisor: <${this.name}>: Message expired`), undefined);
         } catch (reason) {
           (0, exception_1.causeAsyncException)(reason);
         }
@@ -4888,7 +5034,7 @@ class Worker {
 
 /***/ }),
 
-/***/ 1432:
+/***/ 525:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -4898,8 +5044,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.cothrottle = exports.debounce = exports.throttle = void 0;
-const chrono_1 = __webpack_require__(7820);
-const exception_1 = __webpack_require__(7908);
+const chrono_1 = __webpack_require__(9522);
+const exception_1 = __webpack_require__(6192);
 function throttle(interval, callback, capacity = 1) {
   // Bug: Karma and TypeScript
   let timer = 0;
@@ -4974,7 +5120,7 @@ exports.cothrottle = cothrottle;
 
 /***/ }),
 
-/***/ 6968:
+/***/ 9152:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -4984,9 +5130,9 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.wait = exports.captureTimers = exports.setRepeatTimer = exports.setTimer = void 0;
-const list_1 = __webpack_require__(9756);
-const chrono_1 = __webpack_require__(7820);
-const function_1 = __webpack_require__(2300);
+const list_1 = __webpack_require__(4609);
+const chrono_1 = __webpack_require__(9522);
+const function_1 = __webpack_require__(1825);
 class Node extends list_1.List.Node {
   constructor(value) {
     super();
@@ -5005,7 +5151,7 @@ function template(repeat, cancellers) {
     }, timeout);
     const cancel = (0, function_1.singleton)(() => {
       clearTimeout(id);
-      node && cancellers?.delete(node);
+      cancellers && node && (node.next || node.prev || node === cancellers.head) && cancellers.delete(node);
       params && unhandler?.(params[0]);
     });
     const node = cancellers?.push(new Node(cancel));
@@ -5015,7 +5161,7 @@ function template(repeat, cancellers) {
     timer.group = () => template(repeat, new list_1.List());
   } else {
     timer.clear = () => {
-      while (cancellers.length) {
+      while (cancellers.length !== 0) {
         cancellers.shift().value();
       }
     };
@@ -5044,7 +5190,7 @@ exports.wait = wait;
 
 /***/ }),
 
-/***/ 8884:
+/***/ 108:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -5054,8 +5200,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.TLRU = void 0;
-const alias_1 = __webpack_require__(5807);
-const list_1 = __webpack_require__(9756);
+const alias_1 = __webpack_require__(5413);
+const clist_1 = __webpack_require__(6212);
 class Entry {
   constructor(key, value) {
     this.key = key;
@@ -5065,13 +5211,16 @@ class Entry {
   }
 }
 class TLRU {
-  constructor(capacity, step = 1, window = 0, retrial = true) {
+  constructor(capacity, demotion = 2, window = 0, retrial = true,
+  // ヒットにより前方が増えるためstep=100では不足する。
+  pure = demotion >= 100) {
     this.capacity = capacity;
-    this.step = step;
+    this.demotion = demotion;
     this.window = window;
     this.retrial = retrial;
+    this.pure = pure;
     this.dict = new Map();
-    this.list = new list_1.List();
+    this.list = new clist_1.List();
     this.handV = undefined;
     this.handG = undefined;
     this.count = 0;
@@ -5082,41 +5231,28 @@ class TLRU {
   get size() {
     return this.list.length;
   }
-  return() {
+  extend() {
     const {
       list
     } = this;
-    if (this.count !== -1 && this.handV !== undefined && this.handG !== list.last && this.handG !== undefined) {
-      if (this.count >= 0) {
-        // 1周できる
+    // 1周できる
 
-        //this.count = -max(max(list.length - this.count, 0) * this.step / 100 | 0, 1) - 1;
-        this.count = -(0, alias_1.max)(list.length * this.step / 100 | 0, list.length * this.window / 100 - this.count | 0, 1) - 1;
-      } else {
-        this.handG = this.handG.prev;
-      }
-    } else {
-      if (this.handV === list.head) {
-        this.handG = undefined;
-      }
-      if (this.handG === list.last) {
-        this.handG = this.handG.prev;
-      }
-      this.handV = list.last;
-      this.count = 0;
-    }
+    this.count = -(0, alias_1.max)(
+    //list.length * this.demotion / 100 / max(this.count / list.length * this.demotion, 1) | 0,
+    (list.length - this.count) * this.demotion / 100 | 0, list.length * this.window / 100 - this.count | 0, this.demotion && 1);
   }
   replace(key, value) {
     const {
       dict,
       list
     } = this;
-    if (this.handV === this.handG || this.handV === list.last) {
-      this.return();
+    this.handV ??= list.last;
+    if (this.handV === this.handG && this.count >= 0) {
+      this.extend();
     }
     // 非延命
-    if (this.count >= 0 || !this.retrial) {
-      const entry = this.handV ??= list.last;
+    if (this.count >= 0 || this.handV === list.last || !this.retrial) {
+      const entry = this.handV;
       dict.delete(entry.key);
       dict.set(key, entry);
       entry.key = key;
@@ -5137,19 +5273,27 @@ class TLRU {
         list.unshift(entry);
       }
       this.handV = entry;
-      this.handG = entry.prev;
+      this.handG = entry;
+    }
+    if (this.count < 0) {
+      this.handG = this.handG !== list.head ? this.handG.prev : undefined;
     }
     if (this.handV !== this.handG) {
       this.handV = this.handV.prev;
     }
-    ++this.count;
+    if (this.handV === list.last || this.count === -1) {
+      this.handV = list.last;
+      this.count = 0;
+    } else {
+      ++this.count;
+    }
   }
   evict() {
     const {
       list
     } = this;
-    if (list.length === 0) return;
-    const entry = this.handV ??= list.last;
+    const entry = this.handV ?? list.last;
+    if (entry === undefined) return;
     this.delete(entry.key);
     return [entry.key, entry.value];
   }
@@ -5163,7 +5307,11 @@ class TLRU {
     } else {
       const entry = new Entry(key, value);
       dict.set(key, entry);
-      if (this.handV !== undefined) {
+      if (this.pure && this.handG !== undefined) {
+        // 純粋なTLRUの検証用。
+        list.insert(entry, this.handG.next);
+      } else if (this.handV !== undefined) {
+        // 基本的にこのほうがヒット率が高い。
         list.insert(entry, this.handV.next);
       } else {
         list.unshift(entry);
@@ -5191,10 +5339,10 @@ class TLRU {
       return;
     }
     if (entry === this.handV) {
-      this.handV = this.handV !== list.head ? this.handV.prev : this.handV.next;
+      this.handV = this.handV.prev;
     }
     if (entry === this.handG) {
-      this.handG = this.handG !== list.head ? this.handG.prev : this.handG.next;
+      this.handG = this.handG.prev;
     }
   }
   get(key) {
@@ -5222,6 +5370,9 @@ class TLRU {
     } = this;
     const entry = dict.get(key);
     if (entry === undefined) return false;
+    if (entry === this.handG && entry === list.head) {
+      this.handG = undefined;
+    }
     this.escape(entry);
     list.delete(entry);
     return dict.delete(key);
@@ -5246,7 +5397,7 @@ exports.TLRU = TLRU;
 
 /***/ }),
 
-/***/ 1900:
+/***/ 8888:
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -5276,20 +5427,77 @@ var __exportStar = this && this.__exportStar || function (m, exports) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
+__exportStar(__webpack_require__(108), exports);
 /*
 真に最近性に基づく真のLRU。
 最近性には有参照間、無参照間、有無参照間の3つがある。
 LRUは有無参照間の最近性を喪失しClockは有参照間の最近性を喪失する。
 TLRUはすべての最近性を保持する。
-DWCより高速かつ堅牢で小さいキャッシュサイズに適している。
-パラメータを調整しやすくDWCより高ヒット率となることもある。
+パラメータを調整しやすく用途に合わせてヒット率を上げやすい。
+stepパラメータはヒットエントリを重み付けおよび保護しており
+demotion=100で重み付けと保護なしの純粋なTLRUを設定できる。
+windowパラメータでSLRU同様捕捉可能最小再利用距離を設定できるが
+降格区間内では捕捉可能再利用距離が半減しSLRUより短くなる。
+DWCより高速かつ堅牢でアプリケーションのインメモリキャッシュなどの
+極端に変化の大きいアクセスパターンにも適応する。
 
 */
-__exportStar(__webpack_require__(8884), exports);
+/*
+LRUとClockは偽の最近性に基づく誤ったアルゴリズムにより性能が大幅に低下する。
+真の最近性は偽の最近性よりも非常に優れている。
+
+エントリ間の最近性関係には使用済みと使用済み、使用済みと未使用、未使用と未使用の3種類がある。
+ただしLRUとClockは一部の最近性に違反する。真のLRUはすべての最近性を維持することにより
+LRUとClockよりも優れた性能を発揮する。
+
+LRUの根本的誤りは新しいエントリを最近使用されたと見なすことである。実際それがキャッシュ内で
+使用されたことはない。従って新しいエントリは実際に使用されたエントリの後ろに追加する必要がある。
+
+```
+Sequence: 1, 2, 3, 3, 2, 4
+
+LRU
+
+  MRU |4 2 3 1| LRU
+  Hit |0 1 1 0|
+        ^ Violation of the recency between used and unused.
+
+Clock
+
+  N-1 |4 3 2 1| 0
+  Hit |0 1 1 0|
+          ^ Violation of the recency between used and used.
+
+True LRU
+
+  MRU |2 3 4 1| LRU
+  Hit |1 1 0 0|
+        ^ ^ ^ Ideal recency(Recency-complete).
+```
+
+|Algorithm|Used-Used|Used-Unused|Unused-Unused|
+|:-------:|:-------:|:---------:|:-----------:|
+|LRU      |✓        |           |✓           |
+|Clock    |         |✓          |✓           |
+|True LRU |✓        |✓          |✓           |
+
+再利用距離と同様に未使用と使用済みの最近性には無限と有限の差があり差を埋める方法には
+様々な方法が考えられこの調整可能性はTrue LRUとClockにのみ存在しLRUには存在しない。
+
+True LRUにおけるLRUからの大幅な改善はすべてのアルゴリズムの改善の過半が未使用のエントリを
+偶然削除したことによるものを独自の改善として混同および錯覚したものであり各アルゴリズムの
+独自性による改善は小さいか半分に満たないことを示している。True LRUをLRUの代わりに真の
+ベースラインとすると他のアルゴリズムは特に汎用性においてあまり魅力的な性能を達成していない。
+
+なおClockはLRUの近似アルゴリズムとして知られているがLRUとClockは異なる種類の最近性に基づく
+アルゴリズムであるためClockは実際にはLRUの近似アルゴリズムではなく異なる種類の最近性に基づく
+まったく異なる最近性基準アルゴリズムである。
+
+*/
 
 /***/ }),
 
-/***/ 5696:
+/***/ 2871:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -5306,7 +5514,7 @@ exports.tuple = tuple;
 
 /***/ }),
 
-/***/ 8816:
+/***/ 113:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -5316,7 +5524,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.isPrimitive = exports.is = exports.type = void 0;
-const alias_1 = __webpack_require__(5807);
+const alias_1 = __webpack_require__(5413);
 const ObjectPrototype = Object.prototype;
 const ArrayPrototype = Array.prototype;
 function type(value) {
@@ -5368,7 +5576,7 @@ exports.isPrimitive = isPrimitive;
 
 /***/ }),
 
-/***/ 3800:
+/***/ 1904:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -5378,15 +5586,15 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.URL = exports.ReadonlyURL = exports.standardize = void 0;
-const internal_1 = __webpack_require__(7568);
-var internal_2 = __webpack_require__(7568);
+const internal_1 = __webpack_require__(1094);
+var internal_2 = __webpack_require__(1094);
 Object.defineProperty(exports, "standardize", ({
   enumerable: true,
   get: function () {
     return internal_2.standardize;
   }
 }));
-var internal_3 = __webpack_require__(7568);
+var internal_3 = __webpack_require__(1094);
 Object.defineProperty(exports, "ReadonlyURL", ({
   enumerable: true,
   get: function () {
@@ -5466,7 +5674,7 @@ exports.URL = URL;
 
 /***/ }),
 
-/***/ 7568:
+/***/ 1094:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -5476,9 +5684,9 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.ReadonlyURL = exports.encode = exports.standardize = void 0;
-__webpack_require__(8324);
-const memoize_1 = __webpack_require__(276);
-const tlru_1 = __webpack_require__(1900);
+__webpack_require__(518);
+const memoize_1 = __webpack_require__(6925);
+const tlru_1 = __webpack_require__(8888);
 function standardize(url, base) {
   const {
     origin,
@@ -5619,7 +5827,7 @@ class ReadonlyURLSearchParams extends URLSearchParams {
 
 /***/ }),
 
-/***/ 6959:
+/***/ 2076:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -5629,7 +5837,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.FakeXMLHttpRequest = exports["default"] = exports.Pjax = void 0;
-var gui_1 = __webpack_require__(6060);
+var gui_1 = __webpack_require__(9869);
 Object.defineProperty(exports, "Pjax", ({
   enumerable: true,
   get: function () {
@@ -5642,7 +5850,7 @@ Object.defineProperty(exports, "default", ({
     return gui_1.GUI;
   }
 }));
-var xhr_1 = __webpack_require__(6916);
+var xhr_1 = __webpack_require__(3026);
 Object.defineProperty(exports, "FakeXMLHttpRequest", ({
   enumerable: true,
   get: function () {
@@ -5652,7 +5860,7 @@ Object.defineProperty(exports, "FakeXMLHttpRequest", ({
 
 /***/ }),
 
-/***/ 3788:
+/***/ 7430:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -5662,8 +5870,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.route = exports.scope = exports.Config = exports.RouterEventSource = exports.RouterEventType = exports.RouterEvent = void 0;
-const api_1 = __webpack_require__(4728);
-var router_1 = __webpack_require__(6435);
+const api_1 = __webpack_require__(8725);
+var router_1 = __webpack_require__(23);
 Object.defineProperty(exports, "RouterEvent", ({
   enumerable: true,
   get: function () {
@@ -5682,7 +5890,7 @@ Object.defineProperty(exports, "RouterEventSource", ({
     return router_1.RouterEventSource;
   }
 }));
-var config_1 = __webpack_require__(9376);
+var config_1 = __webpack_require__(8452);
 Object.defineProperty(exports, "Config", ({
   enumerable: true,
   get: function () {
@@ -5702,7 +5910,7 @@ exports.route = route;
 
 /***/ }),
 
-/***/ 6756:
+/***/ 8870:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -5712,7 +5920,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.savePosition = exports.loadTitle = void 0;
-var path_1 = __webpack_require__(5236);
+var path_1 = __webpack_require__(4226);
 Object.defineProperty(exports, "loadTitle", ({
   enumerable: true,
   get: function () {
@@ -5728,7 +5936,7 @@ Object.defineProperty(exports, "savePosition", ({
 
 /***/ }),
 
-/***/ 2540:
+/***/ 396:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -5786,7 +5994,7 @@ exports.savePjax = savePjax;
 
 /***/ }),
 
-/***/ 9376:
+/***/ 8452:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -5796,8 +6004,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.Config = exports.scope = void 0;
-const assign_1 = __webpack_require__(1368);
-var scope_1 = __webpack_require__(6920);
+const assign_1 = __webpack_require__(9888);
+var scope_1 = __webpack_require__(1531);
 Object.defineProperty(exports, "scope", ({
   enumerable: true,
   get: function () {
@@ -5877,7 +6085,7 @@ class Sequence {
 
 /***/ }),
 
-/***/ 6920:
+/***/ 1531:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -5887,10 +6095,10 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.scope = void 0;
-const config_1 = __webpack_require__(9376);
-const router_1 = __webpack_require__(7564);
-const maybe_1 = __webpack_require__(1792);
-const assign_1 = __webpack_require__(1368);
+const config_1 = __webpack_require__(8452);
+const router_1 = __webpack_require__(7727);
+const maybe_1 = __webpack_require__(6189);
+const assign_1 = __webpack_require__(9888);
 const {
   match
 } = router_1.router.helpers();
@@ -5922,7 +6130,7 @@ exports.scope = scope;
 
 /***/ }),
 
-/***/ 6435:
+/***/ 23:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -5932,9 +6140,9 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.RouterEventLocation = exports.RouterEventRequest = exports.RouterEventMethod = exports.RouterEventType = exports.RouterEventSource = exports.RouterEvent = void 0;
-const dom_1 = __webpack_require__(9800);
-const url_1 = __webpack_require__(3800);
-const listener_1 = __webpack_require__(5052);
+const dom_1 = __webpack_require__(3072);
+const url_1 = __webpack_require__(1904);
+const listener_1 = __webpack_require__(8400);
 class RouterEvent {
   constructor(original, base) {
     this.original = original;
@@ -6009,7 +6217,7 @@ exports.RouterEventLocation = RouterEventLocation;
 
 /***/ }),
 
-/***/ 4728:
+/***/ 8725:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -6019,12 +6227,12 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.route = exports.RouterEntityState = exports.RouterEntity = void 0;
-const fetch_1 = __webpack_require__(1764);
-const update_1 = __webpack_require__(132);
-const content_1 = __webpack_require__(7315);
-const path_1 = __webpack_require__(5236);
-const either_1 = __webpack_require__(652);
-var entity_1 = __webpack_require__(3108);
+const fetch_1 = __webpack_require__(8950);
+const update_1 = __webpack_require__(1073);
+const content_1 = __webpack_require__(7747);
+const path_1 = __webpack_require__(4226);
+const either_1 = __webpack_require__(7704);
+var entity_1 = __webpack_require__(7293);
 Object.defineProperty(exports, "RouterEntity", ({
   enumerable: true,
   get: function () {
@@ -6053,7 +6261,7 @@ exports.route = route;
 
 /***/ }),
 
-/***/ 3108:
+/***/ 7293:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -6083,7 +6291,7 @@ exports.RouterEntityState = RouterEntityState;
 
 /***/ }),
 
-/***/ 8516:
+/***/ 5474:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -6093,8 +6301,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.Response = void 0;
-const html_1 = __webpack_require__(6744);
-const url_1 = __webpack_require__(3800);
+const html_1 = __webpack_require__(6135);
+const url_1 = __webpack_require__(1904);
 class Response {
   constructor(url, xhr) {
     this.url = url;
@@ -6116,7 +6324,7 @@ exports.Response = Response;
 
 /***/ }),
 
-/***/ 1764:
+/***/ 8950:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -6126,9 +6334,9 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.fetch = void 0;
-const router_1 = __webpack_require__(6435);
-const xhr_1 = __webpack_require__(4416);
-const timer_1 = __webpack_require__(6968);
+const router_1 = __webpack_require__(23);
+const xhr_1 = __webpack_require__(4991);
+const timer_1 = __webpack_require__(9152);
 async function fetch({
   event,
   config,
@@ -6152,7 +6360,7 @@ exports.fetch = fetch;
 
 /***/ }),
 
-/***/ 4416:
+/***/ 4991:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -6162,11 +6370,11 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.match_ = exports.xhr = void 0;
-const fetch_1 = __webpack_require__(8516);
-const promise_1 = __webpack_require__(1324);
-const either_1 = __webpack_require__(652);
-const url_1 = __webpack_require__(3800);
-const function_1 = __webpack_require__(2300);
+const fetch_1 = __webpack_require__(5474);
+const promise_1 = __webpack_require__(8312);
+const either_1 = __webpack_require__(7704);
+const url_1 = __webpack_require__(1904);
+const function_1 = __webpack_require__(1825);
 function xhr(method, displayURL, base, headers, body, timeout, cancellation, rewrite = function_1.noop, memory) {
   return new promise_1.AtomicPromise(resolve => {
     const xhr = rewrite(displayURL.href, method, headers, timeout, body, memory) ?? request(displayURL.href, method, headers, timeout, body);
@@ -6241,7 +6449,7 @@ exports.match_ = match;
 
 /***/ }),
 
-/***/ 132:
+/***/ 1073:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -6251,20 +6459,20 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.update = void 0;
-const router_1 = __webpack_require__(6435);
-const blur_1 = __webpack_require__(3168);
-const url_1 = __webpack_require__(2468);
-const title_1 = __webpack_require__(4752);
-const head_1 = __webpack_require__(8768);
-const content_1 = __webpack_require__(7315);
-const css_1 = __webpack_require__(3396);
-const script_1 = __webpack_require__(7764);
-const focus_1 = __webpack_require__(3148);
-const scroll_1 = __webpack_require__(1284);
-const path_1 = __webpack_require__(5236);
-const promise_1 = __webpack_require__(1324);
-const either_1 = __webpack_require__(652);
-const hlist_1 = __webpack_require__(3592);
+const router_1 = __webpack_require__(23);
+const blur_1 = __webpack_require__(2289);
+const url_1 = __webpack_require__(6255);
+const title_1 = __webpack_require__(4440);
+const head_1 = __webpack_require__(8274);
+const content_1 = __webpack_require__(7747);
+const css_1 = __webpack_require__(8697);
+const script_1 = __webpack_require__(1883);
+const focus_1 = __webpack_require__(1938);
+const scroll_1 = __webpack_require__(8949);
+const path_1 = __webpack_require__(4226);
+const promise_1 = __webpack_require__(8312);
+const either_1 = __webpack_require__(7704);
+const hlist_1 = __webpack_require__(8553);
 function update({
   event,
   config,
@@ -6316,7 +6524,7 @@ exports.update = update;
 
 /***/ }),
 
-/***/ 3168:
+/***/ 2289:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -6335,7 +6543,7 @@ exports.blur = blur;
 
 /***/ }),
 
-/***/ 7315:
+/***/ 7747:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -6345,12 +6553,12 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports._wait = exports._split = exports.separate = exports.content = void 0;
-const script_1 = __webpack_require__(7764);
-const promise_1 = __webpack_require__(1324);
-const maybe_1 = __webpack_require__(1792);
-const array_1 = __webpack_require__(8980);
-const query_1 = __webpack_require__(1632);
-const listener_1 = __webpack_require__(5052);
+const script_1 = __webpack_require__(1883);
+const promise_1 = __webpack_require__(8312);
+const maybe_1 = __webpack_require__(6189);
+const array_1 = __webpack_require__(6876);
+const query_1 = __webpack_require__(2282);
+const listener_1 = __webpack_require__(8400);
 function content(documents, areas, io = {
   replace: (src, dst) => void dst.parentNode.replaceChild(src, dst)
 }) {
@@ -6429,7 +6637,7 @@ exports._wait = wait;
 
 /***/ }),
 
-/***/ 3396:
+/***/ 8697:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -6439,7 +6647,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.css = void 0;
-const sync_1 = __webpack_require__(7164);
+const sync_1 = __webpack_require__(4907);
 function css(documents, ignore) {
   const selector = 'link[rel~="stylesheet"], style';
   return void ['head', 'body'].map(query => [documents.src.querySelector(query), documents.dst.querySelector(query)]).forEach(([src, dst]) => void (0, sync_1.sync)((0, sync_1.pair)(list(src), list(dst), (a, b) => a.outerHTML === b.outerHTML), dst));
@@ -6451,7 +6659,7 @@ exports.css = css;
 
 /***/ }),
 
-/***/ 3148:
+/***/ 1938:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -6461,7 +6669,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.focus = void 0;
-const router_1 = __webpack_require__(6435);
+const router_1 = __webpack_require__(23);
 function focus(type, document) {
   switch (type) {
     case router_1.RouterEventType.Click:
@@ -6477,7 +6685,7 @@ exports.focus = focus;
 
 /***/ }),
 
-/***/ 8768:
+/***/ 8274:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -6487,7 +6695,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.head = void 0;
-const sync_1 = __webpack_require__(7164);
+const sync_1 = __webpack_require__(4907);
 function head(documents, selector, ignore) {
   ignore += selector.includes('link') ? ', link[rel~="stylesheet"]' : '';
   return void (0, sync_1.sync)((0, sync_1.pair)(list(documents.src.head), list(documents.dst.head), (a, b) => a.outerHTML === b.outerHTML), documents.dst.head);
@@ -6499,7 +6707,7 @@ exports.head = head;
 
 /***/ }),
 
-/***/ 7764:
+/***/ 1883:
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -6540,14 +6748,14 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.escape = exports._evaluate = exports._fetch = exports.script = void 0;
-const error_1 = __webpack_require__(3976);
-const promise_1 = __webpack_require__(1324);
-const either_1 = __webpack_require__(652);
-const url_1 = __webpack_require__(3800);
-const array_1 = __webpack_require__(8980);
-const tuple_1 = __webpack_require__(5696);
-const timer_1 = __webpack_require__(6968);
-const dom_1 = __webpack_require__(8200);
+const error_1 = __webpack_require__(5986);
+const promise_1 = __webpack_require__(8312);
+const either_1 = __webpack_require__(7704);
+const url_1 = __webpack_require__(1904);
+const array_1 = __webpack_require__(6876);
+const tuple_1 = __webpack_require__(2871);
+const timer_1 = __webpack_require__(9152);
+const dom_1 = __webpack_require__(394);
 function script(documents, skip, selector, timeout, cancellation, io = {
   fetch,
   evaluate
@@ -6596,7 +6804,7 @@ function evaluate(script, code, log, skip, wait, cancellation) {
   function evaluate() {
     if (!cancellation.isAlive()) throw new error_1.FatalError('Expired');
     if (script.matches('[type="module"][src]')) {
-      return promise_1.AtomicPromise.resolve(Promise.resolve(`${script.src}`).then(s => __importStar(__webpack_require__(7520)(s)))).catch(reason => reason.message.startsWith('Failed to load ') && script.matches('[src][async]') ? retry(script).catch(() => promise_1.AtomicPromise.reject(reason)) : promise_1.AtomicPromise.reject(reason)).then(() => (script.dispatchEvent(new Event('load')), (0, either_1.Right)(script)), reason => (script.dispatchEvent(new Event('error')), (0, either_1.Left)(new error_1.FatalError(reason instanceof Error ? reason.message : reason + ''))));
+      return promise_1.AtomicPromise.resolve(Promise.resolve(`${script.src}`).then(s => __importStar(__webpack_require__(3911)(s)))).catch(reason => reason.message.startsWith('Failed to load ') && script.matches('[src][async]') ? retry(script).catch(() => promise_1.AtomicPromise.reject(reason)) : promise_1.AtomicPromise.reject(reason)).then(() => (script.dispatchEvent(new Event('load')), (0, either_1.Right)(script)), reason => (script.dispatchEvent(new Event('error')), (0, either_1.Left)(new error_1.FatalError(reason instanceof Error ? reason.message : reason + ''))));
     } else {
       try {
         if (skip.has(new url_1.URL((0, url_1.standardize)(window.location.href)).href)) throw new error_1.FatalError('Expired');
@@ -6639,7 +6847,7 @@ function retry(script) {
 
 /***/ }),
 
-/***/ 1284:
+/***/ 8949:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -6649,7 +6857,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports._hash = exports.scroll = void 0;
-const router_1 = __webpack_require__(6435);
+const router_1 = __webpack_require__(23);
 function scroll(type, document, env, io = {
   scrollToElement: el => void el.scrollIntoView(),
   scrollToPosition: ({
@@ -6691,7 +6899,7 @@ exports._hash = hash;
 
 /***/ }),
 
-/***/ 7164:
+/***/ 4907:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -6701,8 +6909,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.pair = exports.sync = void 0;
-const either_1 = __webpack_require__(652);
-const array_1 = __webpack_require__(8980);
+const either_1 = __webpack_require__(7704);
+const array_1 = __webpack_require__(6876);
 function sync(pairs, fallback, io = {
   before,
   remove
@@ -6734,7 +6942,7 @@ function remove(el) {
 
 /***/ }),
 
-/***/ 4752:
+/***/ 4440:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -6751,7 +6959,7 @@ exports.title = title;
 
 /***/ }),
 
-/***/ 2468:
+/***/ 6255:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -6761,8 +6969,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports._isReplaceable = exports._isRegisterable = exports.url = void 0;
-const router_1 = __webpack_require__(6435);
-const listener_1 = __webpack_require__(5052);
+const router_1 = __webpack_require__(23);
+const listener_1 = __webpack_require__(8400);
 // A part of the workaround to record the correct browser history.
 (0, listener_1.bind)(document, 'pjax:ready', () => void window.history.replaceState(window.history.state, window.document.title));
 function url(location, title, type, source, replaceable) {
@@ -6803,7 +7011,7 @@ exports._isReplaceable = isReplaceable;
 
 /***/ }),
 
-/***/ 5236:
+/***/ 4226:
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -6831,11 +7039,11 @@ var __exportStar = this && this.__exportStar || function (m, exports) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-__exportStar(__webpack_require__(2540), exports);
+__exportStar(__webpack_require__(396), exports);
 
 /***/ }),
 
-/***/ 588:
+/***/ 6345:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -6845,8 +7053,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.ClickView = void 0;
-const coroutine_1 = __webpack_require__(8228);
-const listener_1 = __webpack_require__(5052);
+const coroutine_1 = __webpack_require__(8779);
+const listener_1 = __webpack_require__(8400);
 class ClickView extends coroutine_1.Coroutine {
   constructor(document, selector, listener) {
     super(async function* () {
@@ -6864,7 +7072,7 @@ exports.ClickView = ClickView;
 
 /***/ }),
 
-/***/ 5016:
+/***/ 3515:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -6874,11 +7082,11 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.NavigationView = void 0;
-const page_1 = __webpack_require__(4872);
-const state_1 = __webpack_require__(2540);
-const coroutine_1 = __webpack_require__(8228);
-const url_1 = __webpack_require__(3800);
-const listener_1 = __webpack_require__(5052);
+const page_1 = __webpack_require__(8533);
+const state_1 = __webpack_require__(396);
+const coroutine_1 = __webpack_require__(8779);
+const url_1 = __webpack_require__(1904);
+const listener_1 = __webpack_require__(8400);
 class NavigationView extends coroutine_1.Coroutine {
   constructor(window, listener) {
     super(async function* () {
@@ -6897,7 +7105,7 @@ exports.NavigationView = NavigationView;
 
 /***/ }),
 
-/***/ 1596:
+/***/ 2920:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -6907,11 +7115,11 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.ScrollView = void 0;
-const page_1 = __webpack_require__(4872);
-const coroutine_1 = __webpack_require__(8228);
-const url_1 = __webpack_require__(3800);
-const throttle_1 = __webpack_require__(1432);
-const listener_1 = __webpack_require__(5052);
+const page_1 = __webpack_require__(8533);
+const coroutine_1 = __webpack_require__(8779);
+const url_1 = __webpack_require__(1904);
+const throttle_1 = __webpack_require__(525);
+const listener_1 = __webpack_require__(8400);
 class ScrollView extends coroutine_1.Coroutine {
   constructor(window, listener) {
     super(async function* () {
@@ -6930,7 +7138,7 @@ exports.ScrollView = ScrollView;
 
 /***/ }),
 
-/***/ 6544:
+/***/ 5801:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -6940,8 +7148,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.SubmitView = void 0;
-const coroutine_1 = __webpack_require__(8228);
-const listener_1 = __webpack_require__(5052);
+const coroutine_1 = __webpack_require__(8779);
+const listener_1 = __webpack_require__(8400);
 class SubmitView extends coroutine_1.Coroutine {
   constructor(document, selector, listener) {
     super(async function* () {
@@ -6958,7 +7166,7 @@ exports.SubmitView = SubmitView;
 
 /***/ }),
 
-/***/ 9788:
+/***/ 2442:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -6968,11 +7176,11 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.API = void 0;
-const router_1 = __webpack_require__(7152);
-const process_1 = __webpack_require__(9036);
-const page_1 = __webpack_require__(4872);
-const state_1 = __webpack_require__(2540);
-const listener_1 = __webpack_require__(5052);
+const router_1 = __webpack_require__(9465);
+const process_1 = __webpack_require__(8413);
+const page_1 = __webpack_require__(8533);
+const state_1 = __webpack_require__(396);
+const listener_1 = __webpack_require__(8400);
 class API {
   static assign(url, options, io = {
     document: window.document,
@@ -7020,7 +7228,7 @@ function click(url, callback) {
 
 /***/ }),
 
-/***/ 6060:
+/***/ 9869:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -7030,18 +7238,18 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.GUI = void 0;
-const api_1 = __webpack_require__(9788);
-const click_1 = __webpack_require__(588);
-const submit_1 = __webpack_require__(6544);
-const navigation_1 = __webpack_require__(5016);
-const scroll_1 = __webpack_require__(1596);
-const router_1 = __webpack_require__(7152);
-const page_1 = __webpack_require__(4872);
-__webpack_require__(3827);
-const process_1 = __webpack_require__(9036);
-const store_1 = __webpack_require__(6756);
-const supervisor_1 = __webpack_require__(6348);
-const copropagator_1 = __webpack_require__(3512);
+const api_1 = __webpack_require__(2442);
+const click_1 = __webpack_require__(6345);
+const submit_1 = __webpack_require__(5801);
+const navigation_1 = __webpack_require__(3515);
+const scroll_1 = __webpack_require__(2920);
+const router_1 = __webpack_require__(9465);
+const page_1 = __webpack_require__(8533);
+__webpack_require__(7202);
+const process_1 = __webpack_require__(8413);
+const store_1 = __webpack_require__(8870);
+const supervisor_1 = __webpack_require__(7339);
+const copropagator_1 = __webpack_require__(7218);
 class GUI extends api_1.API {
   constructor(options, io = {
     document: window.document,
@@ -7073,7 +7281,7 @@ class View extends copropagator_1.Copropagator {
 
 /***/ }),
 
-/***/ 7152:
+/***/ 9465:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -7083,7 +7291,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports._validate = exports.route = exports.RouterEventSource = exports.RouterEvent = exports.Config = void 0;
-const router_1 = __webpack_require__(3788);
+const router_1 = __webpack_require__(7430);
 Object.defineProperty(exports, "Config", ({
   enumerable: true,
   get: function () {
@@ -7102,14 +7310,14 @@ Object.defineProperty(exports, "RouterEventSource", ({
     return router_1.RouterEventSource;
   }
 }));
-const page_1 = __webpack_require__(4872);
-const env_1 = __webpack_require__(8240);
-const error_1 = __webpack_require__(3976);
-const store_1 = __webpack_require__(6756);
-const url_1 = __webpack_require__(3800);
-const cancellation_1 = __webpack_require__(6224);
-const maybe_1 = __webpack_require__(1792);
-const promise_1 = __webpack_require__(1324);
+const page_1 = __webpack_require__(8533);
+const env_1 = __webpack_require__(5131);
+const error_1 = __webpack_require__(5986);
+const store_1 = __webpack_require__(8870);
+const url_1 = __webpack_require__(1904);
+const cancellation_1 = __webpack_require__(3669);
+const maybe_1 = __webpack_require__(6189);
+const promise_1 = __webpack_require__(8312);
 function route(config, event, process, io) {
   switch (event.type) {
     case router_1.RouterEventType.Click:
@@ -7211,7 +7419,7 @@ function isHashChange(dest) {
 
 /***/ }),
 
-/***/ 8240:
+/***/ 5131:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -7221,12 +7429,12 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.env = void 0;
-const script_1 = __webpack_require__(3292);
+const script_1 = __webpack_require__(8521);
 exports.env = Promise.all([script_1.scripts, new Promise(r => void setTimeout(r))]);
 
 /***/ }),
 
-/***/ 4872:
+/***/ 8533:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -7236,9 +7444,9 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.page = void 0;
-const state_1 = __webpack_require__(2540);
-const url_1 = __webpack_require__(3800);
-const listener_1 = __webpack_require__(5052);
+const state_1 = __webpack_require__(396);
+const url_1 = __webpack_require__(1904);
+const listener_1 = __webpack_require__(8400);
 (0, listener_1.bind)(window, 'hashchange', () => void exports.page.sync(), true);
 (0, listener_1.bind)(window, 'popstate', () => (0, state_1.isTransitable)(exports.page.state) && (0, state_1.isTransitable)(window.history.state) || void exports.page.sync(), true);
 exports.page = new class {
@@ -7275,7 +7483,7 @@ exports.page = new class {
 
 /***/ }),
 
-/***/ 9036:
+/***/ 8413:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -7285,12 +7493,12 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.process = void 0;
-const supervisor_1 = __webpack_require__(6348);
+const supervisor_1 = __webpack_require__(7339);
 exports.process = new class extends supervisor_1.Supervisor {}();
 
 /***/ }),
 
-/***/ 3292:
+/***/ 8521:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -7300,15 +7508,15 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.scripts = void 0;
-const page_1 = __webpack_require__(4872);
-const url_1 = __webpack_require__(3800);
-const listener_1 = __webpack_require__(5052);
+const page_1 = __webpack_require__(8533);
+const url_1 = __webpack_require__(1904);
+const listener_1 = __webpack_require__(8400);
 exports.scripts = new Set();
 (0, listener_1.bind)(window, 'pjax:unload', () => void document.querySelectorAll('script[src]').forEach(script => void exports.scripts.add(new url_1.URL((0, url_1.standardize)(script.src, page_1.page.url.href)).href)));
 
 /***/ }),
 
-/***/ 3827:
+/***/ 7202:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -7317,8 +7525,8 @@ exports.scripts = new Set();
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-const state_1 = __webpack_require__(2540);
-const listener_1 = __webpack_require__(5052);
+const state_1 = __webpack_require__(396);
+const listener_1 = __webpack_require__(8400);
 // popstateイベントは事前に検知できないため事前設定
 if ((0, state_1.isTransitable)(window.history.state)) {
   window.history.scrollRestoration = 'manual';
@@ -7332,7 +7540,7 @@ if ((0, state_1.isTransitable)(window.history.state)) {
 
 /***/ }),
 
-/***/ 9800:
+/***/ 3072:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -7376,7 +7584,7 @@ exports.serialize = serialize;
 
 /***/ }),
 
-/***/ 3976:
+/***/ 5986:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -7396,7 +7604,7 @@ FatalError.prototype.name = 'FatalError';
 
 /***/ }),
 
-/***/ 6744:
+/***/ 6135:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -7406,8 +7614,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.fix = exports.parse = void 0;
-const maybe_1 = __webpack_require__(1792);
-const either_1 = __webpack_require__(652);
+const maybe_1 = __webpack_require__(6189);
+const either_1 = __webpack_require__(7704);
 exports.parse = [parseByDOM, parseByDoc].reduce((m, f) => m.bind(() => test(f) ? (0, either_1.Left)(f) : m), (0, either_1.Right)(() => maybe_1.Nothing)).extract(f => html => (0, maybe_1.Just)(f(html)));
 function parseByDOM(html) {
   const document = new DOMParser().parseFromString(html, 'text/html');
@@ -7472,7 +7680,7 @@ function test(parser) {
 
 /***/ }),
 
-/***/ 6916:
+/***/ 3026:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -7482,8 +7690,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.FakeXMLHttpRequest = void 0;
-const promise_1 = __webpack_require__(1324);
-const chrono_1 = __webpack_require__(7820);
+const promise_1 = __webpack_require__(8312);
+const chrono_1 = __webpack_require__(9522);
 class FakeXMLHttpRequest extends XMLHttpRequest {
   static create(url, response) {
     const xhr = new FakeXMLHttpRequest();
@@ -7580,10 +7788,10 @@ exports.FakeXMLHttpRequest = FakeXMLHttpRequest;
 
 /***/ }),
 
-/***/ 8200:
+/***/ 394:
 /***/ (function(module) {
 
-/*! typed-dom v0.0.348 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
+/*! typed-dom v0.0.349 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(true)
 		module.exports = factory();
@@ -7593,7 +7801,7 @@ return /******/ (() => { // webpackBootstrap
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 5406:
+/***/ 5413:
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -7616,7 +7824,7 @@ exports.ObjectSetPrototypeOf = Object.setPrototypeOf;
 
 /***/ }),
 
-/***/ 5529:
+/***/ 1934:
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -7632,7 +7840,7 @@ exports.equal = equal;
 
 /***/ }),
 
-/***/ 1808:
+/***/ 6925:
 /***/ ((__unused_webpack_module, exports, __nested_webpack_require_3150__) => {
 
 
@@ -7641,8 +7849,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.reduce = exports.memoize = void 0;
-const alias_1 = __nested_webpack_require_3150__(5406);
-const compare_1 = __nested_webpack_require_3150__(5529);
+const alias_1 = __nested_webpack_require_3150__(5413);
+const compare_1 = __nested_webpack_require_3150__(1934);
 function memoize(f, identify, memory) {
   if (typeof identify === 'object') {
     memory = identify;
@@ -7709,7 +7917,7 @@ exports.reduce = reduce;
 
 /***/ }),
 
-/***/ 7521:
+/***/ 5761:
 /***/ ((__unused_webpack_module, exports, __nested_webpack_require_5013__) => {
 
 
@@ -7718,8 +7926,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.defrag = exports.prepend = exports.append = exports.isChildren = exports.define = exports.element = exports.text = exports.math = exports.svg = exports.html = exports.frag = exports.shadow = void 0;
-const alias_1 = __nested_webpack_require_5013__(5406);
-const memoize_1 = __nested_webpack_require_5013__(1808);
+const alias_1 = __nested_webpack_require_5013__(5413);
+const memoize_1 = __nested_webpack_require_5013__(6925);
 var caches;
 (function (caches) {
   // Closed only.
@@ -7939,7 +8147,7 @@ exports.defrag = defrag;
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __nested_webpack_exports__ = __nested_webpack_require_12534__(7521);
+/******/ 	var __nested_webpack_exports__ = __nested_webpack_require_12534__(5761);
 /******/ 	
 /******/ 	return __nested_webpack_exports__;
 /******/ })()
@@ -7948,10 +8156,10 @@ exports.defrag = defrag;
 
 /***/ }),
 
-/***/ 5052:
+/***/ 8400:
 /***/ (function(module) {
 
-/*! typed-dom v0.0.348 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
+/*! typed-dom v0.0.349 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(true)
 		module.exports = factory();
@@ -7961,7 +8169,7 @@ return /******/ (() => { // webpackBootstrap
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 5406:
+/***/ 5413:
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -7984,7 +8192,7 @@ exports.ObjectSetPrototypeOf = Object.setPrototypeOf;
 
 /***/ }),
 
-/***/ 6288:
+/***/ 1825:
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -8023,7 +8231,7 @@ exports.noop = noop;
 
 /***/ }),
 
-/***/ 4879:
+/***/ 8312:
 /***/ ((__unused_webpack_module, exports, __nested_webpack_require_3631__) => {
 
 
@@ -8033,8 +8241,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.never = exports.isPromiseLike = exports.Internal = exports.AtomicPromise = exports.internal = void 0;
-const alias_1 = __nested_webpack_require_3631__(5406);
-const function_1 = __nested_webpack_require_3631__(6288);
+const alias_1 = __nested_webpack_require_3631__(5413);
+const function_1 = __nested_webpack_require_3631__(1825);
 exports.internal = Symbol.for('spica/promise::internal');
 class AtomicPromise {
   static get [(_a = Symbol.toStringTag, Symbol.species)]() {
@@ -8247,7 +8455,6 @@ class Internal {
   isPending() {
     return this.status.state === 0 /* State.pending */;
   }
-
   resolve(value) {
     if (!this.isPending()) return;
     if (!isPromiseLike(value)) {
@@ -8360,7 +8567,7 @@ function call(internal, state, procedure, param) {
   }
 }
 function isPromiseLike(value) {
-  return value != null && typeof value === 'object' && typeof value.then === 'function';
+  return value != null && typeof value === 'object' && 'then' in value && typeof value.then === 'function';
 }
 exports.isPromiseLike = isPromiseLike;
 function isAtomicPromiseLike(value) {
@@ -8386,8 +8593,8 @@ exports.never = new class Never extends Promise {
 
 /***/ }),
 
-/***/ 7251:
-/***/ ((__unused_webpack_module, exports, __nested_webpack_require_13427__) => {
+/***/ 1365:
+/***/ ((__unused_webpack_module, exports, __nested_webpack_require_13445__) => {
 
 
 
@@ -8395,9 +8602,9 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.bind = exports.delegate = exports.once = exports.listen = exports.currentTarget = void 0;
-const alias_1 = __nested_webpack_require_13427__(5406);
-const promise_1 = __nested_webpack_require_13427__(4879);
-const function_1 = __nested_webpack_require_13427__(6288);
+const alias_1 = __nested_webpack_require_13445__(5413);
+const promise_1 = __nested_webpack_require_13445__(8312);
+const function_1 = __nested_webpack_require_13445__(1825);
 exports.currentTarget = Symbol.for('typed-dom::currentTarget');
 function listen(target, selector, type, listener, option) {
   return typeof type === 'string' ? delegate(target, selector, type, listener, option) : bind(target, selector, type, listener);
@@ -8491,7 +8698,7 @@ exports.bind = bind;
 /******/ 	var __webpack_module_cache__ = {};
 /******/ 	
 /******/ 	// The require function
-/******/ 	function __nested_webpack_require_16517__(moduleId) {
+/******/ 	function __nested_webpack_require_16535__(moduleId) {
 /******/ 		// Check if module is in cache
 /******/ 		var cachedModule = __webpack_module_cache__[moduleId];
 /******/ 		if (cachedModule !== undefined) {
@@ -8505,7 +8712,7 @@ exports.bind = bind;
 /******/ 		};
 /******/ 	
 /******/ 		// Execute the module function
-/******/ 		__webpack_modules__[moduleId](module, module.exports, __nested_webpack_require_16517__);
+/******/ 		__webpack_modules__[moduleId](module, module.exports, __nested_webpack_require_16535__);
 /******/ 	
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
@@ -8516,7 +8723,7 @@ exports.bind = bind;
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __nested_webpack_exports__ = __nested_webpack_require_16517__(7251);
+/******/ 	var __nested_webpack_exports__ = __nested_webpack_require_16535__(1365);
 /******/ 	
 /******/ 	return __nested_webpack_exports__;
 /******/ })()
@@ -8525,10 +8732,10 @@ exports.bind = bind;
 
 /***/ }),
 
-/***/ 1632:
+/***/ 2282:
 /***/ (function(module) {
 
-/*! typed-dom v0.0.348 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
+/*! typed-dom v0.0.349 https://github.com/falsandtru/typed-dom | (c) 2016, falsandtru | (Apache-2.0 AND MPL-2.0) License */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(true)
 		module.exports = factory();
@@ -8578,7 +8785,7 @@ exports.querySelectorAll = querySelectorAll;
 
 /***/ }),
 
-/***/ 7520:
+/***/ 3911:
 /***/ ((module) => {
 
 function webpackEmptyContext(req) {
@@ -8588,7 +8795,7 @@ function webpackEmptyContext(req) {
 }
 webpackEmptyContext.keys = () => ([]);
 webpackEmptyContext.resolve = webpackEmptyContext;
-webpackEmptyContext.id = 7520;
+webpackEmptyContext.id = 3911;
 module.exports = webpackEmptyContext;
 
 /***/ })
@@ -8642,7 +8849,7 @@ module.exports = webpackEmptyContext;
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __webpack_require__(8207);
+/******/ 	var __webpack_exports__ = __webpack_require__(8257);
 /******/ 	
 /******/ 	return __webpack_exports__;
 /******/ })()
