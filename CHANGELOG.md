@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.44.1
+
+- Fix type errors in dependencies.
+
 ## 3.44.0
 
 - Change `logger` to `log` option.
