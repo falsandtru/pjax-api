@@ -1,6 +1,7 @@
 # PJAX
 
 ![CI](https://github.com/falsandtru/pjax-api/workflows/CI/badge.svg)
+[![](https://data.jsdelivr.com/v1/package/npm/pjax-api/badge)](https://www.jsdelivr.com/package/npm/pjax-api)
 
 The advanced PJAX superior to SPA.
 
